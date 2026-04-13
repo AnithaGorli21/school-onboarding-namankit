@@ -1,0 +1,62 @@
+/* ============================================================
+   global.css  —  Exact pixel-match to Tribal Dev Dept UI
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── Header ── */
+  --header-grad-left:  #0e8080;
+  --header-grad-right: #16b8a0;
+
+  /* ── Tabs ── */
+  --tab-active-bg:     #2a9090;
+  --tab-active-color:  #ffffff;
+  --tab-inactive:      #333333;
+
+  /* ── Page / Card ── */
+  --page-bg:  #f0f4f5;
+  --card-bg:  #ffffff;
+
+  /* ── Form fields ── (matches exact browser-default look of original) */
+  --input-border:        #cccccc;
+  --input-border-focus:  #2a9090;
+  --input-bg:            #ffffff;
+  --input-disabled-bg:   #f5f5f5;
+  --input-text:          #333333;
+  --label-color:         #333333;
+  --required-color:      #cc0000;   /* red asterisk */
+
+  /* ── Section heading ── */
+  --section-border: #cccccc;
+
+  /* ── Table ── */
+  --table-header-bg:  #f5f5f5;
+  --table-border:     #dddddd;
+
+  /* ── Buttons (exact colours from original) ── */
+  --btn-save-bg:   #5cb85c;   /* Bootstrap success green */
+  --btn-reset-bg:  #f0ad4e;   /* Bootstrap warning orange */
+  --btn-back-bg:   #5bc0de;   /* Bootstrap info cyan */
+  --btn-add-bg:    #5bc0de;
+
+  /* ── Typography ── */
+  --font-main:       'Roboto', 'Segoe UI', Arial, sans-serif;
+  --font-size-base:  13px;
+  --font-size-label: 13px;
+  --font-size-section: 15px;
+}
+
+body {
+  font-family: var(--font-main);
+  font-size: var(--font-size-base);
+  color: var(--input-text);
+  background: var(--page-bg);
+  line-height: 1.5;
+}
+
+/* Utility classes */
+.req        { color: var(--required-color); margin-left: 2px; }
+.error-text { color: var(--required-color); font-size: 11px; margin-top: 3px; display: block; }
