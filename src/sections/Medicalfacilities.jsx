@@ -5,20 +5,55 @@ import { useState } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 
+const CSS = `
+ /* ================================
+   Global Styles
+================================ */
+
+body {
+  font-family: var(--font-main, Arial, sans-serif);
+  background: #f5f7f7;
+}
+
+/* ================================
+   Buttons
+================================ */
+
+.pfm-actions {
+  margin-top: 12px;
+}
+
+.pfm-save-btn {
+  background-color: #2e9e5b;
+  color: #ffffff;
+  border: 1px solid #2e9e5b;
+  padding: 6px 16px;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pfm-save-btn:hover {
+  background-color: #25874d;
+  border-color: #25874d;
+}
+
+.pfm-save-btn:disabled {
+  background-color: #a5d6b8;
+  border-color: #a5d6b8;
+  cursor: not-allowed;
+}
+`;
+
 const YES_NO = ["Yes", "No"];
+const TIME = ["Full Time", "Part Time", "Not Available"]
 
 const emptyForm = {
-  firstAidBox: "", medicalRoomAvailable: "",
-  doctorVisit: "", doctorVisitFrequency: "",
-  nurseAvailable: "", nurseName: "", nurseMobile: "",
-  annualHealthCheckup: "", dentalCheckup: "", eyeCheckup: "",
-  weighingMachine: "", heightMeasurement: "",
-  deworming: "", ironFolicSupplementation: "",
-  midDayMeal: "", midDayMealType: "",
-  cleanToilets: "", separateToiletGirls: "",
-  handwashFacility: "", sanitizerAvailable: "",
-  medicalRemark: "",
+  AvailabilityofMedicalSickRoom: "", AvailabilityofDoctorsinSchool : "", 
+  NumberofDoctors : "", NumberofNurse: "", NumberofAmbulance: ""
 };
+
 
 export default function MedicalFacilities({ onTabChange }) {
   const [form, setForm] = useState(emptyForm);
@@ -49,95 +84,59 @@ export default function MedicalFacilities({ onTabChange }) {
 
       <SectionHeading title="Medical Facilities" />
 
-      <Row3>
-        <Field label="First Aid Box Available" required>
-          <SelectInput value={form.firstAidBox} onChange={set("firstAidBox")} options={YES_NO} />
-        </Field>
-        <Field label="Medical Room Available" required>
-          <SelectInput value={form.medicalRoomAvailable} onChange={set("medicalRoomAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Doctor Visit Arranged" required>
-          <SelectInput value={form.doctorVisit} onChange={set("doctorVisit")} options={YES_NO} />
-        </Field>
-      </Row3>
+     <Row3>
+  <Field label="Availability of Medical/Sick Room" required>
+    <SelectInput
+      value={form.AvailabilityofMedicalSickRoom}
+      onChange={set("AvailabilityofMedicalSickRoom")}
+      options={YES_NO}
+    />
+  </Field>
 
-      <Row3>
-        <Field label="Doctor Visit Frequency">
-          <SelectInput value={form.doctorVisitFrequency} onChange={set("doctorVisitFrequency")}
-            options={["Weekly","Fortnightly","Monthly","Quarterly","Yearly"]}
-            disabled={form.doctorVisit !== "Yes"} />
-        </Field>
-        <Field label="Nurse Available" required>
-          <SelectInput value={form.nurseAvailable} onChange={set("nurseAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Nurse Name">
-          <TextInput value={form.nurseName} onChange={set("nurseName")}
-            disabled={form.nurseAvailable !== "Yes"} />
-        </Field>
-      </Row3>
+  <Field label="Availability of Doctors in School" required>
+    <SelectInput
+      value={form.AvailabilityofDoctorsinSchool}
+      onChange={set("AvailabilityofDoctorsinSchool")}
+      options={TIME}
+    />
+  </Field>
 
-      <Row3>
-        <Field label="Nurse Mobile">
-          <TextInput value={form.nurseMobile} onChange={set("nurseMobile")} type="tel"
-            disabled={form.nurseAvailable !== "Yes"} />
-        </Field>
-        <Field label="Annual Health Checkup" required>
-          <SelectInput value={form.annualHealthCheckup} onChange={set("annualHealthCheckup")} options={YES_NO} />
-        </Field>
-        <Field label="Dental Checkup" required>
-          <SelectInput value={form.dentalCheckup} onChange={set("dentalCheckup")} options={YES_NO} />
-        </Field>
-      </Row3>
+  <Field label="Number of Doctors" required>
+    <TextInput
+      value={form.NumberofDoctors}
+      onChange={set("NumberofDoctors")}
+      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+    />
+  </Field>
 
-      <Row3>
-        <Field label="Eye Checkup" required>
-          <SelectInput value={form.eyeCheckup} onChange={set("eyeCheckup")} options={YES_NO} />
-        </Field>
-        <Field label="Weighing Machine Available" required>
-          <SelectInput value={form.weighingMachine} onChange={set("weighingMachine")} options={YES_NO} />
-        </Field>
-        <Field label="Height Measurement Available" required>
-          <SelectInput value={form.heightMeasurement} onChange={set("heightMeasurement")} options={YES_NO} />
-        </Field>
-      </Row3>
+  <Field label="Number of Nurse" required>
+    <TextInput
+      value={form.NumberofNurse}
+      onChange={set("NumberofNurse")}
+      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+    />
+  </Field>
 
-      <Row3>
-        <Field label="Deworming Done" required>
-          <SelectInput value={form.deworming} onChange={set("deworming")} options={YES_NO} />
-        </Field>
-        <Field label="Iron & Folic Acid Supplementation" required>
-          <SelectInput value={form.ironFolicSupplementation} onChange={set("ironFolicSupplementation")} options={YES_NO} />
-        </Field>
-        <Field label="Mid Day Meal Provided" required>
-          <SelectInput value={form.midDayMeal} onChange={set("midDayMeal")} options={YES_NO} />
-        </Field>
-      </Row3>
+  <Field label="Number of Ambulance" required>
+    <TextInput
+      value={form.NumberofAmbulance}
+      onChange={set("NumberofAmbulance")}
+      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+    />
+  </Field>
+</Row3>
+{/* ── Save ── */}
+<div className="pfm-actions">
+  <button
+    type="button"
+    className="pfm-save-btn"
+    onClick={handleSave}
+    disabled={saving}
+  >
+    {saving ? "Saving…" : "Save"}
+  </button>
+</div>
 
-      <Row3>
-        <Field label="Mid Day Meal Type">
-          <SelectInput value={form.midDayMealType} onChange={set("midDayMealType")}
-            options={["Cooked Meal","Dry Ration","Both"]}
-            disabled={form.midDayMeal !== "Yes"} />
-        </Field>
-        <Field label="Clean Toilets Available" required>
-          <SelectInput value={form.cleanToilets} onChange={set("cleanToilets")} options={YES_NO} />
-        </Field>
-        <Field label="Separate Toilet for Girls" required>
-          <SelectInput value={form.separateToiletGirls} onChange={set("separateToiletGirls")} options={YES_NO} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Hand Wash Facility" required>
-          <SelectInput value={form.handwashFacility} onChange={set("handwashFacility")} options={YES_NO} />
-        </Field>
-        <Field label="Sanitizer Available" required>
-          <SelectInput value={form.sanitizerAvailable} onChange={set("sanitizerAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Remark">
-          <TextInput value={form.medicalRemark} onChange={set("medicalRemark")} />
-        </Field>
-      </Row3>
 
     </SectionWrapper>
   );

@@ -1,6 +1,5 @@
 // ============================================================
 //  src/sections/SchoolProfile.jsx
-//  FIXED: State dropdown added before District
 //  Cascade: State → District → Taluka → Village → PO Name
 // ============================================================
 import { useEffect, useState } from "react";

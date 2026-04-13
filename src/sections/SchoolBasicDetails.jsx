@@ -4,69 +4,147 @@
 //  FIXED: white card matches original — full width, no grey sides
 // ============================================================
 import { useState } from "react";
-import SchoolProfile     from "./SchoolProfile";
-import SchoolIntake      from "./SchoolIntake";
+import SchoolProfile from "./SchoolProfile";
+import SchoolIntake from "./SchoolIntake";
 import SchoolPerformance from "./SchoolPerformance";
 import { Alert, BtnSave, BtnReset, BtnBack } from "../components/FormFields";
-import { validateSchoolProfile }             from "../utils/validate";
-import { saveSchoolBasicDetails }            from "../api/liferay";
+import { validateSchoolProfile } from "../utils/validate";
+import { saveSchoolBasicDetails } from "../api/liferay";
 
 const emptyProfile = {
-  trusteeName: "", schoolName: "", address: "", mobileNumber: "",
-  district: "", taluka: "", village: "", pincode: "", emailId: "",
-  poName: "", udiseCode: "", schoolSelectionYear: "",
+  trusteeName: "",
+  schoolName: "",
+  address: "",
+  mobileNumber: "",
+  district: "",
+  taluka: "",
+  village: "",
+  pincode: "",
+  emailId: "",
+  poName: "",
+  udiseCode: "",
+  schoolSelectionYear: "",
   schoolRegistrationNumber: "",
   schoolBoard: "",
-  sscBatchesCompletedCount: "", yearOfEstablishment: "",
-  isWebsiteAvailable: "", websiteLink: "", schoolAreaType: "",
+  sscBatchesCompletedCount: "",
+  yearOfEstablishment: "",
+  isWebsiteAvailable: "",
+  websiteLink: "",
+  schoolAreaType: "",
   toiletsPerFloorCount: "",
   state: "",
 };
 
 const emptyIntake = {
-  namankit_boys_residential: "", namankit_boys_nonresidential: "",
-  other_boys_residential: "", other_boys_nonresidential: "",
-  namankit_girls_residential: "", namankit_girls_nonresidential: "",
-  other_girls_residential: "", other_girls_nonresidential: "",
+  namankit_boys_residential: "",
+  namankit_boys_nonresidential: "",
+  other_boys_residential: "",
+  other_boys_nonresidential: "",
+  namankit_girls_residential: "",
+  namankit_girls_nonresidential: "",
+  other_girls_residential: "",
+  other_girls_nonresidential: "",
 };
 
 export default function SchoolBasicDetails({ onTabChange }) {
-  const [profile,  setProfile]  = useState(emptyProfile);
-  const [intake,   setIntake]   = useState(emptyIntake);
+  const [profile, setProfile] = useState(emptyProfile);
+  const [intake, setIntake] = useState(emptyIntake);
   const [perfRows, setPerfRows] = useState([]);
-  const [errors,   setErrors]   = useState({});
-  const [saving,   setSaving]   = useState(false);
-  const [alert,    setAlert]    = useState(null);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   const handleSave = async () => {
     const errs = validateSchoolProfile(profile);
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
-      setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+      setAlert({
+        type: "error",
+        message: "Please fix the highlighted errors before saving.",
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setSaving(true);
     setAlert(null);
     try {
+      // const payload = {
+      //   ...profile,
+      //   district:                 Number(profile.district)                 || null,
+      //   taluka:                   Number(profile.taluka)                   || null,
+      //   village:                  Number(profile.village)                  || null,
+      //   poName:                   Number(profile.poName)                   || null,
+      //   sscBatchesCompletedCount: Number(profile.sscBatchesCompletedCount) || 0,
+      //   yearOfEstablishment:      Number(profile.yearOfEstablishment)      || null,
+      //   toiletsPerFloorCount:     Number(profile.toiletsPerFloorCount)     || 0,
+      //   isWebsiteAvailable:       profile.isWebsiteAvailable === "Yes",
+      //   intakeData:               JSON.stringify(intake),
+      //   performanceData:          JSON.stringify(perfRows),
+      // };
+      
       const payload = {
-        ...profile,
-        district:                 Number(profile.district)                 || null,
-        taluka:                   Number(profile.taluka)                   || null,
-        village:                  Number(profile.village)                  || null,
-        poName:                   Number(profile.poName)                   || null,
-        sscBatchesCompletedCount: Number(profile.sscBatchesCompletedCount) || 0,
-        yearOfEstablishment:      Number(profile.yearOfEstablishment)      || null,
-        toiletsPerFloorCount:     Number(profile.toiletsPerFloorCount)     || 0,
-        isWebsiteAvailable:       profile.isWebsiteAvailable === "Yes",
-        intakeData:               JSON.stringify(intake),
-        performanceData:          JSON.stringify(perfRows),
+
+        //  Basic Info
+        trusteeName: profile.trusteeName || "",
+        schoolName: profile.schoolName || "",
+        address: profile.address || "",
+        emailId: profile.emailId || "",
+
+        // Mobile
+        mobileNumber: Number(profile.mobileNumber) || 0,
+        mobileNumberTrustee: profile.mobileNumber || "",
+        mobileNumberSchool: "",
+        mobileNumberPrincipal: "",
+
+        // Location
+        stateId: Number(profile.state) || 0,
+        districtId: Number(profile.district) || 0,
+        talukaId: Number(profile.taluka) || 0,
+        villageId: Number(profile.village) || 0,
+        pOName: profile.poName || "", // 
+        pincode: profile.pincode || "",
+
+        // School Details
+        schoolRegistrationNo: profile.schoolRegistrationNumber || "",
+        schoolSelectionYear: profile.schoolSelectionYear || "",
+        schoolBoardId: Number(profile.schoolBoard) || 0,
+        schoolFallsUnderWhichAreaId: Number(profile.schoolAreaType) || 0,
+
+        // Counts
+        totalNoOfSscBatchesCompleted:
+          Number(profile.sscBatchesCompletedCount) || 0,
+        noOfToiletsOnEachFloorInSchlBuilding:
+          Number(profile.toiletsPerFloorCount) || 0,
+
+        // Website
+        schoolWebsiteAvailable: profile.isWebsiteAvailable === "Yes",
+        websiteLink: profile.websiteLink || "",
+
+        //  Codes
+        udiseCode: profile.udiseCode || "",
+        primaryUDISECode: "",
+        secondaryUDISECode: "",
+        higherSecondaryUDISECode: "",
+
+        // Year
+        yearOfEstablishment: Number(profile.yearOfEstablishment) || 0,
+
+        // Optional
+        schoolMasterID: 0,
+        uploadSchoolPhoto: null,
       };
+      console.log(payload, "payload===================>")
       await saveSchoolBasicDetails(payload);
-      setAlert({ type: "success", message: "School Basic Details saved successfully!" });
+      setAlert({
+        type: "success",
+        message: "School Basic Details saved successfully!",
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setAlert({ type: "error", message: "Save failed — " + (err.message || "Please try again.") });
+      setAlert({
+        type: "error",
+        message: "Save failed — " + (err.message || "Please try again."),
+      });
     } finally {
       setSaving(false);
     }
@@ -83,9 +161,12 @@ export default function SchoolBasicDetails({ onTabChange }) {
   return (
     // Outer: light grey page bg — same as original
     <div style={{ padding: "16px 20px 32px" }}>
-
       {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
       )}
 
       {/* White content card — matches original: thin border, no big shadow */}
@@ -97,16 +178,23 @@ export default function SchoolBasicDetails({ onTabChange }) {
           padding: "18px 20px 22px",
         }}
       >
-        <SchoolProfile  form={profile}  setForm={setProfile}  errors={errors} />
-        <SchoolIntake   intake={intake} setIntake={setIntake} />
+        <SchoolProfile form={profile} setForm={setProfile} errors={errors} />
+        <SchoolIntake intake={intake} setIntake={setIntake} />
         <SchoolPerformance rows={perfRows} setRows={setPerfRows} />
       </div>
 
       {/* Buttons: right-aligned, matching original Save/Reset/Back */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 8,
+          marginTop: 12,
+        }}
+      >
         <BtnReset onClick={handleReset} />
-        <BtnBack  onClick={() => onTabChange && onTabChange("Final Submit")} />
-        <BtnSave  onClick={handleSave} disabled={saving}>
+        <BtnBack onClick={() => onTabChange && onTabChange("Final Submit")} />
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

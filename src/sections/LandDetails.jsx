@@ -1,5 +1,5 @@
 // ============================================================
-//  src/sections/LandDetails.jsx  — 100% exact UI match
+//  src/sections/LandDetails.jsx  
 // ============================================================
 import { useState } from "react";
 import {
