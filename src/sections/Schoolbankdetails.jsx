@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { Field, TextInput, SectionHeading } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
+import { saveSchoolBankDetails } from "../api/schoolbank"
 
 // ─── Inject responsive CSS once ───────────────────────────────────────────────
 const STYLE_ID = "school-bank-details-responsive";
@@ -199,11 +200,11 @@ function useInjectStyles() {
 // ─── Empty form ────────────────────────────────────────────────────────────────
 const emptyForm = {
   bankName: "",
-  bankbranchName: "",
-  bankifscCode: "",
-  bankaccountNumber: "",
-  bankbranchaddress: "",
-  Uploadcancelledchequeimage: null
+  bankBranchName: "",
+  bankIFSCCode: "",
+  bankAccountNo: "",
+  bankBranchAddress: "",
+  uploadCancelledChequeImage: null,
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -221,14 +222,22 @@ export default function SchoolBankDetails({ onTabChange }) {
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
+
     if (!form.bankName.trim()) e.bankName = "Required";
-    if (!form.bankbranchName.trim()) e.bankbranchName = "Required";
-    if (!form.bankifscCode.trim()) e.bankifscCode = "Required";
-    else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankifscCode.toUpperCase()))
-      e.bankifscCode = "Invalid IFSC format (e.g. SBIN0001234)";
-    if (!form.bankaccountNumber.trim()) e.bankaccountNumber = "Required";
-    if (!form.bankbranchaddress.trim()) e.bankbranchaddress = "Required";
-    if (!form.Uploadcancelledchequeimage) e.Uploadcancelledchequeimage = "Required";
+
+    if (!form.bankBranchName.trim()) e.bankBranchName = "Required";
+
+    if (!form.bankIFSCCode.trim()) e.bankIFSCCode = "Required";
+    else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
+      e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
+
+    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo = "Required";
+
+    if (!form.bankBranchAddress.trim()) e.bankBranchAddress = "Required";
+
+    if (!form.uploadCancelledChequeImage)
+      e.uploadCancelledChequeImage = "Required";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -244,37 +253,30 @@ export default function SchoolBankDetails({ onTabChange }) {
 
   // ── Save ────────────────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!validate()) {
-      setAlert({ type: "error", message: "Please fix the highlighted errors." });
-      return;
-    }
-    setSaving(true);
-    setAlert(null);
-    try {
-      let fileBase64 = "";
-      if (form.Uploadcancelledchequeimage)
-        fileBase64 = await toBase64(form.Uploadcancelledchequeimage);
+  if (!validate()) {
+    setAlert({
+      type: "error",
+      message: "Please fix the highlighted errors.",
+    });
+    return;
+  }
 
-      await fetch("/o/c/schoolbankdetails", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bankName: form.bankName,
-          bankbranchName: form.bankbranchName,
-          bankifscCode: form.bankifscCode,
-          bankaccountNumber: form.bankaccountNumber,
-          bankbranchaddress: form.bankbranchaddress,
-          Uploadcancelledchequeimage: fileBase64
-        })
-      });
-      setAlert({ type: "success", message: "School Bank Details saved successfully!" });
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally {
-      setSaving(false);
-    }
-  };
+  setSaving(true);
+  setAlert(null);
+
+  try {
+    await saveSchoolBankDetails(form);
+
+    setAlert({
+      type: "success",
+      message: "School Bank Details saved successfully!",
+    });
+  } catch (e) {
+    setAlert({ type: "error", message: "Save failed — " + e.message });
+  } finally {
+    setSaving(false);
+  }
+};
 
   // ── Reset ───────────────────────────────────────────────────────────────────
   const handleReset = () => {
@@ -297,7 +299,7 @@ export default function SchoolBankDetails({ onTabChange }) {
       window.alert("File size should be less than 2MB");
       return;
     }
-    setForm((p) => ({ ...p, Uploadcancelledchequeimage: file }));
+    setForm((p) => ({ ...p, uploadCancelledChequeImage: file }));
     if (file.type.startsWith("image/")) {
       setImagePreviewUrl(URL.createObjectURL(file));
     } else {
@@ -322,14 +324,17 @@ export default function SchoolBankDetails({ onTabChange }) {
           <TextInput value={form.bankName} onChange={set("bankName")} />
         </Field>
 
-        <Field label="Bank Branch Name" required error={errors.bankbranchName}>
-          <TextInput value={form.bankbranchName} onChange={set("bankbranchName")} />
+        <Field label="Bank Branch Name" required error={errors.bankBranchName}>
+          <TextInput
+            value={form.bankBranchName}
+            onChange={set("bankBranchName")}
+          />
         </Field>
 
-        <Field label="Bank IFSC Code" required error={errors.bankifscCode}>
+        <Field label="Bank IFSC Code" required error={errors.bankIFSCCode}>
           <TextInput
-            value={form.bankifscCode}
-            onChange={(v) => set("bankifscCode")(v.toUpperCase())}
+            value={form.bankIFSCCode}
+           onChange={(v) => set("bankIFSCCode")(v.toUpperCase())}
             placeholder="e.g. SBIN0001234"
           />
         </Field>
@@ -337,12 +342,26 @@ export default function SchoolBankDetails({ onTabChange }) {
 
       {/* ── Row 2: Account No | Branch Address ── */}
       <div className="sbd-row2">
-        <Field label="Bank Account No" required error={errors.bankaccountNumber}>
-          <TextInput value={form.bankaccountNumber} onChange={set("bankaccountNumber")} />
+        <Field
+          label="Bank Account No"
+          required
+          error={errors.bankAccountNo}
+        >
+          <TextInput
+            value={form.bankAccountNo}
+            onChange={set("bankAccountNo")}
+          />
         </Field>
 
-        <Field label="Bank Branch Address" required error={errors.bankbranchaddress}>
-          <TextInput value={form.bankbranchaddress} onChange={set("bankbranchaddress")} />
+        <Field
+          label="Bank Branch Address"
+          required
+         error={errors.bankBranchAddress}
+        >
+          <TextInput
+            value={form.bankBranchAddress}
+            onChange={set("bankBranchAddress")}
+          />
         </Field>
       </div>
 
@@ -351,7 +370,7 @@ export default function SchoolBankDetails({ onTabChange }) {
         <Field
           label="Upload Cancelled Cheque Image"
           required
-          error={errors.Uploadcancelledchequeimage}
+         error={errors.uploadCancelledChequeImage}
         >
           <div className="sbd-upload-inner">
             {/* File picker box */}
@@ -366,9 +385,9 @@ export default function SchoolBankDetails({ onTabChange }) {
                 />
               </label>
               <span className="sbd-filename">
-                {form.Uploadcancelledchequeimage
-                  ? form.Uploadcancelledchequeimage.name
-                  : "No file chosen"}
+                {form.uploadCancelledChequeImage
+  ? form.uploadCancelledChequeImage.name
+  : "No file chosen"}
               </span>
             </div>
 
@@ -377,9 +396,11 @@ export default function SchoolBankDetails({ onTabChange }) {
               type="button"
               className="sbd-open-btn"
               onClick={handleOpenImage}
-              disabled={!form.Uploadcancelledchequeimage}
+             disabled={!form.uploadCancelledChequeImage}
               style={{
-                background: form.Uploadcancelledchequeimage ? "#e5a020" : "#f0b84a"
+                background: form.uploadCancelledChequeImage
+                  ? "#e5a020"
+                  : "#f0b84a",
               }}
             >
               Open Image

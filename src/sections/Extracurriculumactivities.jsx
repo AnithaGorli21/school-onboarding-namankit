@@ -9,8 +9,8 @@ const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
   // Cultural
-  NCC_Sanctioned: "", Scout_Guide: "",
-  NSS: "", Other: "",
+  nccsanctioned: "", scoutguide: "",
+  nSS: "", otherCurriculumActivity: "",
 };
 
 export default function ExtraCurriculumActivities({ onTabChange }) {
@@ -42,19 +42,37 @@ export default function ExtraCurriculumActivities({ onTabChange }) {
 
       <SectionHeading title="Cultural Activities" />
       <Row3>
-        <Field label="NCC(Sanctioned)" required>
-          <SelectInput value={form.NCC_Sanctioned} onChange={set("NCC_Sanctioned")} options={YES_NO} />
-        </Field>
-        <Field label="Scout/Guide" required>
-          <SelectInput value={form.Scout_Guide} onChange={set("Scout_Guide")} options={YES_NO} />
-        </Field>
-        <Field label="NSS" required>
-          <SelectInput value={form.NSS} onChange={set("NSS")} options={YES_NO} />
-        </Field>
-        <Field label="Other">
-            <TextInput value={form.Other} onChange={set("Other")} />
-          </Field>
-      </Row3>
+  <Field label="NCC (Sanctioned)" required>
+    <SelectInput
+      value={form.nccsanctioned}
+      onChange={set("nccsanctioned")}
+      options={YES_NO}
+    />
+  </Field>
+
+  <Field label="Scout/Guide" required>
+    <SelectInput
+      value={form.scoutguide}
+      onChange={set("scoutguide")}
+      options={YES_NO}
+    />
+  </Field>
+
+  <Field label="NSS" required>
+    <SelectInput
+      value={form.nSS}
+      onChange={set("nSS")}
+      options={YES_NO}
+    />
+  </Field>
+
+  <Field label="Other">
+    <TextInput
+      value={form.otherCurriculumActivity}
+      onChange={set("otherCurriculumActivity")}
+    />
+  </Field>
+</Row3>
      
     </SectionWrapper>
   );

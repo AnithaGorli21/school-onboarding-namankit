@@ -50,17 +50,17 @@ const themeStyles = {
 };
 
 const emptyRow = {
-  teacherName: "",
+  name: "",
   highestQualification: "",
-  medium10th: "",
-  mediumDegree: "",
-  mediumProfessional: "", // For B.ed/D.ed
-  yearsExperience: "",
-  subject1: "",
-  subject2: "",
-  isSportsTeacher: false,
-  gender: "",
-  status: "", // Residential vs Non-Residential
+  mediumOfEducationTillStd10thId: "",
+  mediumOfEducationForDegreeId: "",
+  mediumForEducationForBedDedBPedBedPhyId: "",
+  yearOfExperience: "",
+  subject1Id: "",
+  subject2Id: "",
+  isSportsBPed: false,
+  genderId: "",
+  teacherDetailStatus: ""
 };
 
 export default function TeachersDetails() {
@@ -74,31 +74,51 @@ export default function TeachersDetails() {
   const setR = (k) => (v) => setNewRow(p => ({ ...p, [k]: v }));
 
   const handleAdd = () => {
-    if (!newRow.teacherName || !newRow.highestQualification || !newRow.gender) {
-      setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
-      return;
-    }
-    setRows(p => [...p, { ...newRow, id: Date.now() }]);
-    setNewRow(emptyRow);
-    setPage(1);
-  };
+  if (!newRow.name || !newRow.highestQualification || !newRow.genderId) {
+    setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
+    return;
+  }
+
+  setRows(p => [...p, { ...newRow, id: Date.now() }]);
+  setNewRow(emptyRow);
+};
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      // Using FormData for theme-consistent file uploads if needed, 
-      // otherwise JSON works for table data
-      await fetch("/o/c/teacherdetails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rows),
-      });
-      setAlert({ type: "success", message: "Teachers data saved successfully!" });
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed." });
-    } finally { setSaving(false); }
-  };
+  setSaving(true);
+  try {
+    const payload = rows.map(r => ({
+      ...r,
 
+      yearOfExperience: Number(r.yearOfExperience),
+
+      subject1Id: SUBJECTS.indexOf(r.subject1Id) + 1,
+      subject2Id: r.subject2Id ? SUBJECTS.indexOf(r.subject2Id) + 1 : 0,
+
+      mediumOfEducationTillStd10thId:
+        MEDIUMS.indexOf(r.mediumOfEducationTillStd10thId) + 1,
+
+      mediumOfEducationForDegreeId:
+        MEDIUMS.indexOf(r.mediumOfEducationForDegreeId) + 1,
+
+      mediumForEducationForBedDedBPedBedPhyId:
+        MEDIUMS.indexOf(r.mediumForEducationForBedDedBPedBedPhyId) + 1,
+    }));
+
+    await fetch("/o/c/teacherdetails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    setAlert({ type: "success", message: "Teachers data saved successfully!" });
+  } catch (e) {
+    setAlert({ type: "error", message: "Save failed." });
+  } finally {
+    setSaving(false);
+  }
+};
+
+  
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
@@ -109,106 +129,178 @@ export default function TeachersDetails() {
         <SectionHeading title="Teacher Details" />
 
         <Row3>
-          <Field label="Name" required>
-            <TextInput value={newRow.teacherName} onChange={setR("teacherName")} />
-          </Field>
-          <Field label="Highest Qualification" required>
-            <TextInput value={newRow.highestQualification} onChange={setR("highestQualification")} />
-          </Field>
-          <Field label="Medium of Education till Std. 10th" required>
-            <SelectInput value={newRow.medium10th} onChange={setR("medium10th")} options={MEDIUMS} />
-          </Field>
-        </Row3>
+  <Field label="Name" required>
+    <TextInput value={newRow.name} onChange={setR("name")} />
+  </Field>
 
-        <Row3>
-          <Field label="Medium of Education for Degree" required>
-            <SelectInput value={newRow.mediumDegree} onChange={setR("mediumDegree")} options={MEDIUMS} />
-          </Field>
-          <Field label="Medium of Education for B.ed/D.ed/B.P.ed/B.ed Physical" required>
-            <SelectInput value={newRow.mediumProfessional} onChange={setR("mediumProfessional")} options={MEDIUMS} />
-          </Field>
-          <Field label="Years Of Experience" required>
-            <TextInput value={newRow.yearsExperience} onChange={setR("yearsExperience")} type="number" />
-          </Field>
-        </Row3>
+  <Field label="Highest Qualification" required>
+    <SelectInput
+      value={newRow.highestQualification}
+      onChange={setR("highestQualification")}
+      options={QUALIFICATIONS}
+    />
+  </Field>
 
-        <Row3>
-          <Field label="Subject 1" required>
-            <SelectInput value={newRow.subject1} onChange={setR("subject1")} options={SUBJECTS} />
-          </Field>
-          <Field label="Subject 2">
-            <SelectInput value={newRow.subject2} onChange={setR("subject2")} options={SUBJECTS} />
-          </Field>
-          <label style={themeStyles.checkboxLabel}>
-            <input 
-              type="checkbox" 
-              checked={newRow.isSportsTeacher} 
-              onChange={(e) => setR("isSportsTeacher")(e.target.checked)} 
-            />
-            Is Sports B.P.ed <span style={{color: 'red'}}>*</span>
-          </label>
-        </Row3>
+  <Field label="Medium of Education till Std. 10th" required>
+    <SelectInput
+      value={newRow.mediumOfEducationTillStd10thId}
+      onChange={setR("mediumOfEducationTillStd10thId")}
+      options={MEDIUMS}
+    />
+  </Field>
+</Row3>
+
+<Row3>
+  <Field label="Medium of Education for Degree" required>
+    <SelectInput
+      value={newRow.mediumOfEducationForDegreeId}
+      onChange={setR("mediumOfEducationForDegreeId")}
+      options={MEDIUMS}
+    />
+  </Field>
+
+  <Field label="Medium for B.Ed/D.Ed/B.P.Ed" required>
+    <SelectInput
+      value={newRow.mediumForEducationForBedDedBPedBedPhyId}
+      onChange={setR("mediumForEducationForBedDedBPedBedPhyId")}
+      options={MEDIUMS}
+    />
+  </Field>
+
+  <Field label="Years Of Experience" required>
+    <TextInput
+      value={newRow.yearOfExperience}
+      onChange={setR("yearOfExperience")}
+      type="number"
+    />
+  </Field>
+</Row3>
+
+<Row3>
+  <Field label="Subject 1" required>
+    <SelectInput
+      value={newRow.subject1Id}
+      onChange={setR("subject1Id")}
+      options={SUBJECTS}
+    />
+  </Field>
+
+  <Field label="Subject 2">
+    <SelectInput
+      value={newRow.subject2Id}
+      onChange={setR("subject2Id")}
+      options={SUBJECTS}
+    />
+  </Field>
+
+  <label style={themeStyles.checkboxLabel}>
+    <input
+      type="checkbox"
+      checked={newRow.isSportsBPed}
+      onChange={(e) => setR("isSportsBPed")(e.target.checked)}
+    />
+    Is Sports B.P.ed
+  </label>
+</Row3>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginTop: '10px' }}>
           <Field label="Gender" required>
-            <div style={themeStyles.radioGroup}>
-              {["Male", "Female", "Other"].map(g => (
-                <label key={g}>
-                  <input type="radio" name="gender" checked={newRow.gender === g} onChange={() => setR("gender")(g)} /> {g}
-                </label>
-              ))}
-            </div>
-          </Field>
-          <Field label="Status" required>
-            <div style={themeStyles.radioGroup}>
-              {["Residential", "Non Residential"].map(s => (
-                <label key={s}>
-                  <input type="radio" name="status" checked={newRow.status === s} onChange={() => setR("status")(s)} /> {s}
-                </label>
-              ))}
-            </div>
-          </Field>
+  <div style={themeStyles.radioGroup}>
+    {["Male", "Female", "Other"].map((g, i) => (
+      <label key={g}>
+        <input
+          type="radio"
+          checked={newRow.genderId === i + 1}
+          onChange={() => setR("genderId")(i + 1)}
+        /> {g}
+      </label>
+    ))}
+  </div>
+</Field>
+
+<Field label="Status" required>
+  <div style={themeStyles.radioGroup}>
+    {["Residential", "Non Residential"].map((s, i) => (
+      <label key={s}>
+        <input
+          type="radio"
+          checked={newRow.teacherDetailStatus === (i === 0)}
+          onChange={() => setR("teacherDetailStatus")(i === 0)}
+        /> {s}
+      </label>
+    ))}
+  </div>
+</Field>
         </div>
 
         <button onClick={handleAdd} style={{ ...themeStyles.addBtn, marginTop: '20px' }}>Save</button>
 
         {/* Table Section */}
-        {rows.length > 0 && (
-          <div style={{ marginTop: 30 }}>
-            <div style={{ fontSize: 16, fontWeight: 400, color: "var(--text-primary)", marginBottom: 12 }}>Filled Details</div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid var(--border-color)" }}>
-                <thead>
-                  <tr>
-                    <th style={TH}>Teacher Name</th>
-                    <th style={TH}>Qualifications</th>
-                    <th style={TH}>Subject</th>
-                    <th style={TH}>Medium till 10th</th>
-                    <th style={TH}>Medium Degree</th>
-                    <th style={TH}>Gender</th>
-                    <th style={TH}>Exp.</th>
-                    <th style={TH}>Delete</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paged.map(r => (
-                    <tr key={r.id}>
-                      <td style={TD}>{r.teacherName}</td>
-                      <td style={TD}>{r.highestQualification}</td>
-                      <td style={TD}>{r.subject1}</td>
-                      <td style={TD}>{r.medium10th}</td>
-                      <td style={TD}>{r.mediumDegree}</td>
-                      <td style={TD}>{r.gender === "Male" ? "M" : "F"}</td>
-                      <td style={TD}>{r.yearsExperience}</td>
-                      <td style={TD}><button style={DELETE_BTN} onClick={() => setRows(p => p.filter(x => x.id !== r.id))}>Delete</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <Pagination total={rows.length} pageSize={pageSize} setPageSize={setPageSize} page={page} setPage={setPage} />
-          </div>
-        )}
+       {/* Table Section */}
+{rows.length > 0 && (
+  <div style={{ marginTop: 30 }}>
+    <div style={{ fontSize: 16, fontWeight: 400, marginBottom: 12 }}>
+      Filled Details
+    </div>
+
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
+        <thead>
+          <tr>
+            <th style={TH}>Teacher Name</th>
+            <th style={TH}>Qualifications</th>
+            <th style={TH}>Subject</th>
+            <th style={TH}>Medium till 10th</th>
+            <th style={TH}>Medium Degree</th>
+            <th style={TH}>Gender</th>
+            <th style={TH}>Exp.</th>
+            <th style={TH}>Delete</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {paged.map(r => (
+            <tr key={r.id}>
+              {/* ✅ FIXED KEYS */}
+              <td style={TD}>{r.name}</td>
+
+              <td style={TD}>{r.highestQualification}</td>
+
+              <td style={TD}>{r.subject1Id}</td>
+
+              <td style={TD}>{r.mediumOfEducationTillStd10thId}</td>
+
+              <td style={TD}>{r.mediumOfEducationForDegreeId}</td>
+
+              <td style={TD}>
+                {r.genderId === 1 ? "M" : r.genderId === 2 ? "F" : "O"}
+              </td>
+
+              <td style={TD}>{r.yearOfExperience}</td>
+
+              <td style={TD}>
+                <button
+                  style={DELETE_BTN}
+                  onClick={() => setRows(p => p.filter(x => x.id !== r.id))}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <Pagination
+      total={rows.length}
+      pageSize={pageSize}
+      setPageSize={setPageSize}
+      page={page}
+      setPage={setPage}
+    />
+  </div>
+)}
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>

@@ -2,10 +2,10 @@
 //  src/sections/SportsFacilities.jsx
 // ============================================================
 import { useState } from "react";
-import { 
-  Field, TextInput, SelectInput, 
-  SectionHeading, Row3, Row2, 
-  Alert, BtnSave, BtnReset 
+import {
+  Field, TextInput, SelectInput,
+  SectionHeading, Row3, Row2,
+  Alert, BtnSave, BtnReset
 } from "../components/FormFields";
 import Pagination from "../components/Pagination";
 import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
@@ -32,14 +32,14 @@ const themeStyles = {
 };
 
 const emptyForm = {
-  numPTTeachers: "",
-  numSportsPlayed: "",
-  detailsSportsPlayed: "", // Textarea/Text
-  qualifiedSportsTeacher: "",
-  separateAuditorium: "",
-  auditoriumArea: "",
+  noOfPhysicalEducationPTTeacherAvailable: "",
+  numberOfSportsPlayedOnPlayground: "",
+  detailsOfSportsPlayedOnPlayground: "",
+  availOfQualifiedSportsTeacherAsPerStuCnt: "",
+  availabilityOfSeparateAuditorium: "",
+  auditoriumAreasqFt: "",
   schoolMagazine: "",
-  schoolMagazineType: "",
+  schoolMagazineTypeId: "",
 };
 
 export default function SportsFacilities() {
@@ -74,18 +74,49 @@ export default function SportsFacilities() {
     try {
       const payload = {
         ...form,
-        culturalPrograms: culturalRows,
+
+
+        availOfQualifiedSportsTeacherAsPerStuCnt: form.availOfQualifiedSportsTeacherAsPerStuCnt === "Yes",
+        availabilityOfSeparateAuditorium: form.availabilityOfSeparateAuditorium === "Yes",
+        schoolMagazine: form.schoolMagazine === "Yes",
+
+
+        noOfPhysicalEducationPTTeacherAvailable: Number(form.noOfPhysicalEducationPTTeacherAvailable),
+        numberOfSportsPlayedOnPlayground: Number(form.numberOfSportsPlayedOnPlayground),
+        auditoriumAreasqFt: Number(form.auditoriumAreasqFt),
+
+
+        schoolMagazineTypeId:
+          form.schoolMagazineTypeId
+            ? MAGAZINE_TYPES.indexOf(form.schoolMagazineTypeId) + 1
+            : 0,
+
+
+
+        culturalPrograms: culturalRows.map(r => ({
+          culturalProgramConductedBySchoolYearId:
+            YEARS.indexOf(r.year) + 1,   // convert year → id
+
+          culturalProgramName: r.programName,
+          culturalProgramRemarks: r.remarks
+        })),
+
         educationalTours: tourRows
       };
+
       await fetch("/o/c/sportsfacilities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       setAlert({ type: "success", message: "Sports Facilities saved successfully!" });
+
     } catch (e) {
       setAlert({ type: "error", message: "Save failed." });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -94,41 +125,77 @@ export default function SportsFacilities() {
 
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
-        
+
         <Row3>
           <Field label="Number Of Physical Education (PT) teacher available" required>
-            <TextInput value={form.numPTTeachers} onChange={set("numPTTeachers")} type="number" />
+            <TextInput
+              value={form.noOfPhysicalEducationPTTeacherAvailable}
+              onChange={set("noOfPhysicalEducationPTTeacherAvailable")}
+              type="number"
+            />
           </Field>
+
           <Field label="Number Of sports Played On PlayGround" required>
-            <TextInput value={form.numSportsPlayed} onChange={set("numSportsPlayed")} type="number" />
+            <TextInput
+              value={form.numberOfSportsPlayedOnPlayground}
+              onChange={set("numberOfSportsPlayedOnPlayground")}
+              type="number"
+            />
           </Field>
+
           <Field label="Details Of sports Played On PlayGround" required>
-            <TextInput value={form.detailsSportsPlayed} onChange={set("detailsSportsPlayed")} placeholder="Basketball, Football..." />
+            <TextInput
+              value={form.detailsOfSportsPlayedOnPlayground}
+              onChange={set("detailsOfSportsPlayedOnPlayground")}
+              placeholder="Basketball, Football..."
+            />
           </Field>
         </Row3>
 
         <Row3>
           <Field label="Availabilty of qualified Sport's Teachers as per students' count" required>
-            <SelectInput value={form.qualifiedSportsTeacher} onChange={set("qualifiedSportsTeacher")} options={YES_NO} />
+            <SelectInput
+              value={form.availOfQualifiedSportsTeacherAsPerStuCnt}
+              onChange={set("availOfQualifiedSportsTeacherAsPerStuCnt")}
+              options={YES_NO}
+            />
           </Field>
           <div /> <div />
         </Row3>
 
         <Row2>
           <Field label="Availabilty Of Separate Auditorium" required>
-            <SelectInput value={form.separateAuditorium} onChange={set("separateAuditorium")} options={YES_NO} />
+            <SelectInput
+              value={form.availabilityOfSeparateAuditorium}
+              onChange={set("availabilityOfSeparateAuditorium")}
+              options={YES_NO}
+            />
           </Field>
+
           <Field label="Auditorium Area(sq ft)" required>
-            <TextInput value={form.auditoriumArea} onChange={set("auditoriumArea")} type="number" />
+            <TextInput
+              value={form.auditoriumAreasqFt}
+              onChange={set("auditoriumAreasqFt")}
+              type="number"
+            />
           </Field>
         </Row2>
 
         <Row2>
           <Field label="School Magazine" required>
-            <SelectInput value={form.schoolMagazine} onChange={set("schoolMagazine")} options={YES_NO} />
+            <SelectInput
+              value={form.schoolMagazine}
+              onChange={set("schoolMagazine")}
+              options={YES_NO}
+            />
           </Field>
-          <Field label="School MagazineType" required>
-            <SelectInput value={form.schoolMagazineType} onChange={set("schoolMagazineType")} options={MAGAZINE_TYPES} />
+
+          <Field label="School Magazine Type" required>
+            <SelectInput
+              value={form.schoolMagazineTypeId}
+              onChange={set("schoolMagazineTypeId")}
+              options={MAGAZINE_TYPES}
+            />
           </Field>
         </Row2>
 
@@ -137,17 +204,17 @@ export default function SportsFacilities() {
           <SectionHeading title="Cultural programs conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newCultural.year} onChange={(v) => setNewCultural({...newCultural, year: v})} options={YEARS} />
+              <SelectInput value={newCultural.year} onChange={(v) => setNewCultural({ ...newCultural, year: v })} options={YEARS} />
             </Field>
             <Field label="Program Name" required>
-              <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({...newCultural, programName: v})} />
+              <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({ ...newCultural, programName: v })} />
             </Field>
             <Field label="Remarks" required>
-              <TextInput value={newCultural.remarks} onChange={(v) => setNewCultural({...newCultural, remarks: v})} />
+              <TextInput value={newCultural.remarks} onChange={(v) => setNewCultural({ ...newCultural, remarks: v })} />
             </Field>
           </Row3>
           <div style={themeStyles.addBtnRow}>
-            <button onClick={addCultural} style={ADD_BTN}>Add Program</button>
+            <button type="button" onClick={addCultural} style={ADD_BTN}> Add Program </button>
           </div>
 
           {culturalRows.length > 0 && (
@@ -181,23 +248,23 @@ export default function SportsFacilities() {
           <SectionHeading title="Educational tours conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newTour.year} onChange={(v) => setNewTour({...newTour, year: v})} options={YEARS} />
+              <SelectInput value={newTour.year} onChange={(v) => setNewTour({ ...newTour, year: v })} options={YEARS} />
             </Field>
             <Field label="Program Name" required>
-              <TextInput value={newTour.programName} onChange={(v) => setNewTour({...newTour, programName: v})} />
+              <TextInput value={newTour.programName} onChange={(v) => setNewTour({ ...newTour, programName: v })} />
             </Field>
             <Field label="Place" required>
-              <TextInput value={newTour.place} onChange={(v) => setNewTour({...newTour, place: v})} />
+              <TextInput value={newTour.place} onChange={(v) => setNewTour({ ...newTour, place: v })} />
             </Field>
           </Row3>
           <Row2>
             <Field label="Purpose" required>
-              <TextInput value={newTour.purpose} onChange={(v) => setNewTour({...newTour, purpose: v})} />
+              <TextInput value={newTour.purpose} onChange={(v) => setNewTour({ ...newTour, purpose: v })} />
             </Field>
             <div />
           </Row2>
           <div style={themeStyles.addBtnRow}>
-            <button onClick={addTour} style={ADD_BTN}>Add Educational Tours</button>
+            <button type="button" onClick={addTour} style={ADD_BTN}>Add Educational Tours</button>
           </div>
 
           {tourRows.length > 0 && (

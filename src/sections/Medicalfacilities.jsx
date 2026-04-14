@@ -50,8 +50,11 @@ const YES_NO = ["Yes", "No"];
 const TIME = ["Full Time", "Part Time", "Not Available"]
 
 const emptyForm = {
-  AvailabilityofMedicalSickRoom: "", AvailabilityofDoctorsinSchool : "", 
-  NumberofDoctors : "", NumberofNurse: "", NumberofAmbulance: ""
+  availabilitOfMedicalSickRoom: "",
+  availabilityOfDoctorsInSchoolId: "",
+  numberOfAmbulance: "",
+  numberOfDoctors: "",
+  numberOfNurse: ""
 };
 
 
@@ -84,44 +87,44 @@ export default function MedicalFacilities({ onTabChange }) {
 
       <SectionHeading title="Medical Facilities" />
 
-     <Row3>
+    <Row3>
   <Field label="Availability of Medical/Sick Room" required>
     <SelectInput
-      value={form.AvailabilityofMedicalSickRoom}
-      onChange={set("AvailabilityofMedicalSickRoom")}
+      value={form.availabilitOfMedicalSickRoom}
+      onChange={set("availabilitOfMedicalSickRoom")}
       options={YES_NO}
     />
   </Field>
 
   <Field label="Availability of Doctors in School" required>
     <SelectInput
-      value={form.AvailabilityofDoctorsinSchool}
-      onChange={set("AvailabilityofDoctorsinSchool")}
+      value={form.availabilityOfDoctorsInSchoolId}
+      onChange={set("availabilityOfDoctorsInSchoolId")}
       options={TIME}
     />
   </Field>
 
   <Field label="Number of Doctors" required>
     <TextInput
-      value={form.NumberofDoctors}
-      onChange={set("NumberofDoctors")}
-      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+      value={form.numberOfDoctors}
+      onChange={set("numberOfDoctors")}
+      disabled={form.availabilityOfDoctorsInSchoolId === "Not Available"}
     />
   </Field>
 
   <Field label="Number of Nurse" required>
     <TextInput
-      value={form.NumberofNurse}
-      onChange={set("NumberofNurse")}
-      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+      value={form.numberOfNurse}
+      onChange={set("numberOfNurse")}
+      disabled={form.availabilityOfDoctorsInSchoolId === "Not Available"}
     />
   </Field>
 
   <Field label="Number of Ambulance" required>
     <TextInput
-      value={form.NumberofAmbulance}
-      onChange={set("NumberofAmbulance")}
-      disabled={form.AvailabilityofDoctorsinSchool === "Not Available"}
+      value={form.numberOfAmbulance}
+      onChange={set("numberOfAmbulance")}
+      disabled={form.availabilityOfDoctorsInSchoolId === "Not Available"}
     />
   </Field>
 </Row3>

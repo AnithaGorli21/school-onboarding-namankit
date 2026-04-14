@@ -4,13 +4,12 @@
 import { useState } from "react";
 import { 
   Field, TextInput, SelectInput, 
-  SectionHeading, Row3, Row2, 
+  SectionHeading, Row3, 
   Alert, BtnSave, BtnReset 
 } from "../components/FormFields";
 
 const YES_NO = ["Yes", "No"];
 
-// Style configuration using CSS Variables for Dynamic Themes
 const themeStyles = {
   container: {
     padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)",
@@ -35,14 +34,11 @@ const themeStyles = {
   noteText: {
     color: "var(--error-color, #cc0000)",
     fontSize: "13px",
-    fontWeight: "400",
     marginBottom: "14px",
   },
   fileInput: {
     fontSize: "13px",
-    fontFamily: "var(--font-main)",
     padding: "4px 0",
-    color: "var(--text-secondary, #666)",
   },
   buttonRow: {
     display: "flex",
@@ -54,12 +50,12 @@ const themeStyles = {
 
 const emptyForm = {
   separateLibrary: "",
-  areaSufficient: "",
+  areamin200FtWithFurniture: "",
   actualArea: "",
   noOfBooks: "",
 };
 
-export default function LibraryDetails({ onTabChange }) {
+export default function LibraryDetails() {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -71,21 +67,25 @@ export default function LibraryDetails({ onTabChange }) {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const sizeKB = file.size / 1024;
     if (sizeKB < 5 || sizeKB > 100) {
       setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
       e.target.value = "";
       return;
     }
+
     setPhotoFile(file);
   };
 
   const validate = () => {
     const e = {};
+
     if (!form.separateLibrary) e.separateLibrary = "Required";
-    if (!form.areaSufficient) e.areaSufficient = "Required";
+    if (!form.areamin200FtWithFurniture) e.areamin200FtWithFurniture = "Required"; // ✅ FIX
     if (!form.noOfBooks) e.noOfBooks = "Required";
     if (!photoFile) e.photo = "Library photo is required";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -95,21 +95,48 @@ export default function LibraryDetails({ onTabChange }) {
       setAlert({ type: "error", message: "Please fix the highlighted errors." });
       return;
     }
+
     setSaving(true);
     setAlert(null);
 
     try {
-      const data = new FormData();
-      Object.keys(form).forEach(key => data.append(key, form[key]));
-      if (photoFile) data.append("libraryPhoto", photoFile);
+      let base64File = "";
+
+      if (photoFile) {
+        base64File = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(photoFile);
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.onerror = error => reject(error);
+        });
+      }
+
+      const payload = {
+        separateLibrary: form.separateLibrary === "Yes",
+        areamin200FtWithFurniture: form.areamin200FtWithFurniture === "Yes",
+
+        actualArea: form.actualArea ? Number(form.actualArea) : 0,
+        noOfBooks: form.noOfBooks ? Number(form.noOfBooks) : 0,
+
+        uploadLibraryPhoto: {
+          externalReferenceCode: "LIB_PHOTO",
+          fileBase64: base64File,
+          fileURL: "",
+          folder: {
+            externalReferenceCode: "LIB_FOLDER",
+            siteId: 0
+          }
+        }
+      };
 
       await fetch("/o/c/librarydetails", {
         method: "POST",
-        credentials: "include",
-        body: data, 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       setAlert({ type: "success", message: "Library Details saved successfully!" });
+
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -130,25 +157,44 @@ export default function LibraryDetails({ onTabChange }) {
 
       <div style={themeStyles.card}>
         <SectionHeading title="Library Details" />
-        
+
         <Row3>
           <Field label="Separate Library" required error={errors.separateLibrary}>
-            <SelectInput value={form.separateLibrary} onChange={set("separateLibrary")} options={YES_NO} />
+            <SelectInput 
+              value={form.separateLibrary} 
+              onChange={set("separateLibrary")} 
+              options={YES_NO} 
+            />
           </Field>
-          <Field label="Area (Min 200 Ft with Furniture)" required error={errors.areaSufficient}>
-            <SelectInput value={form.areaSufficient} onChange={set("areaSufficient")} options={YES_NO} />
+
+          <Field label="Area (Min 200 Ft with Furniture)" required error={errors.areamin200FtWithFurniture}>
+            <SelectInput 
+              value={form.areamin200FtWithFurniture}   // ✅ FIX
+              onChange={set("areamin200FtWithFurniture")} // ✅ FIX
+              options={YES_NO} 
+            />
           </Field>
+
           <Field label="Actual Area">
-            <TextInput value={form.actualArea} onChange={set("actualArea")} type="number" />
+            <TextInput 
+              value={form.actualArea} 
+              onChange={set("actualArea")} 
+              type="number" 
+            />
           </Field>
+
           <Field label="No of Books" required error={errors.noOfBooks}>
-            <TextInput value={form.noOfBooks} onChange={set("noOfBooks")} type="number" />
+            <TextInput 
+              value={form.noOfBooks} 
+              onChange={set("noOfBooks")} 
+              type="number" 
+            />
           </Field>
         </Row3>
 
-        {/* Dynamic Upload Section */}
         <div style={themeStyles.uploadSection}>
           <div style={themeStyles.sectionTitle}>Upload Photo</div>
+
           <p style={themeStyles.noteText}>
             Note:- The size of the photograph should fall between 5KB to 100KB.
           </p>

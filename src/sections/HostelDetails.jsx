@@ -103,36 +103,89 @@ export default function HostelDetails({ onTabChange }) {
 
   // ── Save ───────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!validate()) {
-      setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    setSaving(true);
-    setAlert(null);
-    try {
-      const payload = {
-        ...form,
-        grandTotalHostels,
-        grandTotalCapacity,
-        totalResidentialStudents,
-        expectedBathrooms,
-        expectedWashrooms,
-      };
-      await fetch("/o/c/hosteldetails", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+  if (!validate()) {
+    setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+    return;
+  }
+
+  setSaving(true);
+  setAlert(null);
+
+  try {
+    const toBase64 = (file) =>
+      new Promise((resolve, reject) => {
+        if (!file) return resolve("");
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = (err) => reject(err);
       });
-      setAlert({ type: "success", message: "Hostel Details saved successfully!" });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally {
-      setSaving(false);
-    }
-  };
+
+    const base64File = await toBase64(photoFile);
+
+    const payload = {
+      // Basic details
+      totalNoOfStdntsStudyngCls1To4: Number(form.studentsClass1to4),
+      totalNoOfFemaleCaretaker1To4: Number(form.femaleCaretakers1to4),
+
+      availibilityOfIncinerators: form.availabilityIncinerators === "Yes",
+      availibilityOfWashingMchneForStdnt: form.washingMachine === "Yes",
+      availibilityOfSeparateHstlBuildng: form.separateHostelBuilding === "Yes",
+      availabilityOfLghtFansBeddng: form.lightFanBedding === "Yes",
+
+      areaInSqft: form.areaInSqFt ? Number(form.areaInSqFt) : 0,
+
+      // Hostel count & capacity
+      ttlNoOfBoysHstl: Number(form.totalBoysHostels),
+      ttlCapacityOfBoysHstl: Number(form.capacityBoysHostels),
+
+      ttlNoOfGirlsHstl: Number(form.totalGirlsHostels),
+      ttlCapacityOfGirlsHstl: Number(form.capacityGirlsHostels),
+
+      grndTtlnoOfHstl: grandTotalHostels,
+      grndTtlcapacityOfHstl: grandTotalCapacity,
+
+      totalNoOfResidentialStudents: totalResidentialStudents,
+
+      // Bathrooms
+      expectedBathrooms: expectedBathrooms || 0,
+      expectedWashrooms: expectedWashrooms || 0,
+
+      actualBathrooms: Number(form.actualBathrooms),
+      actualWashrooms: Number(form.actualWashrooms),
+
+      // Hot water (convert multiple checkboxes → single boolean)
+      availibilityOfHotWater:
+        form.hotWater_solarWaterheater ||
+        form.hotWater_gasElectric ||
+        form.hotWater_traditionalSources,
+
+      // Upload
+      uploadHostelPhoto: {
+        externalReferenceCode: "HOSTEL_PHOTO",
+        fileBase64: base64File,
+        fileURL: "",
+        folder: {
+          externalReferenceCode: "HOSTEL_FOLDER",
+          siteId: 0,
+        },
+      },
+    };
+
+    await fetch("/o/c/hosteldetails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    setAlert({ type: "success", message: "Hostel Details saved successfully!" });
+
+  } catch (e) {
+    setAlert({ type: "error", message: "Save failed — " + e.message });
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleReset = () => {
     setForm(emptyForm);

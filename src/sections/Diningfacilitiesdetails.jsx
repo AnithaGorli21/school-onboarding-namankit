@@ -29,20 +29,70 @@ export default function DiningFacilitiesDetails({ onTabChange }) {
   };
 
   const handleSave = async () => {
-    setSaving(true); setAlert(null);
-    try {
-      // Note: If uploading actual files, you would typically use FormData() 
-      // instead of JSON.stringify(form).
-      await fetch("/o/c/diningfacilities", {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+  setSaving(true); 
+  setAlert(null);
+
+  try {
+    const toBase64 = (file) =>
+      new Promise((resolve, reject) => {
+        if (!file) return resolve("");
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = (err) => reject(err);
       });
-      setAlert({ type: "success", message: "Dining Facilities Details saved successfully!" });
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally { setSaving(false); }
-  };
+
+    const diningPhotoBase64 = await toBase64(form.DiningHallPhoto);
+    const menuBase64 = await toBase64(form.MenuPhoto);
+
+    const payload = {
+      dinningHallInAreaInSqft: form.DiningHallAreainSqft
+        ? Number(form.DiningHallAreainSqft)
+        : 0,
+
+      dinningTable: form.DiningTable === "Yes",
+      foodServedAsPerMenu: form.FoodServedAsPerMenu === "Yes",
+      separateDinningHallForBoysAndGirls:
+        form.SeparateDiningHallforBoysandGirls === "Yes",
+
+      uploadDinningHallPhoto: {
+        externalReferenceCode: "DINING_PHOTO",
+        fileBase64: diningPhotoBase64,
+        fileURL: "",
+        folder: {
+          externalReferenceCode: "DINING_FOLDER",
+          siteId: 0,
+        },
+      },
+
+      uploadMenu: {
+        externalReferenceCode: "MENU_FILE",
+        fileBase64: menuBase64,
+        fileURL: "",
+        folder: {
+          externalReferenceCode: "MENU_FOLDER",
+          siteId: 0,
+        },
+      },
+    };
+
+    await fetch("/o/c/diningfacilities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    setAlert({
+      type: "success",
+      message: "Dining Facilities Details saved successfully!",
+    });
+
+  } catch (e) {
+    setAlert({ type: "error", message: "Save failed — " + e.message });
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleReset = () => { setForm(emptyForm); setAlert(null); };
 

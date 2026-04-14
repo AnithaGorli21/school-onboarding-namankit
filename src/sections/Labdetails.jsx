@@ -54,51 +54,87 @@ export default function LabDetails({ onTabChange }) {
   };
 
   const validate = () => {
-    const e = {};
-    if (!form.isComputerLabAvailable) e.isComputerLabAvailable = "Required";
-    if (!form.digitalClassroomCount) e.digitalClassroomCount = "Required";
-    if (!photoFile) e.photo = "Photo is required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  const e = {};
+
+  // Only validate what API actually needs
+  if (!form.digitalClassroomCount) e.digitalClassroomCount = "Required";
+  if (!photoFile) e.photo = "Photo is required";
+
+  setErrors(e);
+  return Object.keys(e).length === 0;
+};
 
   // --- Save Logic using FormData (Required for Files) ---
   const handleSave = async () => {
-    if (!validate()) {
-      setAlert({ type: "error", message: "Please fix the highlighted errors." });
-      return;
+  if (!validate()) {
+    setAlert({ type: "error", message: "Please fix the highlighted errors." });
+    return;
+  }
+
+  setSaving(true);
+  setAlert(null);
+
+  try {
+    let base64File = "";
+
+    if (photoFile) {
+      base64File = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(photoFile);
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = error => reject(error);
+      });
     }
 
-    setSaving(true);
-    setAlert(null);
+    const payload = {
+      // Computer
+      noOfCompInWorkingCondition: form.computersWithPeripheralsCount ? Number(form.computersWithPeripheralsCount) : 0,
+      noOfCompInWrkngCond: form.computersWorkingCount ? Number(form.computersWorkingCount) : 0,
 
-    try {
-      const data = new FormData();
-      
-      // Append all text fields
-      Object.keys(form).forEach(key => {
-        data.append(key, form[key]);
-      });
+      // Chemistry
+      availabilityOfChemistryLabWithLabAsst: form.isChemistryLabAvailable === "Yes",
+      areaOfChemistryLabmin150Sqft: form.isChemistryLabAreaSufficient === "Yes",
+      chemistryLabAvailableAreaSqft: form.chemistryLabAreaSqft ? Number(form.chemistryLabAreaSqft) : 0,
 
-      // Append the actual file
-      if (photoFile) {
-        data.append("labPhoto", photoFile);
+      // Biology
+      availabilityOfBiologyLabWithLabAsst: form.isBiologyLabAvailable === "Yes",
+      areaOfBiologyLabmin150Sqft: form.isBiologyLabAreaSufficient === "Yes",
+      biologyLabAvailableAreaSqft: form.biologyLabAreaSqft ? Number(form.biologyLabAreaSqft) : 0,
+
+      // Physics
+      availabilityOfPhysicsLabWithLabAsst: form.isPhysicsLabAvailable === "Yes",
+      areaOfPhysicsLabmin150Sqft: form.isPhysicsLabAreaSufficient === "Yes",
+      physicsLabAvailableAreaSqft: form.physicsLabAreaSqft ? Number(form.physicsLabAreaSqft) : 0,
+
+      // Digital classroom
+      numberOfDigitalClassroomInSchool: form.digitalClassroomCount ? Number(form.digitalClassroomCount) : 0,
+
+      // Upload
+      uploadLapPhoto: {
+        externalReferenceCode: "LAB_PHOTO",
+        fileBase64: base64File,
+        fileURL: "",
+        folder: {
+          externalReferenceCode: "LAB_FOLDER",
+          siteId: 0
+        }
       }
+    };
 
-      await fetch("/o/c/labdetails", {
-        method: "POST",
-        credentials: "include",
-        // Note: Do NOT set Content-Type header when sending FormData
-        body: data, 
-      });
+    await fetch("/o/c/labdetails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      setAlert({ type: "success", message: "Lab Details saved successfully!" });
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally {
-      setSaving(false);
-    }
-  };
+    setAlert({ type: "success", message: "Lab Details saved successfully!" });
+
+  } catch (e) {
+    setAlert({ type: "error", message: "Save failed — " + e.message });
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleReset = () => {
     setForm(emptyForm);
