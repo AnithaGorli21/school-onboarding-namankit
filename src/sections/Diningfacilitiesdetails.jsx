@@ -8,27 +8,31 @@ import SectionWrapper from "../components/SectionWrapper";
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  diningHallAvailable: "", diningHallCapacity: "",
-  cleanDrinkingWater: "", waterPurifier: "",
-  kitchenAvailable: "", kitchenType: "",
-  separateCookingStaff: "", numberOfCooks: "",
-  gasConnection: "", firewoodUsed: "",
-  grainStorageAvailable: "", grainStorageCapacity: "",
-  vegetableGarden: "", mealTimings: "",
-  menuAvailable: "", nutritionStandards: "",
-  diningRemark: "",
+  SeparateDiningHallforBoysandGirls: "", 
+  DiningHallAreainSqft: "",
+  DiningTable: "", 
+  FoodServedAsPerMenu: "",
+  DiningHallPhoto: null, // New field
+  MenuPhoto: null        // New field
 };
 
 export default function DiningFacilitiesDetails({ onTabChange }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert]   = useState(null);
+  const [alert, setAlert] = useState(null);
 
   const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
+
+  // Helper for file inputs
+  const handleFileChange = (k) => (e) => {
+    setForm(p => ({ ...p, [k]: e.target.files[0] }));
+  };
 
   const handleSave = async () => {
     setSaving(true); setAlert(null);
     try {
+      // Note: If uploading actual files, you would typically use FormData() 
+      // instead of JSON.stringify(form).
       await fetch("/o/c/diningfacilities", {
         method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -49,78 +53,55 @@ export default function DiningFacilitiesDetails({ onTabChange }) {
       <SectionHeading title="Dining Facilities Details" />
 
       <Row3>
-        <Field label="Dining Hall Available" required>
-          <SelectInput value={form.diningHallAvailable} onChange={set("diningHallAvailable")} options={YES_NO} />
+        <Field label="Separate Dining Hall for Boys and Girls" required>
+          <SelectInput value={form.SeparateDiningHallforBoysandGirls} onChange={set("SeparateDiningHallforBoysandGirls")} options={YES_NO} />
         </Field>
-        <Field label="Dining Hall Capacity">
-          <TextInput value={form.diningHallCapacity} onChange={set("diningHallCapacity")} type="number"
-            disabled={form.diningHallAvailable !== "Yes"} />
+        <Field label="Dining Hall Area in Sq.ft">
+          <TextInput value={form.DiningHallAreainSqft} onChange={set("DiningHallAreainSqft")} type="number" />
         </Field>
-        <Field label="Clean Drinking Water Available" required>
-          <SelectInput value={form.cleanDrinkingWater} onChange={set("cleanDrinkingWater")} options={YES_NO} />
+        <Field label="Dining Table" required>
+          <SelectInput value={form.DiningTable} onChange={set("DiningTable")} options={YES_NO} />
         </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Water Purifier Available" required>
-          <SelectInput value={form.waterPurifier} onChange={set("waterPurifier")} options={YES_NO} />
-        </Field>
-        <Field label="Kitchen Available" required>
-          <SelectInput value={form.kitchenAvailable} onChange={set("kitchenAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Kitchen Type">
-          <SelectInput value={form.kitchenType} onChange={set("kitchenType")}
-            options={["Central Kitchen", "Individual Kitchen", "Contractor"]}
-            disabled={form.kitchenAvailable !== "Yes"} />
+        <Field label="Food Served As Per Menu" required>
+          <SelectInput value={form.FoodServedAsPerMenu} onChange={set("FoodServedAsPerMenu")} options={YES_NO} />
         </Field>
       </Row3>
 
-      <Row3>
-        <Field label="Separate Cooking Staff" required>
-          <SelectInput value={form.separateCookingStaff} onChange={set("separateCookingStaff")} options={YES_NO} />
-        </Field>
-        <Field label="Number of Cooks">
-          <TextInput value={form.numberOfCooks} onChange={set("numberOfCooks")} type="number"
-            disabled={form.separateCookingStaff !== "Yes"} />
-        </Field>
-        <Field label="Gas Connection Available" required>
-          <SelectInput value={form.gasConnection} onChange={set("gasConnection")} options={YES_NO} />
-        </Field>
-      </Row3>
+      <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
-      <Row3>
-        <Field label="Firewood Used" required>
-          <SelectInput value={form.firewoodUsed} onChange={set("firewoodUsed")} options={YES_NO} />
-        </Field>
-        <Field label="Grain Storage Available" required>
-          <SelectInput value={form.grainStorageAvailable} onChange={set("grainStorageAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Grain Storage Capacity (Quintals)">
-          <TextInput value={form.grainStorageCapacity} onChange={set("grainStorageCapacity")} type="number"
-            disabled={form.grainStorageAvailable !== "Yes"} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Vegetable Garden Available" required>
-          <SelectInput value={form.vegetableGarden} onChange={set("vegetableGarden")} options={YES_NO} />
-        </Field>
-        <Field label="Meal Timings Fixed" required>
-          <SelectInput value={form.mealTimings} onChange={set("mealTimings")} options={YES_NO} />
-        </Field>
-        <Field label="Menu Available" required>
-          <SelectInput value={form.menuAvailable} onChange={set("menuAvailable")} options={YES_NO} />
-        </Field>
-      </Row3>
+      <SectionHeading title="Upload Photo" />
+      
+      <p style={{ color: 'red', fontSize: '14px', fontWeight: 'bold', marginBottom: '15px' }}>
+        Note:- The size of the photograph should fall between 5KB to 100KB.
+      </p>
 
       <Row2>
-        <Field label="Nutrition Standards Followed" required>
-          <SelectInput value={form.nutritionStandards} onChange={set("nutritionStandards")} options={YES_NO} />
+        <Field label="Upload Dining Hall Photo" required>
+          <input 
+            type="file" 
+            className="form-control" 
+            onChange={handleFileChange("DiningHallPhoto")} 
+          />
         </Field>
-        <Field label="Remark">
-          <TextInput value={form.diningRemark} onChange={set("diningRemark")} />
-        </Field>
+
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+          <Field label="Upload Menu" required>
+            <input 
+              type="file" 
+              className="form-control" 
+              onChange={handleFileChange("MenuPhoto")} 
+            />
+          </Field>
+          <button 
+            type="button" 
+            className="btn btn-info" 
+            style={{ marginBottom: '5px', backgroundColor: '#5bc0de', color: 'white', border: 'none', padding: '7px 15px', borderRadius: '4px' }}
+          >
+            View Uploaded Menu
+          </button>
+        </div>
       </Row2>
+      
     </SectionWrapper>
   );
 }

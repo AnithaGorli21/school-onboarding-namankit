@@ -2,178 +2,204 @@
 //  src/sections/TeachersDetails.jsx
 // ============================================================
 import { useState } from "react";
-import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
-import SectionWrapper from "../components/SectionWrapper";
+import { 
+  Field, TextInput, SelectInput, 
+  SectionHeading, Row3, Row2, 
+  Alert, BtnSave, BtnReset 
+} from "../components/FormFields";
+import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
-import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
 
-const YES_NO      = ["Yes", "No"];
-const DESIGNATION = ["Principal","Vice Principal","Teacher","Assistant Teacher","PET Teacher","Art Teacher","Music Teacher","Other"];
-const SUBJECT     = ["Mathematics","Science","English","Marathi","Hindi","Social Science","Computer","Sanskrit","Other"];
-const MEDIUM      = ["Marathi","Hindi","English","Semi-English","Urdu"];
-const QUALIFICATION = ["B.Ed","M.Ed","B.A. B.Ed","B.Sc B.Ed","M.A. B.Ed","M.Sc B.Ed","D.Ed","Other"];
+// Options from image and common educational standards
+const QUALIFICATIONS = ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"];
+const MEDIUMS = ["English", "Marathi", "Hindi", "Urdu", "Other"];
+const SUBJECTS = ["Mathematics", "Science", "English", "Marathi", "Hindi", "Social Science", "Sanskrit", "P.E."];
 
-const emptyForm = {
-  totalSanctionedPosts: "", totalFilledPosts: "", totalVacantPosts: "",
-  principalAppointed: "", totalPermanentTeachers: "",
-  totalContractTeachers: "", totalGuestTeachers: "",
-  totalMaleTeachers: "", totalFemaleTeachers: "",
+const themeStyles = {
+  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
+  card: {
+    background: "var(--card-bg, #ffffff)",
+    border: "1px solid var(--border-color, #d6e0e0)",
+    borderRadius: "var(--radius-sm, 3px)",
+    padding: "18px 20px 22px",
+  },
+  radioGroup: {
+    display: "flex",
+    gap: "15px",
+    alignItems: "center",
+    fontSize: "13px",
+    marginTop: "8px"
+  },
+  checkboxLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "13px",
+    cursor: "pointer",
+    marginTop: "30px" // Align with fields
+  },
+  addBtn: {
+    background: "var(--btn-save-bg, #28a745)",
+    color: "#fff",
+    border: "none",
+    padding: "6px 16px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "14px"
+  }
 };
 
 const emptyRow = {
-  teacherName: "", designation: "", subject: "",
-  medium: "", qualification: "", mobileNumber: "",
-  isPermanent: "", joiningDate: "",
+  teacherName: "",
+  highestQualification: "",
+  medium10th: "",
+  mediumDegree: "",
+  mediumProfessional: "", // For B.ed/D.ed
+  yearsExperience: "",
+  subject1: "",
+  subject2: "",
+  isSportsTeacher: false,
+  gender: "",
+  status: "", // Residential vs Non-Residential
 };
 
-export default function TeachersDetails({ onTabChange }) {
-  const [form, setForm]     = useState(emptyForm);
-  const [rows, setRows]     = useState([]);
+export default function TeachersDetails() {
+  const [rows, setRows] = useState([]);
   const [newRow, setNewRow] = useState(emptyRow);
-  const [rowErr, setRowErr] = useState("");
-  const [page, setPage]     = useState(1);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [alert, setAlert] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert]   = useState(null);
 
-  const set  = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
   const setR = (k) => (v) => setNewRow(p => ({ ...p, [k]: v }));
 
   const handleAdd = () => {
-    if (!newRow.teacherName || !newRow.designation || !newRow.subject || !newRow.qualification) {
-      setRowErr("Please fill Name, Designation, Subject and Qualification."); return;
+    if (!newRow.teacherName || !newRow.highestQualification || !newRow.gender) {
+      setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
+      return;
     }
-    setRowErr("");
     setRows(p => [...p, { ...newRow, id: Date.now() }]);
-    setNewRow(emptyRow); setPage(1);
+    setNewRow(emptyRow);
+    setPage(1);
   };
 
   const handleSave = async () => {
-    setSaving(true); setAlert(null);
+    setSaving(true);
     try {
+      // Using FormData for theme-consistent file uploads if needed, 
+      // otherwise JSON works for table data
       await fetch("/o/c/teacherdetails", {
-        method: "POST", credentials: "include",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, teachersData: JSON.stringify(rows) }),
+        body: JSON.stringify(rows),
       });
-      setAlert({ type: "success", message: "Teachers Details saved successfully!" });
+      setAlert({ type: "success", message: "Teachers data saved successfully!" });
     } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
+      setAlert({ type: "error", message: "Save failed." });
     } finally { setSaving(false); }
   };
 
-  const handleReset = () => {
-    setForm(emptyForm); setRows([]); setNewRow(emptyRow);
-    setAlert(null); setRowErr(""); setPage(1);
-  };
-
-  const paged = rows.slice((page-1)*pageSize, page*pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <SectionWrapper alert={alert} onCloseAlert={() => setAlert(null)}
-      onSave={handleSave} onReset={handleReset} saving={saving}>
+    <div style={themeStyles.container}>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-      <SectionHeading title="Teacher Summary" />
-
-      <Row3>
-        <Field label="Total Sanctioned Posts" required>
-          <TextInput value={form.totalSanctionedPosts} onChange={set("totalSanctionedPosts")} type="number" />
-        </Field>
-        <Field label="Total Filled Posts" required>
-          <TextInput value={form.totalFilledPosts} onChange={set("totalFilledPosts")} type="number" />
-        </Field>
-        <Field label="Total Vacant Posts">
-          <TextInput value={form.totalVacantPosts} onChange={set("totalVacantPosts")} type="number" readOnly />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Principal Appointed" required>
-          <SelectInput value={form.principalAppointed} onChange={set("principalAppointed")} options={YES_NO} />
-        </Field>
-        <Field label="Total Permanent Teachers" required>
-          <TextInput value={form.totalPermanentTeachers} onChange={set("totalPermanentTeachers")} type="number" />
-        </Field>
-        <Field label="Total Contract Teachers" required>
-          <TextInput value={form.totalContractTeachers} onChange={set("totalContractTeachers")} type="number" />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Total Guest Teachers">
-          <TextInput value={form.totalGuestTeachers} onChange={set("totalGuestTeachers")} type="number" />
-        </Field>
-        <Field label="Total Male Teachers" required>
-          <TextInput value={form.totalMaleTeachers} onChange={set("totalMaleTeachers")} type="number" />
-        </Field>
-        <Field label="Total Female Teachers" required>
-          <TextInput value={form.totalFemaleTeachers} onChange={set("totalFemaleTeachers")} type="number" />
-        </Field>
-      </Row3>
-
-      {/* Individual Teacher Entry */}
-      <div style={{ marginTop: 24 }}>
+      <div style={themeStyles.card}>
         <SectionHeading title="Teacher Details" />
-        {rowErr && <div style={{ color: "#cc0000", fontSize: 12, marginBottom: 8 }}>{rowErr}</div>}
 
         <Row3>
-          <Field label="Teacher Name" required>
+          <Field label="Name" required>
             <TextInput value={newRow.teacherName} onChange={setR("teacherName")} />
           </Field>
-          <Field label="Designation" required>
-            <SelectInput value={newRow.designation} onChange={setR("designation")} options={DESIGNATION} />
+          <Field label="Highest Qualification" required>
+            <TextInput value={newRow.highestQualification} onChange={setR("highestQualification")} />
           </Field>
-          <Field label="Subject" required>
-            <SelectInput value={newRow.subject} onChange={setR("subject")} options={SUBJECT} />
+          <Field label="Medium of Education till Std. 10th" required>
+            <SelectInput value={newRow.medium10th} onChange={setR("medium10th")} options={MEDIUMS} />
           </Field>
         </Row3>
 
         <Row3>
-          <Field label="Medium">
-            <SelectInput value={newRow.medium} onChange={setR("medium")} options={MEDIUM} />
+          <Field label="Medium of Education for Degree" required>
+            <SelectInput value={newRow.mediumDegree} onChange={setR("mediumDegree")} options={MEDIUMS} />
           </Field>
-          <Field label="Qualification" required>
-            <SelectInput value={newRow.qualification} onChange={setR("qualification")} options={QUALIFICATION} />
+          <Field label="Medium of Education for B.ed/D.ed/B.P.ed/B.ed Physical" required>
+            <SelectInput value={newRow.mediumProfessional} onChange={setR("mediumProfessional")} options={MEDIUMS} />
           </Field>
-          <Field label="Mobile Number">
-            <TextInput value={newRow.mobileNumber} onChange={setR("mobileNumber")} type="tel" />
+          <Field label="Years Of Experience" required>
+            <TextInput value={newRow.yearsExperience} onChange={setR("yearsExperience")} type="number" />
           </Field>
         </Row3>
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1 }}>
-            <Field label="Permanent / Contract" required>
-              <SelectInput value={newRow.isPermanent} onChange={setR("isPermanent")}
-                options={["Permanent","Contract","Guest"]} />
-            </Field>
-          </div>
-          <div style={{ flex: 1 }}>
-            <Field label="Joining Date">
-              <TextInput value={newRow.joiningDate} onChange={setR("joiningDate")} type="date" />
-            </Field>
-          </div>
-          <button onClick={handleAdd} style={ADD_BTN}>Add</button>
+        <Row3>
+          <Field label="Subject 1" required>
+            <SelectInput value={newRow.subject1} onChange={setR("subject1")} options={SUBJECTS} />
+          </Field>
+          <Field label="Subject 2">
+            <SelectInput value={newRow.subject2} onChange={setR("subject2")} options={SUBJECTS} />
+          </Field>
+          <label style={themeStyles.checkboxLabel}>
+            <input 
+              type="checkbox" 
+              checked={newRow.isSportsTeacher} 
+              onChange={(e) => setR("isSportsTeacher")(e.target.checked)} 
+            />
+            Is Sports B.P.ed <span style={{color: 'red'}}>*</span>
+          </label>
+        </Row3>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginTop: '10px' }}>
+          <Field label="Gender" required>
+            <div style={themeStyles.radioGroup}>
+              {["Male", "Female", "Other"].map(g => (
+                <label key={g}>
+                  <input type="radio" name="gender" checked={newRow.gender === g} onChange={() => setR("gender")(g)} /> {g}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Status" required>
+            <div style={themeStyles.radioGroup}>
+              {["Residential", "Non Residential"].map(s => (
+                <label key={s}>
+                  <input type="radio" name="status" checked={newRow.status === s} onChange={() => setR("status")(s)} /> {s}
+                </label>
+              ))}
+            </div>
+          </Field>
         </div>
 
+        <button onClick={handleAdd} style={{ ...themeStyles.addBtn, marginTop: '20px' }}>Save</button>
+
+        {/* Table Section */}
         {rows.length > 0 && (
-          <>
-            <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 10 }}>Filled Details</div>
+          <div style={{ marginTop: 30 }}>
+            <div style={{ fontSize: 16, fontWeight: 400, color: "var(--text-primary)", marginBottom: 12 }}>Filled Details</div>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead><tr>
-                  {["Sr No","Teacher Name","Designation","Subject","Qualification","Type","Joining Date","Delete"]
-                    .map(h => <th key={h} style={TH}>{h}</th>)}
-                </tr></thead>
+              <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid var(--border-color)" }}>
+                <thead>
+                  <tr>
+                    <th style={TH}>Teacher Name</th>
+                    <th style={TH}>Qualifications</th>
+                    <th style={TH}>Subject</th>
+                    <th style={TH}>Medium till 10th</th>
+                    <th style={TH}>Medium Degree</th>
+                    <th style={TH}>Gender</th>
+                    <th style={TH}>Exp.</th>
+                    <th style={TH}>Delete</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {paged.map((r, i) => (
+                  {paged.map(r => (
                     <tr key={r.id}>
-                      <td style={TD}>{(page-1)*pageSize+i+1}</td>
                       <td style={TD}>{r.teacherName}</td>
-                      <td style={TD}>{r.designation}</td>
-                      <td style={TD}>{r.subject}</td>
-                      <td style={TD}>{r.qualification}</td>
-                      <td style={TD}>{r.isPermanent}</td>
-                      <td style={TD}>{r.joiningDate}</td>
+                      <td style={TD}>{r.highestQualification}</td>
+                      <td style={TD}>{r.subject1}</td>
+                      <td style={TD}>{r.medium10th}</td>
+                      <td style={TD}>{r.mediumDegree}</td>
+                      <td style={TD}>{r.gender === "Male" ? "M" : "F"}</td>
+                      <td style={TD}>{r.yearsExperience}</td>
                       <td style={TD}><button style={DELETE_BTN} onClick={() => setRows(p => p.filter(x => x.id !== r.id))}>Delete</button></td>
                     </tr>
                   ))}
@@ -181,9 +207,14 @@ export default function TeachersDetails({ onTabChange }) {
               </table>
             </div>
             <Pagination total={rows.length} pageSize={pageSize} setPageSize={setPageSize} page={page} setPage={setPage} />
-          </>
+          </div>
         )}
       </div>
-    </SectionWrapper>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+        <BtnReset onClick={() => { setRows([]); setNewRow(emptyRow); }} />
+        <BtnSave onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Final Submit"}</BtnSave>
+      </div>
+    </div>
   );
 }

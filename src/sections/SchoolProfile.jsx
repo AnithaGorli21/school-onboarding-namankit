@@ -88,6 +88,20 @@ export default function SchoolProfile({ form, setForm, errors }) {
   const onVillageChange = (val) =>
     setForm((p) => ({ ...p, village: val, poName: "" }));
 
+  // ── Photo upload ──────────────────────────────────────────
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const sizeKB = file.size / 1024;
+    if (sizeKB < 5 || sizeKB > 100) {
+      setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
+      e.target.value = "";
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   return (
     <div>
       <SectionHeading title="School Profile" />
@@ -231,6 +245,11 @@ export default function SchoolProfile({ form, setForm, errors }) {
           <TextInput value={form.toiletsPerFloorCount} onChange={set("toiletsPerFloorCount")} type="number" />
         </Field>
       </Row3>
+      {/* {Row 8 Photo upload part} */}
+      
     </div>
+  
+  // photo upload
+  
   );
 }

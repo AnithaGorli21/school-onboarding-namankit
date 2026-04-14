@@ -3,7 +3,7 @@
 //  Sub-section 2 — student count grid with auto-totals
 //  Exactly matches the table in image3.png
 // ============================================================
-import { TextInput, SectionHeading } from "../components/FormFields";
+import { TextInput, SectionHeading, Row3, Field } from "../components/FormFields";
 
 // Cell style helpers
 const th = (extra = {}) => ({
@@ -184,6 +184,7 @@ export default function SchoolIntake({ intake, setIntake }) {
             </tr>
           </tbody>
         </table>
+         
       </div>
     </div>
   );

@@ -1,342 +1,237 @@
-
+// ============================================================
+//  src/sections/SportsFacilities.jsx
+// ============================================================
 import { useState } from "react";
-
-import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
-
-import SectionWrapper from "../components/SectionWrapper";
-
+import { 
+  Field, TextInput, SelectInput, 
+  SectionHeading, Row3, Row2, 
+  Alert, BtnSave, BtnReset 
+} from "../components/FormFields";
 import Pagination from "../components/Pagination";
-
 import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
 
+const YES_NO = ["Yes", "No"];
+const MAGAZINE_TYPES = ["Monthly", "Quarterly", "Half-Yearly", "Annual"];
+const YEARS = ["2023-2024", "2024-2025", "2025-2026"];
 
-
-const YES_NO       = ["Yes", "No"];
-
-const ACHIEVEMENT  = ["District Level","State Level","National Level","International Level"];
-
-
+const themeStyles = {
+  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
+  card: {
+    background: "var(--card-bg, #ffffff)",
+    border: "1px solid var(--border-color, #d6e0e0)",
+    borderRadius: "var(--radius-sm, 3px)",
+    padding: "18px 20px 22px",
+    marginBottom: "20px"
+  },
+  addBtnRow: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "10px",
+    marginBottom: "20px"
+  }
+};
 
 const emptyForm = {
-
-  ptTeacherAvailable: "", ptTeacherName: "", ptTeacherMobile: "",
-
-  annualSportsDayObserved: "", interSchoolCompetition: "",
-
-  sportsEquipmentAvailable: "", sportsEquipmentCondition: "",
-
-  swimmingPool: "", swimmingCoach: "",
-
-  athleticsTrack: "", indoorGamesRoom: "",
-
+  numPTTeachers: "",
+  numSportsPlayed: "",
+  detailsSportsPlayed: "", // Textarea/Text
+  qualifiedSportsTeacher: "",
+  separateAuditorium: "",
+  auditoriumArea: "",
+  schoolMagazine: "",
+  schoolMagazineType: "",
 };
 
-
-
-const emptyRow = {
-
-  sportName: "", level: "", achievement: "", year: "",
-
-};
-
-
-
-export default function SportsFacilities({ onTabChange }) {
-
-  const [form, setForm]     = useState(emptyForm);
-
-  const [rows, setRows]     = useState([]);
-
-  const [newRow, setNewRow] = useState(emptyRow);
-
-  const [rowErr, setRowErr] = useState("");
-
-  const [page, setPage]     = useState(1);
-
-  const [pageSize, setPageSize] = useState(10);
-
+export default function SportsFacilities() {
+  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
 
-  const [alert, setAlert]   = useState(null);
+  // States for Cultural Programs table
+  const [culturalRows, setCulturalRows] = useState([]);
+  const [newCultural, setNewCultural] = useState({ year: "", programName: "", remarks: "" });
 
+  // States for Educational Tours table
+  const [tourRows, setTourRows] = useState([]);
+  const [newTour, setNewTour] = useState({ year: "", programName: "", place: "", purpose: "" });
 
+  const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
 
-  const set  = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
-
-  const setR = (k) => (v) => setNewRow(p => ({ ...p, [k]: v }));
-
-
-
-  const handleAdd = () => {
-
-    if (!newRow.sportName || !newRow.level || !newRow.year) {
-
-      setRowErr("Please fill Sport Name, Level and Year."); return;
-
-    }
-
-    setRowErr("");
-
-    setRows(p => [...p, { ...newRow, id: Date.now() }]);
-
-    setNewRow(emptyRow); setPage(1);
-
+  const addCultural = () => {
+    if (!newCultural.year || !newCultural.programName) return;
+    setCulturalRows([...culturalRows, { ...newCultural, id: Date.now() }]);
+    setNewCultural({ year: "", programName: "", remarks: "" });
   };
 
-
+  const addTour = () => {
+    if (!newTour.year || !newTour.programName || !newTour.place) return;
+    setTourRows([...tourRows, { ...newTour, id: Date.now() }]);
+    setNewTour({ year: "", programName: "", place: "", purpose: "" });
+  };
 
   const handleSave = async () => {
-
-    setSaving(true); setAlert(null);
-
+    setSaving(true);
     try {
-
+      const payload = {
+        ...form,
+        culturalPrograms: culturalRows,
+        educationalTours: tourRows
+      };
       await fetch("/o/c/sportsfacilities", {
-
-        method: "POST", credentials: "include",
-
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-
-        body: JSON.stringify({ ...form, achievementsData: JSON.stringify(rows) }),
-
+        body: JSON.stringify(payload),
       });
-
       setAlert({ type: "success", message: "Sports Facilities saved successfully!" });
-
     } catch (e) {
-
-      setAlert({ type: "error", message: "Save failed — " + e.message });
-
+      setAlert({ type: "error", message: "Save failed." });
     } finally { setSaving(false); }
-
   };
-
-
-
-  const handleReset = () => {
-
-    setForm(emptyForm); setRows([]); setNewRow(emptyRow);
-
-    setAlert(null); setRowErr(""); setPage(1);
-
-  };
-
-
-
-  const paged = rows.slice((page-1)*pageSize, page*pageSize);
-
-
 
   return (
-
-    <SectionWrapper alert={alert} onCloseAlert={() => setAlert(null)}
-
-      onSave={handleSave} onReset={handleReset} saving={saving}>
-
-
-
-      <SectionHeading title="Sports Facilities" />
-
-
-
-      <Row3>
-
-        <Field label="Physical Training Teacher Available" required>
-
-          <SelectInput value={form.ptTeacherAvailable} onChange={set("ptTeacherAvailable")} options={YES_NO} />
-
-        </Field>
-
-        <Field label="PT Teacher Name">
-
-          <TextInput value={form.ptTeacherName} onChange={set("ptTeacherName")}
-
-            disabled={form.ptTeacherAvailable !== "Yes"} />
-
-        </Field>
-
-        <Field label="PT Teacher Mobile">
-
-          <TextInput value={form.ptTeacherMobile} onChange={set("ptTeacherMobile")} type="tel"
-
-            disabled={form.ptTeacherAvailable !== "Yes"} />
-
-        </Field>
-
-      </Row3>
-
-
-
-      <Row3>
-
-        <Field label="Annual Sports Day Observed" required>
-
-          <SelectInput value={form.annualSportsDayObserved} onChange={set("annualSportsDayObserved")} options={YES_NO} />
-
-        </Field>
-
-        <Field label="Inter School Competition Participated" required>
-
-          <SelectInput value={form.interSchoolCompetition} onChange={set("interSchoolCompetition")} options={YES_NO} />
-
-        </Field>
-
-        <Field label="Sports Equipment Available" required>
-
-          <SelectInput value={form.sportsEquipmentAvailable} onChange={set("sportsEquipmentAvailable")} options={YES_NO} />
-
-        </Field>
-
-      </Row3>
-
-
-
-      <Row3>
-
-        <Field label="Sports Equipment Condition">
-
-          <SelectInput value={form.sportsEquipmentCondition} onChange={set("sportsEquipmentCondition")}
-
-            options={["Excellent","Good","Average","Poor"]}
-
-            disabled={form.sportsEquipmentAvailable !== "Yes"} />
-
-        </Field>
-
-        <Field label="Swimming Pool Available" required>
-
-          <SelectInput value={form.swimmingPool} onChange={set("swimmingPool")} options={YES_NO} />
-
-        </Field>
-
-        <Field label="Swimming Coach Available">
-
-          <SelectInput value={form.swimmingCoach} onChange={set("swimmingCoach")} options={YES_NO}
-
-            disabled={form.swimmingPool !== "Yes"} />
-
-        </Field>
-
-      </Row3>
-
-
-
-      <Row2>
-
-        <Field label="Athletics Track Available" required>
-
-          <SelectInput value={form.athleticsTrack} onChange={set("athleticsTrack")} options={YES_NO} />
-
-        </Field>
-
-        <Field label="Indoor Games Room Available" required>
-
-          <SelectInput value={form.indoorGamesRoom} onChange={set("indoorGamesRoom")} options={YES_NO} />
-
-        </Field>
-
-      </Row2>
-
-
-
-      {/* Sports Achievements */}
-
-      <div style={{ marginTop: 24 }}>
-
-        <SectionHeading title="Sports Achievements" />
-
-        {rowErr && <div style={{ color: "#cc0000", fontSize: 12, marginBottom: 8 }}>{rowErr}</div>}
-
+    <div style={themeStyles.container}>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
+
+      <div style={themeStyles.card}>
+        <SectionHeading title="Sports Facilities" />
+        
         <Row3>
-
-          <Field label="Sport Name" required>
-
-            <TextInput value={newRow.sportName} onChange={setR("sportName")} />
-
+          <Field label="Number Of Physical Education (PT) teacher available" required>
+            <TextInput value={form.numPTTeachers} onChange={set("numPTTeachers")} type="number" />
           </Field>
-
-          <Field label="Level" required>
-
-            <SelectInput value={newRow.level} onChange={setR("level")} options={ACHIEVEMENT} />
-
+          <Field label="Number Of sports Played On PlayGround" required>
+            <TextInput value={form.numSportsPlayed} onChange={set("numSportsPlayed")} type="number" />
           </Field>
-
-          <Field label="Achievement / Position">
-
-            <TextInput value={newRow.achievement} onChange={setR("achievement")} />
-
+          <Field label="Details Of sports Played On PlayGround" required>
+            <TextInput value={form.detailsSportsPlayed} onChange={set("detailsSportsPlayed")} placeholder="Basketball, Football..." />
           </Field>
-
         </Row3>
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 20 }}>
+        <Row3>
+          <Field label="Availabilty of qualified Sport's Teachers as per students' count" required>
+            <SelectInput value={form.qualifiedSportsTeacher} onChange={set("qualifiedSportsTeacher")} options={YES_NO} />
+          </Field>
+          <div /> <div />
+        </Row3>
 
-          <div style={{ width: "calc(33% - 8px)" }}>
+        <Row2>
+          <Field label="Availabilty Of Separate Auditorium" required>
+            <SelectInput value={form.separateAuditorium} onChange={set("separateAuditorium")} options={YES_NO} />
+          </Field>
+          <Field label="Auditorium Area(sq ft)" required>
+            <TextInput value={form.auditoriumArea} onChange={set("auditoriumArea")} type="number" />
+          </Field>
+        </Row2>
 
+        <Row2>
+          <Field label="School Magazine" required>
+            <SelectInput value={form.schoolMagazine} onChange={set("schoolMagazine")} options={YES_NO} />
+          </Field>
+          <Field label="School MagazineType" required>
+            <SelectInput value={form.schoolMagazineType} onChange={set("schoolMagazineType")} options={MAGAZINE_TYPES} />
+          </Field>
+        </Row2>
+
+        {/* CULTURAL PROGRAMS SECTION */}
+        <div style={{ marginTop: 30 }}>
+          <SectionHeading title="Cultural programs conducted by school" />
+          <Row3>
             <Field label="Year" required>
-
-              <TextInput value={newRow.year} onChange={setR("year")} type="number" placeholder="e.g. 2023" />
-
+              <SelectInput value={newCultural.year} onChange={(v) => setNewCultural({...newCultural, year: v})} options={YEARS} />
             </Field>
-
+            <Field label="Program Name" required>
+              <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({...newCultural, programName: v})} />
+            </Field>
+            <Field label="Remarks" required>
+              <TextInput value={newCultural.remarks} onChange={(v) => setNewCultural({...newCultural, remarks: v})} />
+            </Field>
+          </Row3>
+          <div style={themeStyles.addBtnRow}>
+            <button onClick={addCultural} style={ADD_BTN}>Add Program</button>
           </div>
 
-          <button onClick={handleAdd} style={ADD_BTN}>Add</button>
-
+          {culturalRows.length > 0 && (
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 20 }}>
+              <thead>
+                <tr>
+                  <th style={TH}>Sr No</th>
+                  <th style={TH}>Year</th>
+                  <th style={TH}>Program Name</th>
+                  <th style={TH}>Remarks</th>
+                  <th style={TH}>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                {culturalRows.map((r, i) => (
+                  <tr key={r.id}>
+                    <td style={TD}>{i + 1}</td>
+                    <td style={TD}>{r.year}</td>
+                    <td style={TD}>{r.programName}</td>
+                    <td style={TD}>{r.remarks}</td>
+                    <td style={TD}><button style={DELETE_BTN} onClick={() => setCulturalRows(culturalRows.filter(x => x.id !== r.id))}>Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
+        {/* EDUCATIONAL TOURS SECTION */}
+        <div style={{ marginTop: 30 }}>
+          <SectionHeading title="Educational tours conducted by school" />
+          <Row3>
+            <Field label="Year" required>
+              <SelectInput value={newTour.year} onChange={(v) => setNewTour({...newTour, year: v})} options={YEARS} />
+            </Field>
+            <Field label="Program Name" required>
+              <TextInput value={newTour.programName} onChange={(v) => setNewTour({...newTour, programName: v})} />
+            </Field>
+            <Field label="Place" required>
+              <TextInput value={newTour.place} onChange={(v) => setNewTour({...newTour, place: v})} />
+            </Field>
+          </Row3>
+          <Row2>
+            <Field label="Purpose" required>
+              <TextInput value={newTour.purpose} onChange={(v) => setNewTour({...newTour, purpose: v})} />
+            </Field>
+            <div />
+          </Row2>
+          <div style={themeStyles.addBtnRow}>
+            <button onClick={addTour} style={ADD_BTN}>Add Educational Tours</button>
+          </div>
 
-
-        {rows.length > 0 && (
-
-          <>
-
-            <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 10 }}>Filled Details</div>
-
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-
-              <thead><tr>
-
-                {["Sr No","Sport Name","Level","Achievement","Year","Delete"].map(h => <th key={h} style={TH}>{h}</th>)}
-
-              </tr></thead>
-
+          {tourRows.length > 0 && (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={TH}>Sr No</th>
+                  <th style={TH}>Year</th>
+                  <th style={TH}>Program Name</th>
+                  <th style={TH}>Place</th>
+                  <th style={TH}>Purpose</th>
+                  <th style={TH}>Delete</th>
+                </tr>
+              </thead>
               <tbody>
-
-                {paged.map((r, i) => (
-
+                {tourRows.map((r, i) => (
                   <tr key={r.id}>
-
-                    <td style={TD}>{(page-1)*pageSize+i+1}</td>
-
-                    <td style={TD}>{r.sportName}</td>
-
-                    <td style={TD}>{r.level}</td>
-
-                    <td style={TD}>{r.achievement}</td>
-
+                    <td style={TD}>{i + 1}</td>
                     <td style={TD}>{r.year}</td>
-
-                    <td style={TD}><button style={DELETE_BTN} onClick={() => setRows(p => p.filter(x => x.id !== r.id))}>Delete</button></td>
-
+                    <td style={TD}>{r.programName}</td>
+                    <td style={TD}>{r.place}</td>
+                    <td style={TD}>{r.purpose}</td>
+                    <td style={TD}><button style={DELETE_BTN} onClick={() => setTourRows(tourRows.filter(x => x.id !== r.id))}>Delete</button></td>
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
-
-            <Pagination total={rows.length} pageSize={pageSize} setPageSize={setPageSize} page={page} setPage={setPage} />
-
-          </>
-
-        )}
-
+          )}
+        </div>
       </div>
 
-    </SectionWrapper>
-
+      <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 12 }}>
+        <BtnSave onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save"}</BtnSave>
+      </div>
+    </div>
   );
-
 }

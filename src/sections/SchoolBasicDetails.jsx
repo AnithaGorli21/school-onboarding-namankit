@@ -7,6 +7,7 @@ import { useState } from "react";
 import SchoolProfile from "./SchoolProfile";
 import SchoolIntake from "./SchoolIntake";
 import SchoolPerformance from "./SchoolPerformance";
+import UploadSchoolProfile from "./UploadSchoolProfile"
 import { Alert, BtnSave, BtnReset, BtnBack } from "../components/FormFields";
 import { validateSchoolProfile } from "../utils/validate";
 import { saveSchoolBasicDetails } from "../api/liferay";
@@ -53,6 +54,8 @@ export default function SchoolBasicDetails({ onTabChange }) {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [photoPreview,setPhotoPreview]= useState(null);
+
 
   const handleSave = async () => {
     const errs = validateSchoolProfile(profile);
@@ -181,6 +184,7 @@ export default function SchoolBasicDetails({ onTabChange }) {
         <SchoolProfile form={profile} setForm={setProfile} errors={errors} />
         <SchoolIntake intake={intake} setIntake={setIntake} />
         <SchoolPerformance rows={perfRows} setRows={setPerfRows} />
+        <UploadSchoolProfile rows={photoPreview} setRows={setPerfRows} />
       </div>
 
       {/* Buttons: right-aligned, matching original Save/Reset/Back */}
