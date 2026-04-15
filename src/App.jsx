@@ -19,6 +19,9 @@ import MedicalFacilities          from "./sections/Medicalfacilities";
 import ProfileFeeMaster           from "./sections/Profilefeemaster";
 import SchoolBankDetails          from "./sections/Schoolbankdetails";
 import FinalSubmit                from "./sections/FinalSubmit";
+import PreviewPage from "./sections/PreviewPage";
+
+
 
 function ComingSoon({ name }) {
   return (
@@ -30,6 +33,10 @@ function ComingSoon({ name }) {
 }
 
 export default function App() {
+  // ✅ ADD THIS BLOCK HERE
+  if (window.location.pathname === "/preview") {
+    return <PreviewPage />;
+  }
   const [activeTab, setActiveTab] = useState("School Basic Details");
 
   // Master state to collect data from ALL sections

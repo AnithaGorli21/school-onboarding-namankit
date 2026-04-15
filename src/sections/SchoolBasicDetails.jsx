@@ -47,7 +47,7 @@ const emptyIntake = {
   other_girls_nonresidential: "",
 };
 
-export default function SchoolBasicDetails({ onTabChange }) {
+export default function SchoolBasicDetails({ onTabChange, onSave }) {
   const [profile, setProfile] = useState(emptyProfile);
   const [intake, setIntake] = useState(emptyIntake);
   const [perfRows, setPerfRows] = useState([]);
@@ -138,6 +138,12 @@ export default function SchoolBasicDetails({ onTabChange }) {
       };
       console.log(payload, "payload===================>")
       await saveSchoolBasicDetails(payload);
+      // 🔥 SEND DATA TO MASTER STATE (VERY IMPORTANT)
+onSave({
+  ...profile,
+  ...intake,
+  performance: perfRows
+});
       setAlert({
         type: "success",
         message: "School Basic Details saved successfully!",

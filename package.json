@@ -2,6 +2,7 @@
   "name": "school-registration",
   "version": "1.0.0",
   "private": true,
+  "proxy": "https://mahadbt2-qa-dashboard.quantela.com",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

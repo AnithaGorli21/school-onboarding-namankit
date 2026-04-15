@@ -307,6 +307,7 @@ export default function TeachersDetails() {
         <BtnReset onClick={() => { setRows([]); setNewRow(emptyRow); }} />
         <BtnSave onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Final Submit"}</BtnSave>
       </div>
+      
     </div>
   );
 }

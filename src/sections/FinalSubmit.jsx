@@ -34,7 +34,13 @@ export default function FinalSubmit({ data, onTabChange }) {
         
         {!showReview && (
           <button 
-            onClick={() => setShowReview(true)}
+            onClick={() => {
+  // Save data to localStorage
+  localStorage.setItem("schoolPreviewData", JSON.stringify(data));
+
+  // Open new tab
+  window.open("/preview", "_blank");
+}}
             style={{ padding: "10px 25px", background: "#3498db", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", marginTop: "10px" }}
           >
             Review
