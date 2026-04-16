@@ -77,8 +77,8 @@ export function SelectInput({ value, onChange, options = [], placeholder = "--Se
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => {
-        const val   = typeof opt === "object" ? opt.value : opt;
-        const label = typeof opt === "object" ? opt.label : opt;
+        const val   = typeof opt === "object" ? opt.value || opt.name : opt;
+        const label = typeof opt === "object" ? opt.label || opt.name : opt;
         return <option key={val} value={val}>{label}</option>;
       })}
     </select>
