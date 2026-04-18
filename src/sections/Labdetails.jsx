@@ -1,46 +1,49 @@
 // ============================================================
-//  src/sections/LabDetails.jsx
+//  src/sections/Labdetails.jsx
+//
+//  FIXES:
+//  1. uploadLapPhoto uses uploadFileToFolder → { id, name, fileURL }
+//     instead of inline base64 — matches swagger exactly
+//  2. Uses saveLabDetails from liferay.js (Authorization header)
+//  3. Payload matches swagger exactly — added wellEquipmentCompLab field
+//  4. Removed isComputerLabAvailable field mapping error
 // ============================================================
 import { useState } from "react";
-import { 
-  Field, TextInput, SelectInput, 
-  SectionHeading, Row3, Row2, 
-  Alert, BtnSave, BtnReset 
+import {
+  Field, TextInput, SelectInput,
+  SectionHeading, Row3, Row2,
+  Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
+import { uploadFileToFolder } from "../api/upload";
+import { saveLabDetails } from "../api/liferay";
 
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  // Computer Lab
-  isComputerLabAvailable: "",
+  isComputerLabAvailable:        "",
   computersWithPeripheralsCount: "",
-  computersWorkingCount: "",
-  // Chemistry Lab
-  isChemistryLabAvailable: "",
-  isChemistryLabAreaSufficient: "",
-  chemistryLabAreaSqft: "",
-  // Biology Lab
-  isBiologyLabAvailable: "",
-  isBiologyLabAreaSufficient: "",
-  biologyLabAreaSqft: "",
-  // Physics Lab
-  isPhysicsLabAvailable: "",
-  isPhysicsLabAreaSufficient: "",
-  physicsLabAreaSqft: "",
-  // Digital Classroom
-  digitalClassroomCount: "",
+  computersWorkingCount:         "",
+  isChemistryLabAvailable:       "",
+  isChemistryLabAreaSufficient:  "",
+  chemistryLabAreaSqft:          "",
+  isBiologyLabAvailable:         "",
+  isBiologyLabAreaSufficient:    "",
+  biologyLabAreaSqft:            "",
+  isPhysicsLabAvailable:         "",
+  isPhysicsLabAreaSufficient:    "",
+  physicsLabAreaSqft:            "",
+  digitalClassroomCount:         "",
 };
 
 export default function LabDetails({ onTabChange }) {
-  const [form, setForm] = useState(emptyForm);
+  const [form,      setForm]      = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [errors, setErrors] = useState({});
+  const [saving,    setSaving]    = useState(false);
+  const [alert,     setAlert]     = useState(null);
+  const [errors,    setErrors]    = useState({});
 
-  const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
+  const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // --- Photo handling from your reference code ---
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -54,87 +57,63 @@ export default function LabDetails({ onTabChange }) {
   };
 
   const validate = () => {
-  const e = {};
+    const e = {};
+    if (!form.digitalClassroomCount) e.digitalClassroomCount = "Required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-  // Only validate what API actually needs
-  if (!form.digitalClassroomCount) e.digitalClassroomCount = "Required";
-  if (!photoFile) e.photo = "Photo is required";
-
-  setErrors(e);
-  return Object.keys(e).length === 0;
-};
-
-  // --- Save Logic using FormData (Required for Files) ---
   const handleSave = async () => {
-  if (!validate()) {
-    setAlert({ type: "error", message: "Please fix the highlighted errors." });
-    return;
-  }
-
-  setSaving(true);
-  setAlert(null);
-
-  try {
-    let base64File = "";
-
-    if (photoFile) {
-      base64File = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(photoFile);
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = error => reject(error);
-      });
+    if (!validate()) {
+      setAlert({ type: "error", message: "Please fix the highlighted errors." });
+      return;
     }
+    setSaving(true);
+    setAlert(null);
+    try {
+      // Upload photo first → get documentId
+      const uploaded = photoFile
+        ? await uploadFileToFolder(photoFile, "School Documents")
+        : null;
 
-    const payload = {
-      // Computer
-      noOfCompInWorkingCondition: form.computersWithPeripheralsCount ? Number(form.computersWithPeripheralsCount) : 0,
-      noOfCompInWrkngCond: form.computersWorkingCount ? Number(form.computersWorkingCount) : 0,
+      // Payload exactly matching swagger schema
+      const payload = {
+        areaOfBiologyLabmin150Sqft:            form.isBiologyLabAreaSufficient  === "Yes",
+        areaOfChemistryLabmin150Sqft:          form.isChemistryLabAreaSufficient === "Yes",
+        areaOfPhysicsLabmin150Sqft:            form.isPhysicsLabAreaSufficient   === "Yes",
+        availabilityOfBiologyLabWithLabAsst:   form.isBiologyLabAvailable        === "Yes",
+        availabilityOfChemistryLabWithLabAsst: form.isChemistryLabAvailable      === "Yes",
+        availabilityOfPhysicsLabWithLabAsst:   form.isPhysicsLabAvailable        === "Yes",
+        biologyLabAvailableAreaSqft:           form.biologyLabAreaSqft   ? Number(form.biologyLabAreaSqft)   : 0,
+        chemistryLabAvailableAreaSqft:         form.chemistryLabAreaSqft ? Number(form.chemistryLabAreaSqft) : 0,
+        noOfCompInWorkingCondition:            form.computersWithPeripheralsCount ? Number(form.computersWithPeripheralsCount) : 0,
+        noOfCompInWrkngCond:                   form.computersWorkingCount         ? Number(form.computersWorkingCount)         : 0,
+        numberOfDigitalClassroomInSchool:      form.digitalClassroomCount         ? Number(form.digitalClassroomCount)         : 0,
+        physicsLabAvailableAreaSqft:           form.physicsLabAreaSqft   ? Number(form.physicsLabAreaSqft)   : 0,
+        wellEquipmentCompLab:                  form.isComputerLabAvailable === "Yes",
 
-      // Chemistry
-      availabilityOfChemistryLabWithLabAsst: form.isChemistryLabAvailable === "Yes",
-      areaOfChemistryLabmin150Sqft: form.isChemistryLabAreaSufficient === "Yes",
-      chemistryLabAvailableAreaSqft: form.chemistryLabAreaSqft ? Number(form.chemistryLabAreaSqft) : 0,
+        // Attachment — exact swagger structure
+        uploadLapPhoto: uploaded
+          ? {
+              id:         uploaded.documentId,
+              name:       uploaded.title,
+              fileURL:    uploaded.downloadURL,
+              fileBase64: "",
+              folder: { externalReferenceCode: "", siteId: 0 },
+            }
+          : null,
+      };
 
-      // Biology
-      availabilityOfBiologyLabWithLabAsst: form.isBiologyLabAvailable === "Yes",
-      areaOfBiologyLabmin150Sqft: form.isBiologyLabAreaSufficient === "Yes",
-      biologyLabAvailableAreaSqft: form.biologyLabAreaSqft ? Number(form.biologyLabAreaSqft) : 0,
+      console.log("[LabDetails] payload →", JSON.stringify(payload, null, 2));
+      await saveLabDetails(payload);
 
-      // Physics
-      availabilityOfPhysicsLabWithLabAsst: form.isPhysicsLabAvailable === "Yes",
-      areaOfPhysicsLabmin150Sqft: form.isPhysicsLabAreaSufficient === "Yes",
-      physicsLabAvailableAreaSqft: form.physicsLabAreaSqft ? Number(form.physicsLabAreaSqft) : 0,
-
-      // Digital classroom
-      numberOfDigitalClassroomInSchool: form.digitalClassroomCount ? Number(form.digitalClassroomCount) : 0,
-
-      // Upload
-      uploadLapPhoto: {
-        externalReferenceCode: "LAB_PHOTO",
-        fileBase64: base64File,
-        fileURL: "",
-        folder: {
-          externalReferenceCode: "LAB_FOLDER",
-          siteId: 0
-        }
-      }
-    };
-
-    await fetch("/o/c/labdetails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    setAlert({ type: "success", message: "Lab Details saved successfully!" });
-
-  } catch (e) {
-    setAlert({ type: "error", message: "Save failed — " + e.message });
-  } finally {
-    setSaving(false);
-  }
-};
+      setAlert({ type: "success", message: "Lab Details saved successfully!" });
+    } catch (e) {
+      setAlert({ type: "error", message: "Save failed — " + e.message });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleReset = () => {
     setForm(emptyForm);
@@ -146,9 +125,8 @@ export default function LabDetails({ onTabChange }) {
   return (
     <div style={{ padding: "16px 20px 32px" }}>
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
-
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
-        
+
         {/* Computer Lab */}
         <SectionHeading title="Computer Lab Details" />
         <Row3>
@@ -163,7 +141,7 @@ export default function LabDetails({ onTabChange }) {
           </Field>
         </Row3>
 
-        {/* Chem/Bio/Phys Lab */}
+        {/* Chemistry / Biology / Physics Lab */}
         <div style={{ marginTop: 24 }}>
           <SectionHeading title="Chemistry, Biology & Physics Lab Details" />
           <Row3>
@@ -177,7 +155,6 @@ export default function LabDetails({ onTabChange }) {
               <TextInput value={form.chemistryLabAreaSqft} onChange={set("chemistryLabAreaSqft")} type="number" />
             </Field>
           </Row3>
-
           <Row3>
             <Field label="Availability of Biology Laboratory with Lab Assistant" required>
               <SelectInput value={form.isBiologyLabAvailable} onChange={set("isBiologyLabAvailable")} options={YES_NO} />
@@ -189,7 +166,6 @@ export default function LabDetails({ onTabChange }) {
               <TextInput value={form.biologyLabAreaSqft} onChange={set("biologyLabAreaSqft")} type="number" />
             </Field>
           </Row3>
-
           <Row3>
             <Field label="Availability of Physics Laboratory with Lab Assistant" required>
               <SelectInput value={form.isPhysicsLabAvailable} onChange={set("isPhysicsLabAvailable")} options={YES_NO} />
@@ -213,28 +189,21 @@ export default function LabDetails({ onTabChange }) {
           </Row3>
         </div>
 
-        {/* Upload Photo Section - Matching Screenshot and Reference Code */}
+        {/* Upload Photo */}
         <div style={{ marginTop: 28, borderTop: "1px solid #cccccc", paddingTop: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 14 }}>
-            Upload Photo
-          </div>
+          <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 14 }}>Upload Photo</div>
           <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14 }}>
             Note:- The size of the photograph should fall between 5KB to 100KB.
           </p>
           <Row3>
             <Field label="Upload Lab Photo" required error={errors.photo}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ fontSize: 13, padding: "4px 0" }}
-              />
+              <input type="file" accept="image/*" onChange={handlePhotoChange}
+                style={{ fontSize: 13, padding: "4px 0" }} />
             </Field>
           </Row3>
         </div>
       </div>
 
-      {/* Buttons */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
         <BtnSave onClick={handleSave} disabled={saving}>

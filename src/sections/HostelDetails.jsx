@@ -1,17 +1,24 @@
 // ============================================================
 //  src/sections/HostelDetails.jsx
-//  100% exact match to original School Hostel Details page
+//
+//  FIXES:
+//  1. Endpoint → /o/c/schoolhosteldetails (confirmed from swagger URL)
+//  2. uploadHostelPhoto uses uploadFileToFolder → { id, name, fileURL }
+//     instead of inline base64
+//  3. Uses saveHostelDetails from liferay.js (includes Authorization header)
+//  4. Payload matches swagger exactly — no extra fields
 // ============================================================
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
+import { uploadFileToFolder } from "../api/upload";
+import { saveHostelDetails } from "../api/liferay";
 
 const YES_NO = ["Yes", "No"];
 
-// Hot water checkbox options
 const HOT_WATER_OPTIONS = [
   { key: "solarWaterheater",   label: "Solar Waterheater" },
   { key: "gasElectric",        label: "Gas/Electric" },
@@ -20,7 +27,6 @@ const HOT_WATER_OPTIONS = [
 ];
 
 const emptyForm = {
-  // School Hostel Details
   studentsClass1to4:          "",
   femaleCaretakers1to4:       "",
   availabilityIncinerators:   "",
@@ -28,17 +34,14 @@ const emptyForm = {
   separateHostelBuilding:     "",
   areaInSqFt:                 "",
   lightFanBedding:            "",
-  // Hot water checkboxes
   hotWater_solarWaterheater:   false,
   hotWater_gasElectric:        false,
   hotWater_traditionalSources: false,
   hotWater_notAvailable:       false,
-  // Hostel Capacity
   totalBoysHostels:    "",
   capacityBoysHostels: "",
   totalGirlsHostels:   "",
   capacityGirlsHostels:"",
-  // Bathrooms
   actualBathrooms:  "",
   actualWashrooms:  "",
 };
@@ -53,20 +56,12 @@ export default function HostelDetails({ onTabChange }) {
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // ── Auto-calculated fields ─────────────────────────────────
-  const grandTotalHostels =
-    (Number(form.totalBoysHostels) || 0) + (Number(form.totalGirlsHostels) || 0);
+  const grandTotalHostels  = (Number(form.totalBoysHostels)    || 0) + (Number(form.totalGirlsHostels)    || 0);
+  const grandTotalCapacity = (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
+  const totalResidentialStudents = grandTotalCapacity;
+  const expectedBathrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedWashrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
 
-  const grandTotalCapacity =
-    (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
-
-  const totalResidentialStudents = grandTotalCapacity;  // same as total hostel capacity
-
-  // Standard ratio: 1 bathroom per 20 students
-  const expectedBathrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : "";
-  const expectedWashrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : "";
-
-  // ── Photo upload ───────────────────────────────────────────
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -80,112 +75,85 @@ export default function HostelDetails({ onTabChange }) {
     setPhotoPreview(URL.createObjectURL(file));
   };
 
-  // ── Validation ─────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!form.studentsClass1to4)        e.studentsClass1to4       = "Required";
-    if (!form.femaleCaretakers1to4)     e.femaleCaretakers1to4    = "Required";
-    if (!form.availabilityIncinerators) e.availabilityIncinerators= "Required";
-    if (!form.washingMachine)           e.washingMachine          = "Required";
-    if (!form.separateHostelBuilding)   e.separateHostelBuilding  = "Required";
-    if (!form.lightFanBedding)          e.lightFanBedding         = "Required";
-    const hotWaterSelected = HOT_WATER_OPTIONS.some(o => form[`hotWater_${o.key}`]);
-    if (!hotWaterSelected)              e.hotWater                = "Select at least one option";
-    if (!form.totalBoysHostels)         e.totalBoysHostels        = "Required";
-    if (!form.capacityBoysHostels)      e.capacityBoysHostels     = "Required";
-    if (!form.totalGirlsHostels)        e.totalGirlsHostels       = "Required";
-    if (!form.capacityGirlsHostels)     e.capacityGirlsHostels    = "Required";
-    if (!form.actualBathrooms)          e.actualBathrooms         = "Required";
-    if (!form.actualWashrooms)          e.actualWashrooms         = "Required";
+    if (!form.studentsClass1to4)        e.studentsClass1to4        = "Required";
+    if (!form.femaleCaretakers1to4)     e.femaleCaretakers1to4     = "Required";
+    if (!form.availabilityIncinerators) e.availabilityIncinerators = "Required";
+    if (!form.washingMachine)           e.washingMachine           = "Required";
+    if (!form.separateHostelBuilding)   e.separateHostelBuilding   = "Required";
+    if (!form.lightFanBedding)          e.lightFanBedding          = "Required";
+    if (!HOT_WATER_OPTIONS.some(o => form[`hotWater_${o.key}`]))
+                                        e.hotWater                 = "Select at least one option";
+    if (!form.totalBoysHostels)         e.totalBoysHostels         = "Required";
+    if (!form.capacityBoysHostels)      e.capacityBoysHostels      = "Required";
+    if (!form.totalGirlsHostels)        e.totalGirlsHostels        = "Required";
+    if (!form.capacityGirlsHostels)     e.capacityGirlsHostels     = "Required";
+    if (!form.actualBathrooms)          e.actualBathrooms          = "Required";
+    if (!form.actualWashrooms)          e.actualWashrooms          = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  // ── Save ───────────────────────────────────────────────────
   const handleSave = async () => {
-  if (!validate()) {
-    setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
-    return;
-  }
+    if (!validate()) {
+      setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+      return;
+    }
+    setSaving(true);
+    setAlert(null);
+    try {
+      const uploaded = photoFile
+        ? await uploadFileToFolder(photoFile, "School Documents")
+        : null;
 
-  setSaving(true);
-  setAlert(null);
+      // Payload exactly matching swagger schema
+      const payload = {
+        actualBathrooms:                    Number(form.actualBathrooms)          || 0,
+        actualWashrooms:                    Number(form.actualWashrooms)          || 0,
+        areaInSqft:                         Number(form.areaInSqFt)               || 0,
+        availabilityOfLghtFansBeddng:       form.lightFanBedding                  === "Yes",
+        availibilityOfHotWater:
+          form.hotWater_solarWaterheater ||
+          form.hotWater_gasElectric      ||
+          form.hotWater_traditionalSources,
+        availibilityOfIncinerators:         form.availabilityIncinerators         === "Yes",
+        availibilityOfSeparateHstlBuildng:  form.separateHostelBuilding           === "Yes",
+        availibilityOfWashingMchneForStdnt: form.washingMachine                   === "Yes",
+        expectedBathrooms,
+        expectedWashrooms,
+        grndTtlcapacityOfHstl:              grandTotalCapacity,
+        grndTtlnoOfHstl:                    grandTotalHostels,
+        totalNoOfFemaleCaretaker1To4:       Number(form.femaleCaretakers1to4)     || 0,
+        totalNoOfResidentialStudents:       totalResidentialStudents,
+        totalNoOfStdntsStudyngCls1To4:      Number(form.studentsClass1to4)        || 0,
+        ttlCapacityOfBoysHstl:              Number(form.capacityBoysHostels)      || 0,
+        ttlCapacityOfGirlsHstl:             Number(form.capacityGirlsHostels)     || 0,
+        ttlNoOfBoysHstl:                    Number(form.totalBoysHostels)         || 0,
+        ttlNoOfGirlsHstl:                   Number(form.totalGirlsHostels)        || 0,
 
-  try {
-    const toBase64 = (file) =>
-      new Promise((resolve, reject) => {
-        if (!file) return resolve("");
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = (err) => reject(err);
-      });
+        // Attachment — exact swagger structure
+        uploadHostelPhoto: uploaded
+          ? {
+              id:         uploaded.documentId,
+              name:       uploaded.title,
+              fileURL:    uploaded.downloadURL,
+              fileBase64: "",
+              folder: { externalReferenceCode: "", siteId: 0 },
+            }
+          : null,
+      };
 
-    const base64File = await toBase64(photoFile);
+      console.log("[HostelDetails] payload →", JSON.stringify(payload, null, 2));
+      await saveHostelDetails(payload);
 
-    const payload = {
-      // Basic details
-      totalNoOfStdntsStudyngCls1To4: Number(form.studentsClass1to4),
-      totalNoOfFemaleCaretaker1To4: Number(form.femaleCaretakers1to4),
-
-      availibilityOfIncinerators: form.availabilityIncinerators === "Yes",
-      availibilityOfWashingMchneForStdnt: form.washingMachine === "Yes",
-      availibilityOfSeparateHstlBuildng: form.separateHostelBuilding === "Yes",
-      availabilityOfLghtFansBeddng: form.lightFanBedding === "Yes",
-
-      areaInSqft: form.areaInSqFt ? Number(form.areaInSqFt) : 0,
-
-      // Hostel count & capacity
-      ttlNoOfBoysHstl: Number(form.totalBoysHostels),
-      ttlCapacityOfBoysHstl: Number(form.capacityBoysHostels),
-
-      ttlNoOfGirlsHstl: Number(form.totalGirlsHostels),
-      ttlCapacityOfGirlsHstl: Number(form.capacityGirlsHostels),
-
-      grndTtlnoOfHstl: grandTotalHostels,
-      grndTtlcapacityOfHstl: grandTotalCapacity,
-
-      totalNoOfResidentialStudents: totalResidentialStudents,
-
-      // Bathrooms
-      expectedBathrooms: expectedBathrooms || 0,
-      expectedWashrooms: expectedWashrooms || 0,
-
-      actualBathrooms: Number(form.actualBathrooms),
-      actualWashrooms: Number(form.actualWashrooms),
-
-      // Hot water (convert multiple checkboxes → single boolean)
-      availibilityOfHotWater:
-        form.hotWater_solarWaterheater ||
-        form.hotWater_gasElectric ||
-        form.hotWater_traditionalSources,
-
-      // Upload
-      uploadHostelPhoto: {
-        externalReferenceCode: "HOSTEL_PHOTO",
-        fileBase64: base64File,
-        fileURL: "",
-        folder: {
-          externalReferenceCode: "HOSTEL_FOLDER",
-          siteId: 0,
-        },
-      },
-    };
-
-    await fetch("/o/c/hosteldetails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    setAlert({ type: "success", message: "Hostel Details saved successfully!" });
-
-  } catch (e) {
-    setAlert({ type: "error", message: "Save failed — " + e.message });
-  } finally {
-    setSaving(false);
-  }
-};
+      setAlert({ type: "success", message: "Hostel Details saved successfully!" });
+    } catch (e) {
+      setAlert({ type: "error", message: "Save failed — " + e.message });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleReset = () => {
     setForm(emptyForm);
@@ -195,14 +163,9 @@ export default function HostelDetails({ onTabChange }) {
     setAlert(null);
   };
 
-  // ── Label style for section headings ──────────────────────
   const subHeading = {
-    fontSize: 16,
-    fontWeight: 400,
-    color: "#333",
-    paddingBottom: 8,
-    marginBottom: 14,
-    marginTop: 24,
+    fontSize: 16, fontWeight: 400, color: "#333",
+    paddingBottom: 8, marginBottom: 14, marginTop: 24,
     borderBottom: "1px solid #cccccc",
   };
 
@@ -214,10 +177,8 @@ export default function HostelDetails({ onTabChange }) {
       onReset={handleReset}
       saving={saving}
     >
-      {/* ── SECTION 1: School Hostel Details ──────────────── */}
       <SectionHeading title="School Hostel Details" />
 
-      {/* Row 1 */}
       <Row3>
         <Field label="Total Number of Students studying from class 1st to 4th" required error={errors.studentsClass1to4}>
           <TextInput value={form.studentsClass1to4} onChange={set("studentsClass1to4")} type="number" />
@@ -230,7 +191,6 @@ export default function HostelDetails({ onTabChange }) {
         </Field>
       </Row3>
 
-      {/* Row 2 */}
       <Row3>
         <Field label="Availability Of washing Machine for students use" required error={errors.washingMachine}>
           <SelectInput value={form.washingMachine} onChange={set("washingMachine")} options={YES_NO} />
@@ -238,9 +198,7 @@ export default function HostelDetails({ onTabChange }) {
         <Field label="Availability Of Separate Hostel Building" required error={errors.separateHostelBuilding}>
           <SelectInput
             value={form.separateHostelBuilding}
-            onChange={(v) => {
-              setForm((p) => ({ ...p, separateHostelBuilding: v, areaInSqFt: v !== "Yes" ? "" : p.areaInSqFt }));
-            }}
+            onChange={(v) => setForm((p) => ({ ...p, separateHostelBuilding: v, areaInSqFt: v !== "Yes" ? "" : p.areaInSqFt }))}
             options={YES_NO}
           />
         </Field>
@@ -255,23 +213,19 @@ export default function HostelDetails({ onTabChange }) {
         </Field>
       </Row3>
 
-      {/* Row 3 — single field spanning 1/3 */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px 18px", marginBottom: 12 }}>
         <Field label="Availability Of Light,Fan & Bedding Facility For Each Student" required error={errors.lightFanBedding}>
           <SelectInput value={form.lightFanBedding} onChange={set("lightFanBedding")} options={YES_NO} />
         </Field>
       </div>
 
-      {/* Hot Water checkboxes */}
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontSize: 13, color: "#333", display: "block", marginBottom: 8 }}>
           Availability of Hot water (Select atleast one availability of Hot water)
           <span style={{ color: "#cc0000", marginLeft: 2 }}>*</span>
         </label>
         {errors.hotWater && (
-          <span style={{ color: "#cc0000", fontSize: 11, display: "block", marginBottom: 6 }}>
-            {errors.hotWater}
-          </span>
+          <span style={{ color: "#cc0000", fontSize: 11, display: "block", marginBottom: 6 }}>{errors.hotWater}</span>
         )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
           {HOT_WATER_OPTIONS.map((opt) => (
@@ -288,9 +242,7 @@ export default function HostelDetails({ onTabChange }) {
         </div>
       </div>
 
-      {/* ── SECTION 2: Hostel Capacity ─────────────────────── */}
       <div style={subHeading}>Hostel Capacity</div>
-
       <Row3>
         <Field label="Total Number of Boys Hostels" required error={errors.totalBoysHostels}>
           <TextInput value={form.totalBoysHostels} onChange={set("totalBoysHostels")} type="number" />
@@ -302,12 +254,10 @@ export default function HostelDetails({ onTabChange }) {
           <TextInput value={form.totalGirlsHostels} onChange={set("totalGirlsHostels")} type="number" />
         </Field>
       </Row3>
-
       <Row3>
         <Field label="Total Capacity of Girls Hostels" required error={errors.capacityGirlsHostels}>
           <TextInput value={form.capacityGirlsHostels} onChange={set("capacityGirlsHostels")} type="number" />
         </Field>
-        {/* Grand Total — auto-calculated, read-only grey */}
         <Field label="Grand Total (Number of Hostels)" required>
           <TextInput value={grandTotalHostels || ""} readOnly />
         </Field>
@@ -316,16 +266,12 @@ export default function HostelDetails({ onTabChange }) {
         </Field>
       </Row3>
 
-      {/* ── SECTION 3: Availability of Bathrooms ─────────── */}
       <div style={subHeading}>Availability of Bathrooms</div>
-
-      {/* Total Residential Students — auto */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px 18px", marginBottom: 12 }}>
         <Field label="Total No. Of Residential Students" required>
           <TextInput value={totalResidentialStudents || ""} readOnly />
         </Field>
       </div>
-
       <Row2>
         <Field label="Expected Bathrooms" required>
           <TextInput value={expectedBathrooms || ""} readOnly />
@@ -334,7 +280,6 @@ export default function HostelDetails({ onTabChange }) {
           <TextInput value={form.actualBathrooms} onChange={set("actualBathrooms")} type="number" />
         </Field>
       </Row2>
-
       <Row2>
         <Field label="Expected Washrooms" required>
           <TextInput value={expectedWashrooms || ""} readOnly />
@@ -344,36 +289,23 @@ export default function HostelDetails({ onTabChange }) {
         </Field>
       </Row2>
 
-      {/* ── SECTION 4: Upload Photo ───────────────────────── */}
       <div style={subHeading}>Upload Photo</div>
-
       <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14, lineHeight: 1.5 }}>
         Note:- The size of the photograph should fall between 5KB to 100KB.
       </p>
-
       <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
         <div>
           <Field label="Upload Hostel Photo" required error={errors.photo}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-              style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }}
-            />
+            <input type="file" accept="image/*" onChange={handlePhotoChange}
+              style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }} />
           </Field>
         </div>
         {photoPreview && (
-          <div style={{
-            width: 120, height: 90,
-            border: "1px solid #ccc", borderRadius: 3,
-            overflow: "hidden", flexShrink: 0,
-          }}>
-            <img src={photoPreview} alt="Preview"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div style={{ width: 120, height: 90, border: "1px solid #ccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+            <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         )}
       </div>
-
     </SectionWrapper>
   );
 }

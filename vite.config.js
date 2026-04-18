@@ -8,13 +8,27 @@ export default defineConfig({
   // base: "/o/school-registration/",
   server: {
     port: 5001,
-    // Proxy Liferay API calls to avoid CORS during local dev
     proxy: {
+      // ── Object Definition APIs (your form data) ──────────
       "/o/c": {
-        target: "https://mahadbt2-qa-dashboard.quantela.com",
-        // ← your Liferay URL
+        target: "https://mahadbt2-uat-dashboard.quantela.com",
         changeOrigin: true,
-        credentials: true,
+        secure: false,       // allow self-signed certs on UAT
+      },
+
+      // ── Headless Delivery API (file uploads) ─────────────
+      // Required by src/api/upload.js for uploading to Documents & Media
+      "/o/headless-delivery": {
+        target: "https://mahadbt2-uat-dashboard.quantela.com",
+        changeOrigin: true,
+        secure: false,
+      },
+
+      // ── Headless Admin (optional — for site listing) ──────
+      "/o/headless-admin-user": {
+        target: "https://mahadbt2-uat-dashboard.quantela.com",
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

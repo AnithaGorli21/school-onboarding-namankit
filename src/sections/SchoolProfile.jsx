@@ -11,9 +11,23 @@ import {
   getStates, getDistricts, getTalukas, getVillages, getPoNames,
 } from "../api/liferay";
 
-const SCHOOL_BOARD_OPTIONS   = ["SSC Board", "CBSE Board", "ICSE Board", "State Board"];
+// ⚠️  value IDs are placeholders — replace with actual Liferay picklist IDs
+// Check: Liferay → Objects → Namankit School Profile → Fields → schoolBoardId → Edit → Picklist
+const SCHOOL_BOARD_OPTIONS = [
+  { value: 1, label: "SSC Board" },
+  { value: 2, label: "CBSE Board" },
+  { value: 3, label: "ICSE Board" },
+  { value: 4, label: "State Board" },
+];
+
+const AREA_OPTIONS = [
+  { value: 1, label: "Rural" },
+  { value: 2, label: "Urban" },
+  { value: 3, label: "Semi-Urban" },
+  { value: 4, label: "Tribal" },
+];
+
 const WEBSITE_OPTIONS        = ["Yes", "No"];
-const AREA_OPTIONS           = ["Rural", "Urban", "Semi-Urban", "Tribal"];
 const YEAR_OPTIONS           = Array.from({ length: 75 }, (_, i) => String(2024 - i));
 const SELECTION_YEAR_OPTIONS = [
   "2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25",
@@ -26,7 +40,6 @@ export default function SchoolProfile({ form, setForm, errors }) {
   const [villages,  setVillages]  = useState([]);
   const [poNames,   setPoNames]   = useState([]);
 
-  // ── Load states once on mount ──────────────────────────────
   useEffect(() => {
     getStates()
       .then(setStates)
@@ -37,76 +50,37 @@ export default function SchoolProfile({ form, setForm, errors }) {
       ]));
   }, []);
 
-  // ── Load districts when state changes ─────────────────────
   useEffect(() => {
     if (!form.state) { setDistricts([]); return; }
-    getDistricts(form.state)
-      .then(setDistricts)
-      .catch(() => setDistricts([
-        { value: 1, label: "Nashik" },
-        { value: 2, label: "Pune" },
-        { value: 3, label: "Nagpur" },
-      ]));
+    getDistricts(form.state).then(setDistricts).catch(() => setDistricts([]));
   }, [form.state]);
 
-  // ── Load talukas when district changes ─────────────────────
   useEffect(() => {
     if (!form.district) { setTalukas([]); return; }
-    getTalukas(form.district)
-      .then(setTalukas)
-      .catch(() => setTalukas([{ value: 1, label: "Trimbakeshwar" }]));
+    getTalukas(form.district).then(setTalukas).catch(() => setTalukas([]));
   }, [form.district]);
 
-  // ── Load villages when taluka changes ──────────────────────
   useEffect(() => {
     if (!form.taluka) { setVillages([]); return; }
-    getVillages(form.taluka)
-      .then(setVillages)
-      .catch(() => setVillages([{ value: 1, label: "Anjaneri" }]));
+    getVillages(form.taluka).then(setVillages).catch(() => setVillages([]));
   }, [form.taluka]);
 
-  // ── Load PO names when village changes ─────────────────────
   useEffect(() => {
     if (!form.village) { setPoNames([]); return; }
-    getPoNames(form.village)
-      .then(setPoNames)
-      .catch(() => setPoNames([{ value: 1, label: "Nashik PO" }]));
+    getPoNames(form.village).then(setPoNames).catch(() => setPoNames([]));
   }, [form.village]);
 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
-  // Cascade reset handlers
-  const onStateChange = (val) =>
-    setForm((p) => ({ ...p, state: val, district: "", taluka: "", village: "", poName: "" }));
-
-  const onDistrictChange = (val) =>
-    setForm((p) => ({ ...p, district: val, taluka: "", village: "", poName: "" }));
-
-  const onTalukaChange = (val) =>
-    setForm((p) => ({ ...p, taluka: val, village: "", poName: "" }));
-
-  const onVillageChange = (val) =>
-    setForm((p) => ({ ...p, village: val, poName: "" }));
-
-  // ── Photo upload ──────────────────────────────────────────
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const sizeKB = file.size / 1024;
-    if (sizeKB < 5 || sizeKB > 100) {
-      setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
-      e.target.value = "";
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
-  };
+  const onStateChange    = (val) => setForm((p) => ({ ...p, state: val,    district: "", taluka: "", village: "", poName: "" }));
+  const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "",   village: "", poName: "" }));
+  const onTalukaChange   = (val) => setForm((p) => ({ ...p, taluka: val,   village: "",  poName: "" }));
+  const onVillageChange  = (val) => setForm((p) => ({ ...p, village: val,  poName: "" }));
 
   return (
     <div>
       <SectionHeading title="School Profile" />
 
-      {/* Row 1: Trustee Name | School Name | Address */}
       <Row3>
         <Field label="Trustee Name" required error={errors.trusteeName}>
           <TextInput value={form.trusteeName} onChange={set("trusteeName")} />
@@ -119,112 +93,66 @@ export default function SchoolProfile({ form, setForm, errors }) {
         </Field>
       </Row3>
 
-      {/* Row 2: Mobile No | State | District */}
       <Row3>
         <Field label="Mobile No" error={errors.mobileNumber}>
           <TextInput value={form.mobileNumber} onChange={set("mobileNumber")} type="tel" />
         </Field>
         <Field label="State" error={errors.state}>
-          <SelectInput
-            value={form.state}
-            onChange={onStateChange}
-            options={states}
-          />
+          <SelectInput value={form.state} onChange={onStateChange} options={states} />
         </Field>
         <Field label="District" error={errors.district}>
-          <SelectInput
-            value={form.district}
-            onChange={onDistrictChange}
-            options={districts}
-            disabled={!form.state}
-          />
+          <SelectInput value={form.district} onChange={onDistrictChange} options={districts} disabled={!form.state} />
         </Field>
       </Row3>
 
-      {/* Row 3: Taluka | Village | Pincode */}
       <Row3>
         <Field label="Taluka" error={errors.taluka}>
-          <SelectInput
-            value={form.taluka}
-            onChange={onTalukaChange}
-            options={talukas}
-            disabled={!form.district}
-          />
+          <SelectInput value={form.taluka} onChange={onTalukaChange} options={talukas} disabled={!form.district} />
         </Field>
         <Field label="Village" error={errors.village}>
-          <SelectInput
-            value={form.village}
-            onChange={onVillageChange}
-            options={villages}
-            disabled={!form.taluka}
-          />
+          <SelectInput value={form.village} onChange={onVillageChange} options={villages} disabled={!form.taluka} />
         </Field>
         <Field label="Pincode" required error={errors.pincode}>
           <TextInput value={form.pincode} onChange={set("pincode")} />
         </Field>
       </Row3>
 
-      {/* Row 4: Email ID | PO Name | UDISE Code */}
       <Row3>
         <Field label="Email ID" error={errors.emailId}>
           <TextInput value={form.emailId} onChange={set("emailId")} type="email" />
         </Field>
         <Field label="PO Name" error={errors.poName}>
-          <SelectInput
-            value={form.poName}
-            onChange={set("poName")}
-            options={poNames}
-            disabled={!form.village}
-          />
+          <SelectInput value={form.poName} onChange={set("poName")} options={poNames} disabled={!form.village} />
         </Field>
         <Field label="UDISE Code" error={errors.udiseCode}>
           <TextInput value={form.udiseCode} onChange={set("udiseCode")} />
         </Field>
       </Row3>
 
-      {/* Row 5: School Selection Year | School Reg No | School Board */}
       <Row3>
         <Field label="School Selection Year" required error={errors.schoolSelectionYear}>
-          <SelectInput
-            value={form.schoolSelectionYear}
-            onChange={set("schoolSelectionYear")}
-            options={SELECTION_YEAR_OPTIONS}
-          />
+          <SelectInput value={form.schoolSelectionYear} onChange={set("schoolSelectionYear")} options={SELECTION_YEAR_OPTIONS} />
         </Field>
         <Field label="School Registration No" required error={errors.schoolRegistrationNumber}>
           <TextInput value={form.schoolRegistrationNumber} onChange={set("schoolRegistrationNumber")} />
         </Field>
         <Field label="School Board" required error={errors.schoolBoard}>
-          <SelectInput
-            value={form.schoolBoard}
-            onChange={set("schoolBoard")}
-            options={SCHOOL_BOARD_OPTIONS}
-          />
+          <SelectInput value={form.schoolBoard} onChange={set("schoolBoard")} options={SCHOOL_BOARD_OPTIONS} />
         </Field>
       </Row3>
 
-      {/* Row 6: SSC Batches | Year of Establishment | Website Available */}
       <Row3>
         <Field label="Total Number Of SSC Batches Completed" required error={errors.sscBatchesCompletedCount}>
           <TextInput value={form.sscBatchesCompletedCount} onChange={set("sscBatchesCompletedCount")} type="number" />
         </Field>
         <Field label="Year Of Establishment" required error={errors.yearOfEstablishment}>
-          <SelectInput
-            value={form.yearOfEstablishment}
-            onChange={set("yearOfEstablishment")}
-            options={YEAR_OPTIONS}
-          />
+          <SelectInput value={form.yearOfEstablishment} onChange={set("yearOfEstablishment")} options={YEAR_OPTIONS} />
         </Field>
         <Field label="School Website Available" required error={errors.isWebsiteAvailable}>
-          <SelectInput
-            value={form.isWebsiteAvailable}
-            onChange={set("isWebsiteAvailable")}
-            options={WEBSITE_OPTIONS}
-          />
+          <SelectInput value={form.isWebsiteAvailable} onChange={set("isWebsiteAvailable")} options={WEBSITE_OPTIONS} />
         </Field>
       </Row3>
 
-      {/* Row 7: Website Link | School Area | Toilets */}
       <Row3>
         <Field label="Website Link" error={errors.websiteLink}>
           <TextInput
@@ -235,21 +163,14 @@ export default function SchoolProfile({ form, setForm, errors }) {
           />
         </Field>
         <Field label="School Falls Under Which Area" required error={errors.schoolAreaType}>
-          <SelectInput
-            value={form.schoolAreaType}
-            onChange={set("schoolAreaType")}
-            options={AREA_OPTIONS}
-          />
+          <SelectInput value={form.schoolAreaType} onChange={set("schoolAreaType")} options={AREA_OPTIONS} />
         </Field>
         <Field label="Number of Toilets On Each Floor In School Building" required error={errors.toiletsPerFloorCount}>
           <TextInput value={form.toiletsPerFloorCount} onChange={set("toiletsPerFloorCount")} type="number" />
         </Field>
       </Row3>
-      {/* {Row 8 Photo upload part} */}
-      
+
+      {/* Photo upload is handled by UploadSchoolProfile in SchoolBasicDetails */}
     </div>
-  
-  // photo upload
-  
   );
 }

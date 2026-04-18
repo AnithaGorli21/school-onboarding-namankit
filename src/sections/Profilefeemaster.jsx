@@ -1,9 +1,18 @@
 // ============================================================
 //  src/sections/Profilefeemaster.jsx
-//  Swagger-mapped payload for profilefeemaster object
+//
+//  FIXES:
+//  1. Removed inline base64 upload — now uses uploadFileToFolder
+//     (Liferay rejects base64 inline, needs documentId)
+//  2. Removed receiptBase64 state (not needed anymore)
+//  3. Added Authorization header to fetch (was missing, caused 401)
+//  4. Added name field to uploadReceiptProfileFee (FileNameException fix)
+//  5. Upload happens once before the loop, not per row (efficient)
+//  6. saveProfileFeeMaster from liferay.js used instead of raw fetch
 // ============================================================
 import { useState, useEffect } from "react";
-import SectionWrapper from "../components/SectionWrapper";
+import { uploadFileToFolder } from "../api/upload";
+import { saveProfileFeeMaster } from "../api/liferay";
 
 const FEE_TYPE_OPTS = [
   { id: 1, label: "Admission Fee" },
@@ -57,7 +66,8 @@ function useInjectStyles() {
   useEffect(() => {
     if (document.getElementById(STYLE_ID)) return;
     const tag = document.createElement("style");
-    tag.id = STYLE_ID; tag.textContent = CSS;
+    tag.id = STYLE_ID;
+    tag.textContent = CSS;
     document.head.appendChild(tag);
     return () => document.getElementById(STYLE_ID)?.remove();
   }, []);
@@ -78,15 +88,15 @@ export default function ProfileFeeMaster({ onTabChange }) {
   const [rows, setRows] = useState([]);
 
   // ── Upload receipt ────────────────────────────────────────
+  // ✅ FIX: only store the File object — no base64 state needed
   const [receiptFile,    setReceiptFile]    = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
-  const [receiptBase64,  setReceiptBase64]  = useState("");
 
-  // ── UI ───────────────────────────────────────────────────
+  // ── UI ────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
   const [alert,  setAlert]  = useState(null);
 
-  const setI = (k) => (v) => setInput(p => ({ ...p, [k]: v }));
+  const setI = (k) => (v) => setInput((p) => ({ ...p, [k]: v }));
 
   // ── Re-compute totals from rows ───────────────────────────
   useEffect(() => {
@@ -99,100 +109,116 @@ export default function ProfileFeeMaster({ onTabChange }) {
   // ── Add row ───────────────────────────────────────────────
   const handleAdd = () => {
     if (!input.feesItemId || !input.itemFeesTDD || !input.itemFeesGeneral) {
-      setInputErr("Please fill all fields before adding."); return;
+      setInputErr("Please fill all fields before adding.");
+      return;
     }
     setInputErr("");
-    setRows(p => [...p, { ...input, id: Date.now() }]);
+    setRows((p) => [...p, { ...input, id: Date.now() }]);
     setInput(emptyInput);
   };
 
-  const handleDelete = (id) => setRows(p => p.filter(r => r.id !== id));
+  const handleDelete = (id) => setRows((p) => p.filter((r) => r.id !== id));
 
-  // ── File upload → base64 ──────────────────────────────────
+  // ── File select — just store the File, no base64 ─────────
+  // ✅ FIX: removed FileReader/base64 conversion — upload.js handles it
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      window.alert("File must be under 2MB"); return;
+      window.alert("File must be under 2MB");
+      return;
     }
     setReceiptFile(file);
-    if (file.type.startsWith("image/")) setReceiptPreview(URL.createObjectURL(file));
-    else setReceiptPreview(null);
-
-    // Convert to base64 for swagger payload
-    const reader = new FileReader();
-    reader.onload = () => setReceiptBase64(reader.result);
-    reader.readAsDataURL(file);
+    if (file.type.startsWith("image/")) {
+      setReceiptPreview(URL.createObjectURL(file));
+    } else {
+      setReceiptPreview(null);
+    }
   };
 
-  // ── Save — swagger-exact payload ─────────────────────────
+  // ── Save ──────────────────────────────────────────────────
   const handleSave = async () => {
     if (rows.length === 0) {
-      setAlert({ type: "error", message: "Please add at least one fee entry." }); return;
+      setAlert({ type: "error", message: "Please add at least one fee entry." });
+      return;
     }
-    setSaving(true); setAlert(null);
+
+    setSaving(true);
+    setAlert(null);
+
     try {
+      // ✅ FIX: upload receipt ONCE before the loop (not per row)
+      // uploadFileToFolder returns { documentId, title, downloadURL }
+      const uploadedReceipt = receiptFile
+        ? await uploadFileToFolder(receiptFile, "School Documents")
+        : null;
+
       // POST each row individually to match swagger single-record structure
       for (const row of rows) {
         const payload = {
-          // ── Swagger fields ──────────────────────────────
-          feesItemId:           Number(row.feesItemId),   // ID of fee type
-          feesPerStudentST:     feesPerStudentST,         // number — total ST fees
-          feesPerStudentGeneral:feesPerStudentGeneral,    // number — total general fees
-          itemFeesTDD:          Number(row.itemFeesTDD),  // number — row ST amount
-          itemFeesGeneral:      Number(row.itemFeesGeneral), // number — row general amount
+          // Swagger fields
+          feesItemId:            Number(row.feesItemId),
+          feesPerStudentST:      feesPerStudentST,
+          feesPerStudentGeneral: feesPerStudentGeneral,
+          itemFeesTDD:           Number(row.itemFeesTDD),
+          itemFeesGeneral:       Number(row.itemFeesGeneral),
 
-          // ── Upload receipt — nested swagger structure ───
-          uploadReceiptProfileFee: receiptBase64
+          // ✅ FIX: send documentId instead of base64
+          // ✅ FIX: added name field (FileNameException fix)
+          uploadReceiptProfileFee: uploadedReceipt
             ? {
-                fileBase64: receiptBase64,   // base64 string
-                fileURL:    "",              // filled by server after upload
-                folder: {
-                  externalReferenceCode: "",
-                  siteId: 0,
-                },
+                documentId: uploadedReceipt.documentId,
+                name:       uploadedReceipt.title,
+                url:        uploadedReceipt.downloadURL,
               }
             : null,
         };
 
-        await fetch("/o/c/profilefeemaster", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        await saveProfileFeeMaster(payload);
       }
 
       setAlert({ type: "success", message: "Profile Fee Master saved successfully!" });
+
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
-    setFeesPerStudentST(0); setFeesPerStudentGeneral(0);
-    setInput(emptyInput); setInputErr("");
-    setRows([]); setReceiptFile(null); setReceiptPreview(null); setReceiptBase64("");
+    setFeesPerStudentST(0);
+    setFeesPerStudentGeneral(0);
+    setInput(emptyInput);
+    setInputErr("");
+    setRows([]);
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    // ✅ FIX: removed setReceiptBase64("") — state no longer exists
     setAlert(null);
   };
 
   // ── Get label from feesItemId ─────────────────────────────
-  const getFeeLabel = (id) => FEE_TYPE_OPTS.find(o => o.id === Number(id))?.label || id;
+  const getFeeLabel = (id) =>
+    FEE_TYPE_OPTS.find((o) => o.id === Number(id))?.label || id;
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4 }}>
-
       <div className="pfm-heading">Profile FeeMaster</div>
 
       {alert && (
         <div className={`pfm-alert ${alert.type}`}>
           {alert.message}
-          <span onClick={() => setAlert(null)} style={{ float:"right",cursor:"pointer",fontWeight:700 }}>×</span>
+          <span
+            onClick={() => setAlert(null)}
+            style={{ float: "right", cursor: "pointer", fontWeight: 700 }}
+          >
+            ×
+          </span>
         </div>
       )}
 
       {/* ── Row 1: Fees Per Student ST | Fees Per Student General ── */}
-      {/* swagger: feesPerStudentST, feesPerStudentGeneral — both numbers, auto-computed */}
       <div className="pfm-row2">
         <div>
           <label className="pfm-label">
@@ -209,57 +235,68 @@ export default function ProfileFeeMaster({ onTabChange }) {
       </div>
 
       {/* ── Row 2: Fees Item | Item Fees TDD | Item Fees General ── */}
-      {/* swagger: feesItemId (number), itemFeesTDD (number), itemFeesGeneral (number) */}
       {inputErr && <div className="pfm-err">{inputErr}</div>}
       <div className="pfm-row3">
         <div>
-          <label className="pfm-label">Fees Item <span className="req">*</span></label>
-          {/* feesItemId — maps to ID not label string */}
+          <label className="pfm-label">
+            Fees Item <span className="req">*</span>
+          </label>
           <select
             className="pfm-select"
             value={input.feesItemId}
             onChange={(e) => setI("feesItemId")(e.target.value)}
           >
             <option value="">Select</option>
-            {FEE_TYPE_OPTS.map(o => (
+            {FEE_TYPE_OPTS.map((o) => (
               <option key={o.id} value={o.id}>{o.label}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="pfm-label">Item Fees TDD <span className="req">*</span></label>
-          {/* swagger: itemFeesTDD — number */}
+          <label className="pfm-label">
+            Item Fees TDD <span className="req">*</span>
+          </label>
           <input
             className="pfm-input"
             value={input.itemFeesTDD}
             onChange={(e) => setI("itemFeesTDD")(e.target.value)}
-            type="number" min="0"
+            type="number"
+            min="0"
           />
         </div>
         <div>
-          <label className="pfm-label">Item Fees General <span className="req">*</span></label>
-          {/* swagger: itemFeesGeneral — number */}
+          <label className="pfm-label">
+            Item Fees General <span className="req">*</span>
+          </label>
           <input
             className="pfm-input"
             value={input.itemFeesGeneral}
             onChange={(e) => setI("itemFeesGeneral")(e.target.value)}
-            type="number" min="0"
+            type="number"
+            min="0"
           />
         </div>
       </div>
 
-      <button type="button" className="pfm-add-btn" onClick={handleAdd}>Add</button>
+      <button type="button" className="pfm-add-btn" onClick={handleAdd}>
+        Add
+      </button>
 
       {/* ── Upload Receipt ── */}
-      {/* swagger: uploadReceiptProfileFee.fileBase64 */}
       <div className="pfm-upload-row">
         <div className="pfm-upload-group">
-          <label className="pfm-label">Upload Receipt <span className="req">*</span></label>
+          <label className="pfm-label">
+            Upload Receipt <span className="req">*</span>
+          </label>
           <div className="pfm-file-box">
             <label className="pfm-choose-label">
               Choose File
-              <input type="file" style={{ display:"none" }}
-                accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} />
+              <input
+                type="file"
+                style={{ display: "none" }}
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleFileChange}
+              />
             </label>
             <span className="pfm-filename">
               {receiptFile ? receiptFile.name : "No file chosen"}
@@ -267,7 +304,8 @@ export default function ProfileFeeMaster({ onTabChange }) {
           </div>
         </div>
         <button
-          type="button" className="pfm-view-btn"
+          type="button"
+          className="pfm-view-btn"
           onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
           disabled={!receiptFile}
         >
@@ -275,7 +313,7 @@ export default function ProfileFeeMaster({ onTabChange }) {
         </button>
       </div>
 
-      {/* ── Table — shows feesItemId resolved to label ── */}
+      {/* ── Table ── */}
       {rows.length > 0 && (
         <div className="pfm-table-wrap">
           <table className="pfm-table">
@@ -288,13 +326,16 @@ export default function ProfileFeeMaster({ onTabChange }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map(r => (
+              {rows.map((r) => (
                 <tr key={r.id}>
                   <td>{getFeeLabel(r.feesItemId)}</td>
                   <td>{r.itemFeesTDD}</td>
                   <td>{r.itemFeesGeneral}</td>
                   <td>
-                    <button className="pfm-delete-btn" onClick={() => handleDelete(r.id)}>
+                    <button
+                      className="pfm-delete-btn"
+                      onClick={() => handleDelete(r.id)}
+                    >
                       Delete
                     </button>
                   </td>
@@ -307,12 +348,18 @@ export default function ProfileFeeMaster({ onTabChange }) {
 
       {/* ── Save + Reset ── */}
       <div className="pfm-actions">
-        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
+        <button
+          type="button"
+          className="pfm-save-btn"
+          onClick={handleSave}
+          disabled={saving}
+        >
           {saving ? "Saving…" : "Save"}
         </button>
-        <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
+        <button type="button" className="pfm-reset-btn" onClick={handleReset}>
+          Reset
+        </button>
       </div>
-
     </div>
   );
 }

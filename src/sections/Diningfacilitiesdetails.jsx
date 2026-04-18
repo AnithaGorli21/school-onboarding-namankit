@@ -1,157 +1,167 @@
 // ============================================================
-//  src/sections/DiningFacilitiesDetails.jsx
+//  src/sections/Diningfacilitiesdetails.jsx
+//
+//  FIXES:
+//  1. uploadDinningHallPhoto and uploadMenu use { id, name, fileURL }
+//     instead of { documentId, name, url } — matches swagger exactly
+//  2. Uses saveDiningFacilities from liferay.js (Authorization header)
+//  3. Payload matches swagger exactly
 // ============================================================
 import { useState } from "react";
+import { saveDiningFacilities } from "../api/liferay";
 import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
+import { uploadFileToFolder } from "../api/upload";
 import SectionWrapper from "../components/SectionWrapper";
 
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  SeparateDiningHallforBoysandGirls: "", 
-  DiningHallAreainSqft: "",
-  DiningTable: "", 
-  FoodServedAsPerMenu: "",
-  DiningHallPhoto: null, // New field
-  MenuPhoto: null        // New field
+  SeparateDiningHallforBoysandGirls: "",
+  DiningHallAreainSqft:              "",
+  DiningTable:                       "",
+  FoodServedAsPerMenu:               "",
+  DiningHallPhoto:                   null,
+  MenuPhoto:                         null,
 };
 
 export default function DiningFacilitiesDetails({ onTabChange }) {
-  const [form, setForm] = useState(emptyForm);
+  const [form,   setForm]   = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const [alert,  setAlert]  = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
+  const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // Helper for file inputs
   const handleFileChange = (k) => (e) => {
-    setForm(p => ({ ...p, [k]: e.target.files[0] }));
+    setForm((p) => ({ ...p, [k]: e.target.files[0] || null }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.SeparateDiningHallforBoysandGirls) e.SeparateDiningHallforBoysandGirls = "Required";
+    if (!form.DiningTable)                       e.DiningTable                       = "Required";
+    if (!form.FoodServedAsPerMenu)               e.FoodServedAsPerMenu               = "Required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSave = async () => {
-  setSaving(true); 
-  setAlert(null);
+    if (!validate()) {
+      setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+      return;
+    }
+    setSaving(true);
+    setAlert(null);
+    try {
+      // Upload both photos in parallel
+      const [uploadedDining, uploadedMenu] = await Promise.all([
+        form.DiningHallPhoto ? uploadFileToFolder(form.DiningHallPhoto, "School Documents") : Promise.resolve(null),
+        form.MenuPhoto       ? uploadFileToFolder(form.MenuPhoto,       "School Documents") : Promise.resolve(null),
+      ]);
 
-  try {
-    const toBase64 = (file) =>
-      new Promise((resolve, reject) => {
-        if (!file) return resolve("");
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = (err) => reject(err);
-      });
+      // Payload exactly matching swagger schema
+      const payload = {
+        dinningHallInAreaInSqft:            form.DiningHallAreainSqft ? Number(form.DiningHallAreainSqft) : 0,
+        dinningTable:                       form.DiningTable                       === "Yes",
+        foodServedAsPerMenu:                form.FoodServedAsPerMenu               === "Yes",
+        separateDinningHallForBoysAndGirls: form.SeparateDiningHallforBoysandGirls === "Yes",
 
-    const diningPhotoBase64 = await toBase64(form.DiningHallPhoto);
-    const menuBase64 = await toBase64(form.MenuPhoto);
+        // Attachment — exact swagger structure
+        uploadDinningHallPhoto: uploadedDining
+          ? {
+              id:         uploadedDining.documentId,
+              name:       uploadedDining.title,
+              fileURL:    uploadedDining.downloadURL,
+              fileBase64: "",
+              folder: { externalReferenceCode: "", siteId: 0 },
+            }
+          : null,
 
-    const payload = {
-      dinningHallInAreaInSqft: form.DiningHallAreainSqft
-        ? Number(form.DiningHallAreainSqft)
-        : 0,
+        uploadMenu: uploadedMenu
+          ? {
+              id:         uploadedMenu.documentId,
+              name:       uploadedMenu.title,
+              fileURL:    uploadedMenu.downloadURL,
+              fileBase64: "",
+              folder: { externalReferenceCode: "", siteId: 0 },
+            }
+          : null,
+      };
 
-      dinningTable: form.DiningTable === "Yes",
-      foodServedAsPerMenu: form.FoodServedAsPerMenu === "Yes",
-      separateDinningHallForBoysAndGirls:
-        form.SeparateDiningHallforBoysandGirls === "Yes",
+      console.log("[DiningFacilities] payload →", JSON.stringify(payload, null, 2));
+      await saveDiningFacilities(payload);
 
-      uploadDinningHallPhoto: {
-        externalReferenceCode: "DINING_PHOTO",
-        fileBase64: diningPhotoBase64,
-        fileURL: "",
-        folder: {
-          externalReferenceCode: "DINING_FOLDER",
-          siteId: 0,
-        },
-      },
+      setAlert({ type: "success", message: "Dining Facilities Details saved successfully!" });
+    } catch (e) {
+      setAlert({ type: "error", message: "Save failed — " + e.message });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      uploadMenu: {
-        externalReferenceCode: "MENU_FILE",
-        fileBase64: menuBase64,
-        fileURL: "",
-        folder: {
-          externalReferenceCode: "MENU_FOLDER",
-          siteId: 0,
-        },
-      },
-    };
-
-    await fetch("/o/c/diningfacilities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    setAlert({
-      type: "success",
-      message: "Dining Facilities Details saved successfully!",
-    });
-
-  } catch (e) {
-    setAlert({ type: "error", message: "Save failed — " + e.message });
-  } finally {
-    setSaving(false);
-  }
-};
-
-  const handleReset = () => { setForm(emptyForm); setAlert(null); };
+  const handleReset = () => {
+    setForm(emptyForm);
+    setErrors({});
+    setAlert(null);
+  };
 
   return (
-    <SectionWrapper alert={alert} onCloseAlert={() => setAlert(null)}
-      onSave={handleSave} onReset={handleReset} saving={saving}>
-
+    <SectionWrapper
+      alert={alert}
+      onCloseAlert={() => setAlert(null)}
+      onSave={handleSave}
+      onReset={handleReset}
+      saving={saving}
+    >
       <SectionHeading title="Dining Facilities Details" />
 
       <Row3>
-        <Field label="Separate Dining Hall for Boys and Girls" required>
+        <Field label="Separate Dining Hall for Boys and Girls" required error={errors.SeparateDiningHallforBoysandGirls}>
           <SelectInput value={form.SeparateDiningHallforBoysandGirls} onChange={set("SeparateDiningHallforBoysandGirls")} options={YES_NO} />
         </Field>
-        <Field label="Dining Hall Area in Sq.ft">
+        <Field label="Dining Hall Area in Sq.Ft">
           <TextInput value={form.DiningHallAreainSqft} onChange={set("DiningHallAreainSqft")} type="number" />
         </Field>
-        <Field label="Dining Table" required>
+        <Field label="Dining Table" required error={errors.DiningTable}>
           <SelectInput value={form.DiningTable} onChange={set("DiningTable")} options={YES_NO} />
         </Field>
-        <Field label="Food Served As Per Menu" required>
+      </Row3>
+
+      <Row3>
+        <Field label="Food Served As Per Menu" required error={errors.FoodServedAsPerMenu}>
           <SelectInput value={form.FoodServedAsPerMenu} onChange={set("FoodServedAsPerMenu")} options={YES_NO} />
         </Field>
       </Row3>
 
-      <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
-
-      <SectionHeading title="Upload Photo" />
-      
-      <p style={{ color: 'red', fontSize: '14px', fontWeight: 'bold', marginBottom: '15px' }}>
-        Note:- The size of the photograph should fall between 5KB to 100KB.
-      </p>
-
-      <Row2>
-        <Field label="Upload Dining Hall Photo" required>
-          <input 
-            type="file" 
-            className="form-control" 
-            onChange={handleFileChange("DiningHallPhoto")} 
-          />
-        </Field>
-
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
-          <Field label="Upload Menu" required>
-            <input 
-              type="file" 
-              className="form-control" 
-              onChange={handleFileChange("MenuPhoto")} 
-            />
-          </Field>
-          <button 
-            type="button" 
-            className="btn btn-info" 
-            style={{ marginBottom: '5px', backgroundColor: '#5bc0de', color: 'white', border: 'none', padding: '7px 15px', borderRadius: '4px' }}
-          >
-            View Uploaded Menu
-          </button>
+      {/* Upload Section */}
+      <div style={{ marginTop: 28, borderTop: "1px solid #cccccc", paddingTop: 20 }}>
+        <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 14 }}>
+          Upload Photos
         </div>
-      </Row2>
-      
+        <p style={{ color: "#cc0000", fontSize: 13, marginBottom: 14 }}>
+          Note:- The size of the photograph should fall between 5KB to 100KB.
+        </p>
+        <Row2>
+          <Field label="Upload Dining Hall Photo">
+            <input type="file" accept="image/*" onChange={handleFileChange("DiningHallPhoto")}
+              style={{ fontSize: 13, padding: "4px 0" }} />
+            {form.DiningHallPhoto && (
+              <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
+                {form.DiningHallPhoto.name}
+              </span>
+            )}
+          </Field>
+          <Field label="Upload Menu">
+            <input type="file" accept="image/*,.pdf" onChange={handleFileChange("MenuPhoto")}
+              style={{ fontSize: 13, padding: "4px 0" }} />
+            {form.MenuPhoto && (
+              <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
+                {form.MenuPhoto.name}
+              </span>
+            )}
+          </Field>
+        </Row2>
+      </div>
     </SectionWrapper>
   );
 }
