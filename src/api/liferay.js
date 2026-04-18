@@ -104,3 +104,20 @@ export const saveMedicalFacilities         = (p) => apiPost("/o/c/medicalfacilit
 export const saveProfileFeeMaster          = (p) => apiPost("/o/c/profilefeemasters",          p);
 export const saveSchoolBankDetails          = (p) => apiPost("/o/c/schoolbankdetails",          p);
 
+// ── Section GET endpoints ─────────────────────────────────
+// Used by FinalSubmit review to fetch saved data from Liferay
+ 
+export const getSchoolProfiles        = () => apiFetch("/o/c/namankitschoolprofiles?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getSchoolLandDetails     = () => apiFetch("/o/c/schoollanddetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getHostelDetails         = () => apiFetch("/o/c/schoolhosteldetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getDiningFacilities      = () => apiFetch("/o/c/dinningfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getLabDetails            = () => apiFetch("/o/c/computerlabdetais?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getLibraryDetails        = () => apiFetch("/o/c/librarydetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getTeacherDetails        = () => apiFetch("/o/c/teacherdetails?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
+export const getExtraCurriculum       = () => apiFetch("/o/c/extracurriculumactivities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getSportsFacilities      = () => apiFetch("/o/c/sportfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getCulturalProgramSportsFacilities     = () => apiFetch("/o/c/culturalprogramsportsfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const geteducationaltourssportsfacilities    = () => apiFetch("/o/c/educationaltourssportsfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getMedicalFacilities     = () => apiFetch("/o/c/medicalfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
+export const getProfileFeeMaster      = () => apiFetch("/o/c/profilefeemasters?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
+export const getSchoolBankDetails     = () => apiFetch("/o/c/schoolbankdetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);  
