@@ -1,18 +1,44 @@
 // ============================================================
 //  src/sections/SportsFacilities.jsx
+//
+//  FIXES:
+//  1. Three separate endpoints confirmed from swagger:
+//     - /o/c/sportfacilities            → main sports form
+//     - /o/c/culturalprogramsportsfacilities  → one POST per cultural row
+//     - /o/c/educationaltourssportsfacilities → one POST per tour row
+//  2. culturalPrograms and educationalTours removed from main payload
+//     (they were nested — Liferay needs separate POSTs)
+//  3. schoolMagazineTypeId sent as number not MAGAZINE_TYPES.indexOf()
+//     ⚠️ Replace IDs with actual Liferay picklist values
+//  4. Uses saveSportsFacilities, saveCulturalProgram, saveEducationalTour
+//     from liferay.js (Authorization header)
 // ============================================================
 import { useState } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
-  Alert, BtnSave, BtnReset
+  Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import Pagination from "../components/Pagination";
 import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
+import { saveSportsFacilities, saveCulturalProgram, saveEducationalTour } from "../api/liferay";
 
 const YES_NO = ["Yes", "No"];
-const MAGAZINE_TYPES = ["Monthly", "Quarterly", "Half-Yearly", "Annual"];
-const YEARS = ["2023-2024", "2024-2025", "2025-2026"];
+
+// ⚠️ Replace value IDs with actual Liferay picklist IDs
+const MAGAZINE_TYPES = [
+  { value: 1, label: "Monthly" },
+  { value: 2, label: "Quarterly" },
+  { value: 3, label: "Half-Yearly" },
+  { value: 4, label: "Annual" },
+];
+
+// ⚠️ Replace value IDs with actual Liferay picklist IDs for year
+const YEARS = [
+  { value: 1, label: "2023-2024" },
+  { value: 2, label: "2024-2025" },
+  { value: 3, label: "2025-2026" },
+];
 
 const themeStyles = {
   container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
@@ -21,102 +47,107 @@ const themeStyles = {
     border: "1px solid var(--border-color, #d6e0e0)",
     borderRadius: "var(--radius-sm, 3px)",
     padding: "18px 20px 22px",
-    marginBottom: "20px"
+    marginBottom: "20px",
   },
-  addBtnRow: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: "10px",
-    marginBottom: "20px"
-  }
+  addBtnRow: { display: "flex", justifyContent: "center", marginTop: "10px", marginBottom: "20px" },
 };
 
 const emptyForm = {
-  noOfPhysicalEducationPTTeacherAvailable: "",
-  numberOfSportsPlayedOnPlayground: "",
-  detailsOfSportsPlayedOnPlayground: "",
-  availOfQualifiedSportsTeacherAsPerStuCnt: "",
-  availabilityOfSeparateAuditorium: "",
-  auditoriumAreasqFt: "",
-  schoolMagazine: "",
-  schoolMagazineTypeId: "",
+  noOfPhysicalEducationPTTeacherAvailable:   "",
+  numberOfSportsPlayedOnPlayground:          "",
+  detailsOfSportsPlayedOnPlayground:         "",
+  availOfQualifiedSportsTeacherAsPerStuCnt:  "",
+  availabilityOfSeparateAuditorium:          "",
+  auditoriumAreasqFt:                        "",
+  schoolMagazine:                            "",
+  schoolMagazineTypeId:                      "",
 };
 
 export default function SportsFacilities() {
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const [form,    setForm]    = useState(emptyForm);
+  const [saving,  setSaving]  = useState(false);
+  const [alert,   setAlert]   = useState(null);
 
-  // States for Cultural Programs table
   const [culturalRows, setCulturalRows] = useState([]);
-  const [newCultural, setNewCultural] = useState({ year: "", programName: "", remarks: "" });
+  const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
 
-  // States for Educational Tours table
   const [tourRows, setTourRows] = useState([]);
-  const [newTour, setNewTour] = useState({ year: "", programName: "", place: "", purpose: "" });
+  const [newTour,  setNewTour]  = useState({ yearId: "", programName: "", place: "", purpose: "" });
 
-  const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
+  const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
+
+  // Helper to get label for display in table
+  const getYearLabel = (id) => YEARS.find((y) => y.value === Number(id))?.label || id;
 
   const addCultural = () => {
-    if (!newCultural.year || !newCultural.programName) return;
+    if (!newCultural.yearId || !newCultural.programName) return;
     setCulturalRows([...culturalRows, { ...newCultural, id: Date.now() }]);
-    setNewCultural({ year: "", programName: "", remarks: "" });
+    setNewCultural({ yearId: "", programName: "", remarks: "" });
   };
 
   const addTour = () => {
-    if (!newTour.year || !newTour.programName || !newTour.place) return;
+    if (!newTour.yearId || !newTour.programName || !newTour.place) return;
     setTourRows([...tourRows, { ...newTour, id: Date.now() }]);
-    setNewTour({ year: "", programName: "", place: "", purpose: "" });
+    setNewTour({ yearId: "", programName: "", place: "", purpose: "" });
   };
 
   const handleSave = async () => {
     setSaving(true);
+    setAlert(null);
     try {
-      const payload = {
-        ...form,
-
-
-        availOfQualifiedSportsTeacherAsPerStuCnt: form.availOfQualifiedSportsTeacherAsPerStuCnt === "Yes",
-        availabilityOfSeparateAuditorium: form.availabilityOfSeparateAuditorium === "Yes",
-        schoolMagazine: form.schoolMagazine === "Yes",
-
-
-        noOfPhysicalEducationPTTeacherAvailable: Number(form.noOfPhysicalEducationPTTeacherAvailable),
-        numberOfSportsPlayedOnPlayground: Number(form.numberOfSportsPlayedOnPlayground),
-        auditoriumAreasqFt: Number(form.auditoriumAreasqFt),
-
-
-        schoolMagazineTypeId:
-          form.schoolMagazineTypeId
-            ? MAGAZINE_TYPES.indexOf(form.schoolMagazineTypeId) + 1
-            : 0,
-
-
-
-        culturalPrograms: culturalRows.map(r => ({
-          culturalProgramConductedBySchoolYearId:
-            YEARS.indexOf(r.year) + 1,   // convert year → id
-
-          culturalProgramName: r.programName,
-          culturalProgramRemarks: r.remarks
-        })),
-
-        educationalTours: tourRows
+      // ── 1. POST main sports facilities payload ────────────
+      const sportsPayload = {
+        auditoriumAreasqFt:                        Number(form.auditoriumAreasqFt)                       || 0,
+        availabilityOfSeparateAuditorium:           form.availabilityOfSeparateAuditorium                === "Yes",
+        availOfQualifiedSportsTeacherAsPerStuCnt:   form.availOfQualifiedSportsTeacherAsPerStuCnt        === "Yes",
+        detailsOfSportsPlayedOnPlayground:          form.detailsOfSportsPlayedOnPlayground               || "",
+        noOfPhysicalEducationPTTeacherAvailable:    Number(form.noOfPhysicalEducationPTTeacherAvailable) || 0,
+        numberOfSportsPlayedOnPlayground:           Number(form.numberOfSportsPlayedOnPlayground)        || 0,
+        schoolMagazine:                             form.schoolMagazine                                  === "Yes",
+        schoolMagazineTypeId:                       Number(form.schoolMagazineTypeId)                    || 0,
       };
 
-      await fetch("/o/c/sportsfacilities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      console.log("[SportsFacilities] payload →", JSON.stringify(sportsPayload, null, 2));
+      await saveSportsFacilities(sportsPayload);
+
+      // ── 2. POST each cultural program row individually ────
+      for (const row of culturalRows) {
+        const culturalPayload = {
+          culturalProgramConductedBySchoolYearId: Number(row.yearId)       || 0,
+          culturalProgramName:                    row.programName           || "",
+          culturalProgramRemarks:                 row.remarks               || "",
+        };
+        console.log("[CulturalProgram] payload →", JSON.stringify(culturalPayload, null, 2));
+        await saveCulturalProgram(culturalPayload);
+      }
+
+      // ── 3. POST each educational tour row individually ────
+      for (const row of tourRows) {
+        const tourPayload = {
+          educationalToursCondBySchoolYearId: Number(row.yearId)   || 0,
+          educationalToursPlace:              row.place             || "",
+          educationalToursProgramName:        row.programName       || "",
+          educationalToursPurpose:            row.purpose           || "",
+        };
+        console.log("[EducationalTour] payload →", JSON.stringify(tourPayload, null, 2));
+        await saveEducationalTour(tourPayload);
+      }
 
       setAlert({ type: "success", message: "Sports Facilities saved successfully!" });
-
     } catch (e) {
-      setAlert({ type: "error", message: "Save failed." });
+      setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleReset = () => {
+    setForm(emptyForm);
+    setCulturalRows([]);
+    setTourRows([]);
+    setNewCultural({ yearId: "", programName: "", remarks: "" });
+    setNewTour({ yearId: "", programName: "", place: "", purpose: "" });
+    setAlert(null);
   };
 
   return (
@@ -128,95 +159,60 @@ export default function SportsFacilities() {
 
         <Row3>
           <Field label="Number Of Physical Education (PT) teacher available" required>
-            <TextInput
-              value={form.noOfPhysicalEducationPTTeacherAvailable}
-              onChange={set("noOfPhysicalEducationPTTeacherAvailable")}
-              type="number"
-            />
+            <TextInput value={form.noOfPhysicalEducationPTTeacherAvailable} onChange={set("noOfPhysicalEducationPTTeacherAvailable")} type="number" />
           </Field>
-
           <Field label="Number Of sports Played On PlayGround" required>
-            <TextInput
-              value={form.numberOfSportsPlayedOnPlayground}
-              onChange={set("numberOfSportsPlayedOnPlayground")}
-              type="number"
-            />
+            <TextInput value={form.numberOfSportsPlayedOnPlayground} onChange={set("numberOfSportsPlayedOnPlayground")} type="number" />
           </Field>
-
           <Field label="Details Of sports Played On PlayGround" required>
-            <TextInput
-              value={form.detailsOfSportsPlayedOnPlayground}
-              onChange={set("detailsOfSportsPlayedOnPlayground")}
-              placeholder="Basketball, Football..."
-            />
+            <TextInput value={form.detailsOfSportsPlayedOnPlayground} onChange={set("detailsOfSportsPlayedOnPlayground")} placeholder="Basketball, Football..." />
           </Field>
         </Row3>
 
         <Row3>
           <Field label="Availabilty of qualified Sport's Teachers as per students' count" required>
-            <SelectInput
-              value={form.availOfQualifiedSportsTeacherAsPerStuCnt}
-              onChange={set("availOfQualifiedSportsTeacherAsPerStuCnt")}
-              options={YES_NO}
-            />
+            <SelectInput value={form.availOfQualifiedSportsTeacherAsPerStuCnt} onChange={set("availOfQualifiedSportsTeacherAsPerStuCnt")} options={YES_NO} />
           </Field>
-          <div /> <div />
+          <div /><div />
         </Row3>
 
         <Row2>
           <Field label="Availabilty Of Separate Auditorium" required>
-            <SelectInput
-              value={form.availabilityOfSeparateAuditorium}
-              onChange={set("availabilityOfSeparateAuditorium")}
-              options={YES_NO}
-            />
+            <SelectInput value={form.availabilityOfSeparateAuditorium} onChange={set("availabilityOfSeparateAuditorium")} options={YES_NO} />
           </Field>
-
           <Field label="Auditorium Area(sq ft)" required>
-            <TextInput
-              value={form.auditoriumAreasqFt}
-              onChange={set("auditoriumAreasqFt")}
-              type="number"
-            />
+            <TextInput value={form.auditoriumAreasqFt} onChange={set("auditoriumAreasqFt")} type="number" />
           </Field>
         </Row2>
 
         <Row2>
           <Field label="School Magazine" required>
-            <SelectInput
-              value={form.schoolMagazine}
-              onChange={set("schoolMagazine")}
-              options={YES_NO}
-            />
+            <SelectInput value={form.schoolMagazine} onChange={set("schoolMagazine")} options={YES_NO} />
           </Field>
-
           <Field label="School Magazine Type" required>
-            <SelectInput
-              value={form.schoolMagazineTypeId}
-              onChange={set("schoolMagazineTypeId")}
-              options={MAGAZINE_TYPES}
-            />
+            {/* ⚠️ value stores numeric ID — replace IDs with actual Liferay picklist values */}
+            <SelectInput value={form.schoolMagazineTypeId} onChange={set("schoolMagazineTypeId")} options={MAGAZINE_TYPES} />
           </Field>
         </Row2>
 
-        {/* CULTURAL PROGRAMS SECTION */}
+        {/* ── Cultural Programs ── */}
         <div style={{ marginTop: 30 }}>
           <SectionHeading title="Cultural programs conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newCultural.year} onChange={(v) => setNewCultural({ ...newCultural, year: v })} options={YEARS} />
+              {/* ⚠️ value stores numeric ID — replace IDs with actual Liferay picklist values */}
+              <SelectInput value={newCultural.yearId} onChange={(v) => setNewCultural({ ...newCultural, yearId: v })} options={YEARS} />
             </Field>
             <Field label="Program Name" required>
               <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({ ...newCultural, programName: v })} />
             </Field>
-            <Field label="Remarks" required>
+            <Field label="Remarks">
               <TextInput value={newCultural.remarks} onChange={(v) => setNewCultural({ ...newCultural, remarks: v })} />
             </Field>
           </Row3>
           <div style={themeStyles.addBtnRow}>
-            <button type="button" onClick={addCultural} style={ADD_BTN}> Add Program </button>
+            <button type="button" onClick={addCultural} style={ADD_BTN}>Add Program</button>
           </div>
-
           {culturalRows.length > 0 && (
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 20 }}>
               <thead>
@@ -232,10 +228,12 @@ export default function SportsFacilities() {
                 {culturalRows.map((r, i) => (
                   <tr key={r.id}>
                     <td style={TD}>{i + 1}</td>
-                    <td style={TD}>{r.year}</td>
+                    <td style={TD}>{getYearLabel(r.yearId)}</td>
                     <td style={TD}>{r.programName}</td>
                     <td style={TD}>{r.remarks}</td>
-                    <td style={TD}><button style={DELETE_BTN} onClick={() => setCulturalRows(culturalRows.filter(x => x.id !== r.id))}>Delete</button></td>
+                    <td style={TD}>
+                      <button style={DELETE_BTN} onClick={() => setCulturalRows(culturalRows.filter((x) => x.id !== r.id))}>Delete</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -243,12 +241,12 @@ export default function SportsFacilities() {
           )}
         </div>
 
-        {/* EDUCATIONAL TOURS SECTION */}
+        {/* ── Educational Tours ── */}
         <div style={{ marginTop: 30 }}>
           <SectionHeading title="Educational tours conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newTour.year} onChange={(v) => setNewTour({ ...newTour, year: v })} options={YEARS} />
+              <SelectInput value={newTour.yearId} onChange={(v) => setNewTour({ ...newTour, yearId: v })} options={YEARS} />
             </Field>
             <Field label="Program Name" required>
               <TextInput value={newTour.programName} onChange={(v) => setNewTour({ ...newTour, programName: v })} />
@@ -258,7 +256,7 @@ export default function SportsFacilities() {
             </Field>
           </Row3>
           <Row2>
-            <Field label="Purpose" required>
+            <Field label="Purpose">
               <TextInput value={newTour.purpose} onChange={(v) => setNewTour({ ...newTour, purpose: v })} />
             </Field>
             <div />
@@ -266,7 +264,6 @@ export default function SportsFacilities() {
           <div style={themeStyles.addBtnRow}>
             <button type="button" onClick={addTour} style={ADD_BTN}>Add Educational Tours</button>
           </div>
-
           {tourRows.length > 0 && (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -283,11 +280,13 @@ export default function SportsFacilities() {
                 {tourRows.map((r, i) => (
                   <tr key={r.id}>
                     <td style={TD}>{i + 1}</td>
-                    <td style={TD}>{r.year}</td>
+                    <td style={TD}>{getYearLabel(r.yearId)}</td>
                     <td style={TD}>{r.programName}</td>
                     <td style={TD}>{r.place}</td>
                     <td style={TD}>{r.purpose}</td>
-                    <td style={TD}><button style={DELETE_BTN} onClick={() => setTourRows(tourRows.filter(x => x.id !== r.id))}>Delete</button></td>
+                    <td style={TD}>
+                      <button style={DELETE_BTN} onClick={() => setTourRows(tourRows.filter((x) => x.id !== r.id))}>Delete</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -296,8 +295,11 @@ export default function SportsFacilities() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 12 }}>
-        <BtnSave onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save"}</BtnSave>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+        <BtnReset onClick={handleReset} />
+        <BtnSave onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
+        </BtnSave>
       </div>
     </div>
   );

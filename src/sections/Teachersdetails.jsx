@@ -20,18 +20,8 @@ import Pagination from "../components/Pagination";
 import { saveTeacherDetails } from "../api/liferay";
 
 // ⚠️ Replace value IDs with actual Liferay picklist IDs
-const QUALIFICATIONS = [
-  { value: 1, label: "SSC" },
-  { value: 2, label: "HSC" },
-  { value: 3, label: "D.Ed" },
-  { value: 4, label: "B.Ed" },
-  { value: 5, label: "M.Ed" },
-  { value: 6, label: "B.A" },
-  { value: 7, label: "B.Sc" },
-  { value: 8, label: "M.A" },
-  { value: 9, label: "M.Sc" },
-  { value: 10, label: "PhD" },
-];
+// highestQualification is a Text field in Liferay — send string label directly
+const QUALIFICATIONS = ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"];
 
 const MEDIUMS = [
   { value: 1, label: "English" },
@@ -67,7 +57,7 @@ const themeStyles = {
 
 const emptyRow = {
   name:                                    "",
-  highestQualificationId:                  "",
+  highestQualification:                    "",  // Text field in Liferay — send string not ID
   mediumOfEducationTillStd10thId:          "",
   mediumOfEducationForDegreeId:            "",
   mediumForEducationForBedDedBPedBedPhyId: "",
@@ -90,7 +80,7 @@ export default function TeachersDetails() {
   const setR = (k) => (v) => setNewRow((p) => ({ ...p, [k]: v }));
 
   const handleAdd = () => {
-    if (!newRow.name || !newRow.highestQualificationId || !newRow.genderId) {
+    if (!newRow.name || !newRow.highestQualification || !newRow.genderId) {
       setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
       return;
     }
@@ -110,7 +100,7 @@ export default function TeachersDetails() {
       for (const row of rows) {
         const payload = {
           name:                                    row.name                                    || "",
-          highestQualificationId:                  Number(row.highestQualificationId)          || 0,
+          highestQualification:                    row.highestQualification                    || "",  // Text field
           mediumOfEducationTillStd10thId:          Number(row.mediumOfEducationTillStd10thId)  || 0,
           mediumOfEducationForDegreeId:            Number(row.mediumOfEducationForDegreeId)    || 0,
           mediumForEducationForBedDedBPedBedPhyId: Number(row.mediumForEducationForBedDedBPedBedPhyId) || 0,
@@ -149,7 +139,7 @@ export default function TeachersDetails() {
             <TextInput value={newRow.name} onChange={setR("name")} />
           </Field>
           <Field label="Highest Qualification" required>
-            <SelectInput value={newRow.highestQualificationId} onChange={setR("highestQualificationId")} options={QUALIFICATIONS} />
+            <SelectInput value={newRow.highestQualification} onChange={setR("highestQualification")} options={QUALIFICATIONS} />
           </Field>
           <Field label="Medium of Education till Std. 10th" required>
             <SelectInput value={newRow.mediumOfEducationTillStd10thId} onChange={setR("mediumOfEducationTillStd10thId")} options={MEDIUMS} />
@@ -238,7 +228,7 @@ export default function TeachersDetails() {
                   {paged.map((r) => (
                     <tr key={r.id}>
                       <td style={TD}>{r.name}</td>
-                      <td style={TD}>{getLabel(QUALIFICATIONS, r.highestQualificationId)}</td>
+                      <td style={TD}>{r.highestQualification}</td>
                       <td style={TD}>{getLabel(SUBJECTS, r.subject1Id)}</td>
                       <td style={TD}>{getLabel(MEDIUMS, r.mediumOfEducationTillStd10thId)}</td>
                       <td style={TD}>{getLabel(MEDIUMS, r.mediumOfEducationForDegreeId)}</td>

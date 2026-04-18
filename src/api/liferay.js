@@ -97,6 +97,10 @@ export const saveLabDetails                = (p) => apiPost("/o/c/computerlabdet
 export const saveLibraryDetails            = (p) => apiPost("/o/c/librarydetails",            p);
 export const saveTeacherDetails            = (p) => apiPost("/o/c/teacherdetails",            p);
 export const saveExtraCurriculumActivities = (p) => apiPost("/o/c/extracurriculumactivities", p);
-export const saveSportsFacilities          = (p) => apiPost("/o/c/sportsfacilities",          p);
+export const saveSportsFacilities          = (p) => apiPost("/o/c/sportfacilities",           p);
+export const saveCulturalProgram           = (p) => apiPost("/o/c/culturalprogramsportsfacilities", p);
+export const saveEducationalTour           = (p) => apiPost("/o/c/educationaltourssportsfacilities", p);
 export const saveMedicalFacilities         = (p) => apiPost("/o/c/medicalfacilities",         p);
 export const saveProfileFeeMaster          = (p) => apiPost("/o/c/profilefeemasters",          p);
+export const saveSchoolBankDetails          = (p) => apiPost("/o/c/schoolbankdetails",          p);
+
