@@ -143,7 +143,7 @@ export default function App() {
       display: "flex",
       flexDirection: "column",
     }}>
-      <Header />
+      {/* <Header /> */}
       <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
       <div style={{ background: "#f0f4f5", flex: 1 }}>
         {renderTab()}

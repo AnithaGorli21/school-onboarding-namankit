@@ -1,12 +1,6 @@
 // ============================================================
 //  src/sections/LandDetails.jsx
-//
-//  FIXES:
-//  1. Endpoint changed to /o/c/schoollanddetails (confirmed from swagger)
-//  2. uploadSchoolLandPhoto uses uploadFileToFolder → { id, name, fileURL }
-//     instead of inline base64
-//  3. Removed classroomDetails from payload — not in swagger
-//  4. Added Authorization header via saveLandDetails from liferay.js
+//  UI only — all payload/API logic moved to src/api/landdetails.js
 // ============================================================
 import { useState } from "react";
 import {
@@ -14,25 +8,21 @@ import {
   SectionHeading, Row3, Row2,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
-import Footer from "./Footer";
-import { uploadFileToFolder } from "../api/upload";
-import { saveLandDetails } from "../api/liferay";
+import { submitLandDetails } from "../api/landdetails";
 
-const YES_NO       = ["Yes", "No"];
-const OWNERSHIP    = ["Owned", "Rented", "Government"];
+const YES_NO        = ["Yes", "No"];
+const OWNERSHIP     = ["Owned", "Rented", "Government"];
 const SPORT_QUALITY = ["Excellent", "Good", "Average", "Poor"];
 const STANDARD_OPTS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
 const TH = {
-  padding: "10px 12px",
-  background: "#ffffff",
-  borderBottom: "2px solid #dee2e6",
-  fontSize: 13, fontWeight: 400, color: "#333",
-  textAlign: "left", whiteSpace: "normal", verticalAlign: "bottom",
+  padding: "10px 12px", background: "#ffffff",
+  borderBottom: "2px solid #dee2e6", fontSize: 13,
+  fontWeight: 400, color: "#333", textAlign: "left",
+  whiteSpace: "normal", verticalAlign: "bottom",
 };
 const TD = {
-  padding: "9px 12px",
-  borderBottom: "1px solid #dee2e6",
+  padding: "9px 12px", borderBottom: "1px solid #dee2e6",
   fontSize: 13, color: "#333", verticalAlign: "middle",
 };
 
@@ -40,10 +30,8 @@ function Pagination({ total, pageSize, setPageSize, page, setPage }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const navBtn = (label, action, active) => (
     <button key={label} onClick={active ? action : undefined} style={{
-      padding: "5px 14px", fontSize: 13, fontFamily: "var(--font-main)",
-      fontWeight: 400,
-      border: active ? "1px solid #1a7a8a" : "1px solid #cccccc",
-      borderRadius: 3,
+      padding: "5px 14px", fontSize: 13, fontFamily: "var(--font-main)", fontWeight: 400,
+      border: active ? "1px solid #1a7a8a" : "1px solid #cccccc", borderRadius: 3,
       background: active ? "#1a7a8a" : "#ffffff",
       color: active ? "#ffffff" : "#aaaaaa",
       cursor: active ? "pointer" : "default", lineHeight: "1.5",
@@ -60,52 +48,42 @@ function Pagination({ total, pageSize, setPageSize, page, setPage }) {
       </div>
       <span>Page: {page} of {totalPages}</span>
       <div style={{ display: "flex", gap: 4 }}>
-        {navBtn("First",    () => setPage(1),                               page > 1)}
-        {navBtn("Previous", () => setPage((p) => Math.max(1, p - 1)),      page > 1)}
-        {navBtn("Next",     () => setPage((p) => Math.min(totalPages, p + 1)), page < totalPages)}
-        {navBtn("Last",     () => setPage(totalPages),                     page < totalPages)}
+        {navBtn("First",    () => setPage(1),                                    page > 1)}
+        {navBtn("Previous", () => setPage((p) => Math.max(1, p - 1)),           page > 1)}
+        {navBtn("Next",     () => setPage((p) => Math.min(totalPages, p + 1)),  page < totalPages)}
+        {navBtn("Last",     () => setPage(totalPages),                           page < totalPages)}
       </div>
     </div>
   );
 }
 
 const emptyLand = {
-  ownership: "",
-  totalAreaAcres: "",
-  compoundWall: "",
-  playground: "",
-  playgroundAreaAcres: "",
-  swimmingTank: "",
-  runningTrack: "",
-  basketballGround: "",
-  khoKhokabaddiGround: "",
-  sportsFacilityQuality: "",
-  otherSports: "",
+  ownership: "", totalAreaAcres: "", compoundWall: "",
+  playground: "", playgroundAreaAcres: "", swimmingTank: "",
+  runningTrack: "", basketballGround: "", khoKhokabaddiGround: "",
+  sportsFacilityQuality: "", otherSports: "",
 };
 
 const emptyClassRow = {
-  standard: "", division: "",
-  separateClassroom: "",
-  classroomWithBenches: "",
-  classroomWithoutBenches: "",
+  standard: "", division: "", separateClassroom: "",
+  classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-export default function LandDetails({ onTabChange }) {
-  const [land,       setLand]       = useState(emptyLand);
-  const [classRow,   setClassRow]   = useState(emptyClassRow);
-  const [classRows,  setClassRows]  = useState([]);
-  const [photoFile,  setPhotoFile]  = useState(null);
+export default function LandDetails({ onTabChange, onSave }) {
+  const [land,         setLand]         = useState(emptyLand);
+  const [classRow,     setClassRow]     = useState(emptyClassRow);
+  const [classRows,    setClassRows]    = useState([]);
+  const [photoFile,    setPhotoFile]    = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [errors,     setErrors]     = useState({});
-  const [rowError,   setRowError]   = useState("");
-  const [saving,     setSaving]     = useState(false);
-  const [alert,      setAlert]      = useState(null);
-  const [page,       setPage]       = useState(1);
-  const [pageSize,   setPageSize]   = useState(10);
+  const [errors,       setErrors]       = useState({});
+  const [rowError,     setRowError]     = useState("");
+  const [saving,       setSaving]       = useState(false);
+  const [alert,        setAlert]        = useState(null);
+  const [page,         setPage]         = useState(1);
+  const [pageSize,     setPageSize]     = useState(10);
 
   const setL  = (k) => (v) => setLand((p)     => ({ ...p, [k]: v }));
   const setCR = (k) => (v) => setClassRow((p) => ({ ...p, [k]: v }));
-
   const pagedRows = classRows.slice((page - 1) * pageSize, page * pageSize);
 
   const handleAddRow = () => {
@@ -120,7 +98,10 @@ export default function LandDetails({ onTabChange }) {
     setPage(1);
   };
 
-  const handleDeleteRow = (id) => { setClassRows((prev) => prev.filter((r) => r.id !== id)); setPage(1); };
+  const handleDeleteRow = (id) => {
+    setClassRows((prev) => prev.filter((r) => r.id !== id));
+    setPage(1);
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -160,50 +141,9 @@ export default function LandDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      // Upload photo first → get documentId
-      const uploaded = photoFile
-        ? await uploadFileToFolder(photoFile, "School Documents")
-        : null;
-
-      // Payload exactly matching swagger schema
-      const payload = {
-        basketBallGround:     land.basketballGround    === "Yes",
-        khokhoKabbadiGround:  land.khoKhokabaddiGround === "Yes",
-        othersSports:         land.otherSports         || "",
-        // Ownership: Owned=1, Rented=2, Government=3
-        // ⚠️ Replace IDs with actual Liferay picklist values
-        ownershipId:
-          land.ownership === "Owned"      ? 1 :
-          land.ownership === "Rented"     ? 2 : 3,
-        playground:           land.playground  === "Yes",
-        playgroundAreainAcres: land.playgroundAreaAcres ? Number(land.playgroundAreaAcres) : 0,
-        // Quality: Excellent=1, Good=2, Average=3, Poor=4
-        // ⚠️ Replace IDs with actual Liferay picklist values
-        qualityOfSportFacilitiesInfrastrcAvaId:
-          land.sportsFacilityQuality === "Excellent" ? 1 :
-          land.sportsFacilityQuality === "Good"      ? 2 :
-          land.sportsFacilityQuality === "Average"   ? 3 : 4,
-        runningTrack:         land.runningTrack  === "Yes",
-        schoolCompoundWall:   land.compoundWall  === "Yes",
-        swimmingTank:         land.swimmingTank  === "Yes",
-        totalAreainAcres:     land.totalAreaAcres ? Number(land.totalAreaAcres) : 0,
-
-        // Attachment — exact swagger structure
-        uploadSchoolLandPhoto: uploaded
-          ? {
-              id:         uploaded.documentId,
-              name:       uploaded.title,
-              fileURL:    uploaded.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-      };
-
-      console.log("[LandDetails] payload →", JSON.stringify(payload, null, 2));
-      await saveLandDetails(payload);
-
+      await submitLandDetails({ land, photoFile });
       setAlert({ type: "success", message: "Land Details saved successfully!" });
+      onSave?.(land);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setAlert({ type: "error", message: "Save failed — " + (err.message || "Please try again.") });
@@ -229,7 +169,6 @@ export default function LandDetails({ onTabChange }) {
 
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
 
-        {/* ── SECTION 1: School Land Details ── */}
         <SectionHeading title="School Land Details" />
         <Row3>
           <Field label="Ownership" required error={errors.ownership}>
@@ -273,7 +212,7 @@ export default function LandDetails({ onTabChange }) {
           </Field>
         </Row2>
 
-        {/* ── SECTION 2: Classroom Details ── */}
+        {/* Classroom Details */}
         <div style={{ marginTop: 28 }}>
           <div style={{ fontSize: 16, fontWeight: 400, color: "#333", paddingBottom: 8, marginBottom: 16, borderBottom: "1px solid #cccccc" }}>
             School Classroom details(RCC Constructed)
@@ -342,7 +281,7 @@ export default function LandDetails({ onTabChange }) {
           )}
         </div>
 
-        {/* ── SECTION 3: Upload Photo ── */}
+        {/* Upload Photo */}
         <div style={{ marginTop: 28 }}>
           <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 14 }}>Upload Photo</div>
           <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14, lineHeight: 1.5 }}>
