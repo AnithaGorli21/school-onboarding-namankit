@@ -1,19 +1,11 @@
 // ============================================================
-//  src/sections/SportsFacilities.jsx
+//  src/sections/Sportsfacilities.jsx
+//  UI only — API logic in src/api/sportsDetails.js
 //
-//  FIXES:
-//  1. Three separate endpoints confirmed from swagger:
-//     - /o/c/sportfacilities            → main sports form
-//     - /o/c/culturalprogramsportsfacilities  → one POST per cultural row
-//     - /o/c/educationaltourssportsfacilities → one POST per tour row
-//  2. culturalPrograms and educationalTours removed from main payload
-//     (they were nested — Liferay needs separate POSTs)
-//  3. schoolMagazineTypeId sent as number not MAGAZINE_TYPES.indexOf()
-//     ⚠️ Replace IDs with actual Liferay picklist values
-//  4. Uses saveSportsFacilities, saveCulturalProgram, saveEducationalTour
-//     from liferay.js (Authorization header)
+//  On mount: loads all 3 objects (sports, cultural, tours)
+//  On save:  POST/PATCH all 3 objects with schoolProfileId
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
@@ -21,10 +13,12 @@ import {
 } from "../components/FormFields";
 import Pagination from "../components/Pagination";
 import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
-import { saveSportsFacilities, saveCulturalProgram, saveEducationalTour } from "../api/liferay";
+import {
+  loadSportsDetails, submitSportsDetails,
+  mapRecordToForm, mapCulturalToRows, mapToursToRows,
+} from "../api/SportsDetails";
 
 const YES_NO = ["Yes", "No"];
-
 // ⚠️ Replace value IDs with actual Liferay picklist IDs
 const MAGAZINE_TYPES = [
   { value: 1, label: "Monthly" },
@@ -32,8 +26,6 @@ const MAGAZINE_TYPES = [
   { value: 3, label: "Half-Yearly" },
   { value: 4, label: "Annual" },
 ];
-
-// ⚠️ Replace value IDs with actual Liferay picklist IDs for year
 const YEARS = [
   { value: 1, label: "2023-2024" },
   { value: 2, label: "2024-2025" },
@@ -42,52 +34,65 @@ const YEARS = [
 
 const themeStyles = {
   container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card: {
-    background: "var(--card-bg, #ffffff)",
-    border: "1px solid var(--border-color, #d6e0e0)",
-    borderRadius: "var(--radius-sm, 3px)",
-    padding: "18px 20px 22px",
-    marginBottom: "20px",
-  },
+  card:      { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
   addBtnRow: { display: "flex", justifyContent: "center", marginTop: "10px", marginBottom: "20px" },
 };
 
 const emptyForm = {
-  noOfPhysicalEducationPTTeacherAvailable:   "",
-  numberOfSportsPlayedOnPlayground:          "",
-  detailsOfSportsPlayedOnPlayground:         "",
-  availOfQualifiedSportsTeacherAsPerStuCnt:  "",
-  availabilityOfSeparateAuditorium:          "",
-  auditoriumAreasqFt:                        "",
-  schoolMagazine:                            "",
-  schoolMagazineTypeId:                      "",
+  noOfPhysicalEducationPTTeacherAvailable:  "",
+  numberOfSportsPlayedOnPlayground:         "",
+  detailsOfSportsPlayedOnPlayground:        "",
+  availOfQualifiedSportsTeacherAsPerStuCnt: "",
+  availabilityOfSeparateAuditorium:         "",
+  auditoriumAreasqFt:                       "",
+  schoolMagazine:                           "",
+  schoolMagazineTypeId:                     "",
 };
 
-export default function SportsFacilities() {
-  const [form,    setForm]    = useState(emptyForm);
-  const [saving,  setSaving]  = useState(false);
-  const [alert,   setAlert]   = useState(null);
+export default function SportsFacilities({ onTabChange, onSave, schoolProfileId }) {
+  const [form,         setForm]         = useState(emptyForm);
+  const [saving,       setSaving]       = useState(false);
+  const [alert,        setAlert]        = useState(null);
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
 
   const [culturalRows, setCulturalRows] = useState([]);
   const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
 
-  const [tourRows, setTourRows] = useState([]);
-  const [newTour,  setNewTour]  = useState({ yearId: "", programName: "", place: "", purpose: "" });
+  const [tourRows,     setTourRows]     = useState([]);
+  const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
+
+  // ── Load all 3 objects on mount ───────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[SportsFacilities] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadSportsDetails(schoolProfileId)
+      .then(({ record, recordId: rid, culturalRecords, tourRecords }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+        const cultural = mapCulturalToRows(culturalRecords);
+        if (cultural.length > 0) setCulturalRows(cultural);
+        const tours = mapToursToRows(tourRecords);
+        if (tours.length > 0) setTourRows(tours);
+      })
+      .catch((err) => console.error("[SportsFacilities] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
-
-  // Helper to get label for display in table
   const getYearLabel = (id) => YEARS.find((y) => y.value === Number(id))?.label || id;
 
   const addCultural = () => {
     if (!newCultural.yearId || !newCultural.programName) return;
-    setCulturalRows([...culturalRows, { ...newCultural, id: Date.now() }]);
+    setCulturalRows([...culturalRows, { ...newCultural, id: Date.now(), liferayId: null }]);
     setNewCultural({ yearId: "", programName: "", remarks: "" });
   };
 
   const addTour = () => {
     if (!newTour.yearId || !newTour.programName || !newTour.place) return;
-    setTourRows([...tourRows, { ...newTour, id: Date.now() }]);
+    setTourRows([...tourRows, { ...newTour, id: Date.now(), liferayId: null }]);
     setNewTour({ yearId: "", programName: "", place: "", purpose: "" });
   };
 
@@ -95,45 +100,9 @@ export default function SportsFacilities() {
     setSaving(true);
     setAlert(null);
     try {
-      // ── 1. POST main sports facilities payload ────────────
-      const sportsPayload = {
-        auditoriumAreasqFt:                        Number(form.auditoriumAreasqFt)                       || 0,
-        availabilityOfSeparateAuditorium:           form.availabilityOfSeparateAuditorium                === "Yes",
-        availOfQualifiedSportsTeacherAsPerStuCnt:   form.availOfQualifiedSportsTeacherAsPerStuCnt        === "Yes",
-        detailsOfSportsPlayedOnPlayground:          form.detailsOfSportsPlayedOnPlayground               || "",
-        noOfPhysicalEducationPTTeacherAvailable:    Number(form.noOfPhysicalEducationPTTeacherAvailable) || 0,
-        numberOfSportsPlayedOnPlayground:           Number(form.numberOfSportsPlayedOnPlayground)        || 0,
-        schoolMagazine:                             form.schoolMagazine                                  === "Yes",
-        schoolMagazineTypeId:                       Number(form.schoolMagazineTypeId)                    || 0,
-      };
-
-      console.log("[SportsFacilities] payload →", JSON.stringify(sportsPayload, null, 2));
-      await saveSportsFacilities(sportsPayload);
-
-      // ── 2. POST each cultural program row individually ────
-      for (const row of culturalRows) {
-        const culturalPayload = {
-          culturalProgramConductedBySchoolYearId: Number(row.yearId)       || 0,
-          culturalProgramName:                    row.programName           || "",
-          culturalProgramRemarks:                 row.remarks               || "",
-        };
-        console.log("[CulturalProgram] payload →", JSON.stringify(culturalPayload, null, 2));
-        await saveCulturalProgram(culturalPayload);
-      }
-
-      // ── 3. POST each educational tour row individually ────
-      for (const row of tourRows) {
-        const tourPayload = {
-          educationalToursCondBySchoolYearId: Number(row.yearId)   || 0,
-          educationalToursPlace:              row.place             || "",
-          educationalToursProgramName:        row.programName       || "",
-          educationalToursPurpose:            row.purpose           || "",
-        };
-        console.log("[EducationalTour] payload →", JSON.stringify(tourPayload, null, 2));
-        await saveEducationalTour(tourPayload);
-      }
-
-      setAlert({ type: "success", message: "Sports Facilities saved successfully!" });
+      await submitSportsDetails({ form, culturalRows, tourRows, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Sports Facilities ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -152,11 +121,15 @@ export default function SportsFacilities() {
 
   return (
     <div style={themeStyles.container}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
-
         <Row3>
           <Field label="Number Of Physical Education (PT) teacher available" required>
             <TextInput value={form.noOfPhysicalEducationPTTeacherAvailable} onChange={set("noOfPhysicalEducationPTTeacherAvailable")} type="number" />
@@ -168,14 +141,12 @@ export default function SportsFacilities() {
             <TextInput value={form.detailsOfSportsPlayedOnPlayground} onChange={set("detailsOfSportsPlayedOnPlayground")} placeholder="Basketball, Football..." />
           </Field>
         </Row3>
-
         <Row3>
           <Field label="Availabilty of qualified Sport's Teachers as per students' count" required>
             <SelectInput value={form.availOfQualifiedSportsTeacherAsPerStuCnt} onChange={set("availOfQualifiedSportsTeacherAsPerStuCnt")} options={YES_NO} />
           </Field>
           <div /><div />
         </Row3>
-
         <Row2>
           <Field label="Availabilty Of Separate Auditorium" required>
             <SelectInput value={form.availabilityOfSeparateAuditorium} onChange={set("availabilityOfSeparateAuditorium")} options={YES_NO} />
@@ -184,13 +155,11 @@ export default function SportsFacilities() {
             <TextInput value={form.auditoriumAreasqFt} onChange={set("auditoriumAreasqFt")} type="number" />
           </Field>
         </Row2>
-
         <Row2>
           <Field label="School Magazine" required>
             <SelectInput value={form.schoolMagazine} onChange={set("schoolMagazine")} options={YES_NO} />
           </Field>
           <Field label="School Magazine Type" required>
-            {/* ⚠️ value stores numeric ID — replace IDs with actual Liferay picklist values */}
             <SelectInput value={form.schoolMagazineTypeId} onChange={set("schoolMagazineTypeId")} options={MAGAZINE_TYPES} />
           </Field>
         </Row2>
@@ -200,7 +169,6 @@ export default function SportsFacilities() {
           <SectionHeading title="Cultural programs conducted by school" />
           <Row3>
             <Field label="Year" required>
-              {/* ⚠️ value stores numeric ID — replace IDs with actual Liferay picklist values */}
               <SelectInput value={newCultural.yearId} onChange={(v) => setNewCultural({ ...newCultural, yearId: v })} options={YEARS} />
             </Field>
             <Field label="Program Name" required>

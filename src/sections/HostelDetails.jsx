@@ -1,24 +1,16 @@
 // ============================================================
 //  src/sections/HostelDetails.jsx
-//
-//  FIXES:
-//  1. Endpoint → /o/c/schoolhosteldetails (confirmed from swagger URL)
-//  2. uploadHostelPhoto uses uploadFileToFolder → { id, name, fileURL }
-//     instead of inline base64
-//  3. Uses saveHostelDetails from liferay.js (includes Authorization header)
-//  4. Payload matches swagger exactly — no extra fields
+//  UI only — API logic in src/api/hosteldetails.js
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
-import { uploadFileToFolder } from "../api/upload";
-import { saveHostelDetails } from "../api/liferay";
+import { loadHostelDetails, submitHostelDetails, mapRecordToForm } from "../api/HostelDetails";
 
 const YES_NO = ["Yes", "No"];
-
 const HOT_WATER_OPTIONS = [
   { key: "solarWaterheater",   label: "Solar Waterheater" },
   { key: "gasElectric",        label: "Gas/Electric" },
@@ -27,40 +19,57 @@ const HOT_WATER_OPTIONS = [
 ];
 
 const emptyForm = {
-  studentsClass1to4:          "",
-  femaleCaretakers1to4:       "",
-  availabilityIncinerators:   "",
-  washingMachine:             "",
-  separateHostelBuilding:     "",
-  areaInSqFt:                 "",
-  lightFanBedding:            "",
+  studentsClass1to4:           "",
+  femaleCaretakers1to4:        "",
+  availabilityIncinerators:    "",
+  washingMachine:              "",
+  separateHostelBuilding:      "",
+  areaInSqFt:                  "",
+  lightFanBedding:             "",
   hotWater_solarWaterheater:   false,
   hotWater_gasElectric:        false,
   hotWater_traditionalSources: false,
   hotWater_notAvailable:       false,
-  totalBoysHostels:    "",
-  capacityBoysHostels: "",
-  totalGirlsHostels:   "",
-  capacityGirlsHostels:"",
-  actualBathrooms:  "",
-  actualWashrooms:  "",
+  totalBoysHostels:            "",
+  capacityBoysHostels:         "",
+  totalGirlsHostels:           "",
+  capacityGirlsHostels:        "",
+  actualBathrooms:             "",
+  actualWashrooms:             "",
 };
 
-export default function HostelDetails({ onTabChange }) {
+export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) {
   const [form,         setForm]         = useState(emptyForm);
   const [photoFile,    setPhotoFile]    = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [saving,       setSaving]       = useState(false);
   const [alert,        setAlert]        = useState(null);
   const [errors,       setErrors]       = useState({});
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[HostelDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadHostelDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[HostelDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const grandTotalHostels  = (Number(form.totalBoysHostels)    || 0) + (Number(form.totalGirlsHostels)    || 0);
-  const grandTotalCapacity = (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
+  const grandTotalHostels        = (Number(form.totalBoysHostels)    || 0) + (Number(form.totalGirlsHostels)    || 0);
+  const grandTotalCapacity       = (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
   const totalResidentialStudents = grandTotalCapacity;
-  const expectedBathrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
-  const expectedWashrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedBathrooms        = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedWashrooms        = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -103,51 +112,9 @@ export default function HostelDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      const uploaded = photoFile
-        ? await uploadFileToFolder(photoFile, "School Documents")
-        : null;
-
-      // Payload exactly matching swagger schema
-      const payload = {
-        actualBathrooms:                    Number(form.actualBathrooms)          || 0,
-        actualWashrooms:                    Number(form.actualWashrooms)          || 0,
-        areaInSqft:                         Number(form.areaInSqFt)               || 0,
-        availabilityOfLghtFansBeddng:       form.lightFanBedding                  === "Yes",
-        availibilityOfHotWater:
-          form.hotWater_solarWaterheater ||
-          form.hotWater_gasElectric      ||
-          form.hotWater_traditionalSources,
-        availibilityOfIncinerators:         form.availabilityIncinerators         === "Yes",
-        availibilityOfSeparateHstlBuildng:  form.separateHostelBuilding           === "Yes",
-        availibilityOfWashingMchneForStdnt: form.washingMachine                   === "Yes",
-        expectedBathrooms,
-        expectedWashrooms,
-        grndTtlcapacityOfHstl:              grandTotalCapacity,
-        grndTtlnoOfHstl:                    grandTotalHostels,
-        totalNoOfFemaleCaretaker1To4:       Number(form.femaleCaretakers1to4)     || 0,
-        totalNoOfResidentialStudents:       totalResidentialStudents,
-        totalNoOfStdntsStudyngCls1To4:      Number(form.studentsClass1to4)        || 0,
-        ttlCapacityOfBoysHstl:              Number(form.capacityBoysHostels)      || 0,
-        ttlCapacityOfGirlsHstl:             Number(form.capacityGirlsHostels)     || 0,
-        ttlNoOfBoysHstl:                    Number(form.totalBoysHostels)         || 0,
-        ttlNoOfGirlsHstl:                   Number(form.totalGirlsHostels)        || 0,
-
-        // Attachment — exact swagger structure
-        uploadHostelPhoto: uploaded
-          ? {
-              id:         uploaded.documentId,
-              name:       uploaded.title,
-              fileURL:    uploaded.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-      };
-
-      console.log("[HostelDetails] payload →", JSON.stringify(payload, null, 2));
-      await saveHostelDetails(payload);
-
-      setAlert({ type: "success", message: "Hostel Details saved successfully!" });
+      await submitHostelDetails({ form, photoFile, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Hostel Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -177,6 +144,12 @@ export default function HostelDetails({ onTabChange }) {
       onReset={handleReset}
       saving={saving}
     >
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
+
       <SectionHeading title="School Hostel Details" />
 
       <Row3>

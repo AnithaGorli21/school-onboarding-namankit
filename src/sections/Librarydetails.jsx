@@ -1,31 +1,20 @@
 // ============================================================
 //  src/sections/Librarydetails.jsx
-//
-//  FIXES:
-//  1. uploadLibraryPhoto uses uploadFileToFolder → { id, name, fileURL }
-//     instead of inline base64 — matches swagger exactly
-//  2. Uses saveLibraryDetails from liferay.js (Authorization header)
-//  3. Payload matches swagger exactly
+//  UI only — API logic in src/api/libraryDetails.js
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
-import { uploadFileToFolder } from "../api/upload";
-import { saveLibraryDetails } from "../api/liferay";
+import { loadLibraryDetails, submitLibraryDetails, mapRecordToForm } from "../api/LibraryDetails";
 
 const YES_NO = ["Yes", "No"];
 
 const themeStyles = {
-  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)" },
-  card: {
-    background: "var(--card-bg, #ffffff)",
-    border: "1px solid var(--border-color, #d6e0e0)",
-    borderRadius: "var(--radius-sm, 3px)",
-    padding: "18px 20px 22px",
-  },
+  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)" },
+  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   uploadSection: { marginTop: "28px", borderTop: "1px solid var(--divider-color, #cccccc)", paddingTop: "20px" },
   sectionTitle:  { fontSize: "16px", fontWeight: "400", color: "var(--text-primary, #333)", marginBottom: "14px" },
   noteText:      { color: "var(--error-color, #cc0000)", fontSize: "13px", marginBottom: "14px" },
@@ -34,18 +23,35 @@ const themeStyles = {
 };
 
 const emptyForm = {
-  separateLibrary:          "",
-  areamin200FtWithFurniture:"",
-  actualArea:               "",
-  noOfBooks:                "",
+  separateLibrary:           "",
+  areamin200FtWithFurniture: "",
+  actualArea:                "",
+  noOfBooks:                 "",
 };
 
-export default function LibraryDetails() {
-  const [form,      setForm]      = useState(emptyForm);
-  const [photoFile, setPhotoFile] = useState(null);
-  const [saving,    setSaving]    = useState(false);
-  const [alert,     setAlert]     = useState(null);
-  const [errors,    setErrors]    = useState({});
+export default function LibraryDetails({ onTabChange, onSave, schoolProfileId }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [photoFile,   setPhotoFile]   = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [errors,      setErrors]      = useState({});
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[LibraryDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadLibraryDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[LibraryDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -66,7 +72,7 @@ export default function LibraryDetails() {
     if (!form.separateLibrary)           e.separateLibrary           = "Required";
     if (!form.areamin200FtWithFurniture) e.areamin200FtWithFurniture = "Required";
     if (!form.noOfBooks)                 e.noOfBooks                 = "Required";
-    if (!photoFile)                      e.photo                     = "Library photo is required";
+    if (!photoFile && !recordId)         e.photo                     = "Library photo is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -79,34 +85,9 @@ export default function LibraryDetails() {
     setSaving(true);
     setAlert(null);
     try {
-      // Upload photo first → get documentId
-      const uploaded = photoFile
-        ? await uploadFileToFolder(photoFile, "School Documents")
-        : null;
-
-      // Payload exactly matching swagger schema
-      const payload = {
-        actualArea:               form.actualArea ? Number(form.actualArea) : 0,
-        areamin200FtWithFurniture: form.areamin200FtWithFurniture === "Yes",
-        noOfBooks:                form.noOfBooks  ? Number(form.noOfBooks)  : 0,
-        separateLibrary:          form.separateLibrary === "Yes",
-
-        // Attachment — exact swagger structure
-        uploadLibraryPhoto: uploaded
-          ? {
-              id:         uploaded.documentId,
-              name:       uploaded.title,
-              fileURL:    uploaded.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-      };
-
-      console.log("[LibraryDetails] payload →", JSON.stringify(payload, null, 2));
-      await saveLibraryDetails(payload);
-
-      setAlert({ type: "success", message: "Library Details saved successfully!" });
+      await submitLibraryDetails({ form, photoFile, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Library Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -123,11 +104,15 @@ export default function LibraryDetails() {
 
   return (
     <div style={themeStyles.container}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
         <SectionHeading title="Library Details" />
-
         <Row3>
           <Field label="Separate Library" required error={errors.separateLibrary}>
             <SelectInput value={form.separateLibrary} onChange={set("separateLibrary")} options={YES_NO} />

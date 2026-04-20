@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       // ── Object Definition APIs (your form data) ──────────
       "/o/c": {
-        target: "https://mahadbt2-uat-dashboard.quantela.com",
+        target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
         secure: false,       // allow self-signed certs on UAT
       },
@@ -19,14 +19,14 @@ export default defineConfig({
       // ── Headless Delivery API (file uploads) ─────────────
       // Required by src/api/upload.js for uploading to Documents & Media
       "/o/headless-delivery": {
-        target: "https://mahadbt2-uat-dashboard.quantela.com",
+        target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
         secure: false,
       },
 
       // ── Headless Admin (optional — for site listing) ──────
       "/o/headless-admin-user": {
-        target: "https://mahadbt2-uat-dashboard.quantela.com",
+        target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
         secure: false,
       },

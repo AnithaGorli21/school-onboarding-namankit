@@ -1,17 +1,11 @@
 // ============================================================
 //  src/sections/Diningfacilitiesdetails.jsx
-//
-//  FIXES:
-//  1. uploadDinningHallPhoto and uploadMenu use { id, name, fileURL }
-//     instead of { documentId, name, url } — matches swagger exactly
-//  2. Uses saveDiningFacilities from liferay.js (Authorization header)
-//  3. Payload matches swagger exactly
+//  UI only — API logic in src/api/diningDetails.js
 // ============================================================
-import { useState } from "react";
-import { saveDiningFacilities } from "../api/liferay";
+import { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
-import { uploadFileToFolder } from "../api/upload";
 import SectionWrapper from "../components/SectionWrapper";
+import { loadDiningDetails, submitDiningDetails, mapRecordToForm } from "../api/DiningDetails";
 
 const YES_NO = ["Yes", "No"];
 
@@ -24,11 +18,28 @@ const emptyForm = {
   MenuPhoto:                         null,
 };
 
-export default function DiningFacilitiesDetails({ onTabChange }) {
-  const [form,   setForm]   = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [alert,  setAlert]  = useState(null);
-  const [errors, setErrors] = useState({});
+export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolProfileId }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [errors,      setErrors]      = useState({});
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[DiningDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadDiningDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[DiningDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -53,45 +64,9 @@ export default function DiningFacilitiesDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      // Upload both photos in parallel
-      const [uploadedDining, uploadedMenu] = await Promise.all([
-        form.DiningHallPhoto ? uploadFileToFolder(form.DiningHallPhoto, "School Documents") : Promise.resolve(null),
-        form.MenuPhoto       ? uploadFileToFolder(form.MenuPhoto,       "School Documents") : Promise.resolve(null),
-      ]);
-
-      // Payload exactly matching swagger schema
-      const payload = {
-        dinningHallInAreaInSqft:            form.DiningHallAreainSqft ? Number(form.DiningHallAreainSqft) : 0,
-        dinningTable:                       form.DiningTable                       === "Yes",
-        foodServedAsPerMenu:                form.FoodServedAsPerMenu               === "Yes",
-        separateDinningHallForBoysAndGirls: form.SeparateDiningHallforBoysandGirls === "Yes",
-
-        // Attachment — exact swagger structure
-        uploadDinningHallPhoto: uploadedDining
-          ? {
-              id:         uploadedDining.documentId,
-              name:       uploadedDining.title,
-              fileURL:    uploadedDining.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-
-        uploadMenu: uploadedMenu
-          ? {
-              id:         uploadedMenu.documentId,
-              name:       uploadedMenu.title,
-              fileURL:    uploadedMenu.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-      };
-
-      console.log("[DiningFacilities] payload →", JSON.stringify(payload, null, 2));
-      await saveDiningFacilities(payload);
-
-      setAlert({ type: "success", message: "Dining Facilities Details saved successfully!" });
+      await submitDiningDetails({ form, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Dining Facilities Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -113,6 +88,12 @@ export default function DiningFacilitiesDetails({ onTabChange }) {
       onReset={handleReset}
       saving={saving}
     >
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
+
       <SectionHeading title="Dining Facilities Details" />
 
       <Row3>

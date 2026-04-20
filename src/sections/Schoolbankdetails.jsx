@@ -1,15 +1,14 @@
 // ============================================================
-//  src/sections/SchoolBankDetails.jsx
+//  src/sections/Schoolbankdetails.jsx
+//  UI only — API logic in src/api/schoolbank.js
 //
-//  FIXES:
-//  1. Removed unused toBase64 helper (upload handled in schoolbank.js)
-//  2. saveSchoolBankDetails handles upload + payload internally
-//  3. uploadCancelledChequeImage swagger structure fixed in schoolbank.js
+//  On mount: loads existing record by schoolProfileId → pre-fills form
+//  On save:  POST (new) or PATCH (update)
 // ============================================================
 import { useState, useEffect } from "react";
 import { Field, TextInput, SectionHeading } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
-import { saveSchoolBankDetails } from "../api/schoolbank";
+import { loadBankDetails, submitBankDetails, mapRecordToForm } from "../api/schoolbank";
 
 const STYLE_ID = "school-bank-details-responsive";
 const responsiveCSS = `
@@ -53,7 +52,7 @@ const emptyForm = {
   uploadCancelledChequeImage: null,
 };
 
-export default function SchoolBankDetails({ onTabChange }) {
+export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId }) {
   useInjectStyles();
 
   const [form,            setForm]            = useState(emptyForm);
@@ -61,19 +60,37 @@ export default function SchoolBankDetails({ onTabChange }) {
   const [saving,          setSaving]          = useState(false);
   const [alert,           setAlert]           = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const [recordId,        setRecordId]        = useState(null);
+  const [loadingData,     setLoadingData]     = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[SchoolBankDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadBankDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[SchoolBankDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
   const validate = () => {
     const e = {};
-    if (!form.bankName.trim())            e.bankName            = "Required";
-    if (!form.bankBranchName.trim())      e.bankBranchName      = "Required";
-    if (!form.bankIFSCCode.trim())        e.bankIFSCCode        = "Required";
+    if (!form.bankName.trim())                 e.bankName                   = "Required";
+    if (!form.bankBranchName.trim())           e.bankBranchName             = "Required";
+    if (!form.bankIFSCCode.trim())             e.bankIFSCCode               = "Required";
     else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
-                                          e.bankIFSCCode        = "Invalid IFSC format (e.g. SBIN0001234)";
-    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo  = "Required";
-    if (!form.bankBranchAddress.trim())   e.bankBranchAddress   = "Required";
-    if (!form.uploadCancelledChequeImage) e.uploadCancelledChequeImage = "Required";
+                                               e.bankIFSCCode               = "Invalid IFSC format (e.g. SBIN0001234)";
+    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo              = "Required";
+    if (!form.bankBranchAddress.trim())        e.bankBranchAddress          = "Required";
+    if (!form.uploadCancelledChequeImage && !recordId)
+                                               e.uploadCancelledChequeImage = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -86,9 +103,9 @@ export default function SchoolBankDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      // saveSchoolBankDetails handles upload + payload + POST internally
-      await saveSchoolBankDetails(form);
-      setAlert({ type: "success", message: "School Bank Details saved successfully!" });
+      await submitBankDetails({ form, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `School Bank Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -122,6 +139,12 @@ export default function SchoolBankDetails({ onTabChange }) {
       onReset={handleReset}
       saving={saving}
     >
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
+
       <SectionHeading title="School Bank Details" />
 
       <div className="sbd-row3">

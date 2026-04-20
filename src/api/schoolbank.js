@@ -1,39 +1,41 @@
 // ============================================================
 //  src/api/schoolbank.js
 //
-//  FIXES:
-//  1. uploadCancelledChequeImage structure → { id, name, fileURL, fileBase64, folder }
-//     matches swagger exactly (was { documentId, name, url })
-//  2. bankAccountNo sent as number (swagger: integer)
-//  ⚠️  Endpoint /o/c/schoolbankdetails — verify from swagger URL
+//  loadBankDetails(schoolProfileId)  → GET existing record
+//  submitBankDetails({ form, schoolProfileId, recordId })
+//    → POST if new, PATCH if recordId exists
 // ============================================================
+import { uploadFileToFolder } from "./upload";
+import { saveSchoolBankDetails, patchSchoolBankDetails, getSchoolBankDetails } from "./liferay";
 
-import { uploadFileToFolder } from "./upload.js";
+// ── Load existing record ──────────────────────────────────────
+export async function loadBankDetails(schoolProfileId) {
+  const record = await getSchoolBankDetails(schoolProfileId);
+  return { record, recordId: record?.id || null };
+}
 
-const LIFERAY_USER = "prabhudasu";
-const LIFERAY_PASS = "root";
+// ── Map Liferay response → form state ────────────────────────
+export function mapRecordToForm(record) {
+  if (!record) return null;
+  return {
+    bankName:                   record.bankName          || "",
+    bankBranchName:             record.bankBranchName    || "",
+    bankIFSCCode:               record.bankIFSCCode      || "",
+    bankAccountNo:              record.bankAccountNo     || "",
+    bankBranchAddress:          record.bankBranchAddress || "",
+    uploadCancelledChequeImage: null,  // file input — can't pre-fill
+  };
+}
 
-const buildHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-  Authorization: "Basic " + btoa(`${LIFERAY_USER}:${LIFERAY_PASS}`),
-});
-
-export async function saveSchoolBankDetails(form) {
-  // Upload cheque image first → get documentId
-  const uploaded = form.uploadCancelledChequeImage
-    ? await uploadFileToFolder(form.uploadCancelledChequeImage, "School Documents")
-    : null;
-
-  // Payload exactly matching swagger schema
-  const payload = {
+// ── Build payload ─────────────────────────────────────────────
+function buildPayload({ form, uploaded, schoolProfileId }) {
+  return {
+    schoolProfileId:   schoolProfileId || 0,
     bankAccountNo:     Number(form.bankAccountNo)        || 0,
     bankBranchAddress: form.bankBranchAddress             || "",
     bankBranchName:    form.bankBranchName                || "",
     bankIFSCCode:      form.bankIFSCCode.toUpperCase()    || "",
     bankName:          form.bankName                      || "",
-
-    // Attachment — exact swagger structure
     uploadCancelledChequeImage: uploaded
       ? {
           id:         uploaded.documentId,
@@ -44,22 +46,23 @@ export async function saveSchoolBankDetails(form) {
         }
       : null,
   };
+}
 
-  console.log("[SchoolBankDetails] payload →", JSON.stringify(payload, null, 2));
+// ── Submit (POST or PATCH) ────────────────────────────────────
+export async function submitBankDetails({ form, schoolProfileId, recordId }) {
+  const uploaded = form.uploadCancelledChequeImage
+    ? await uploadFileToFolder(form.uploadCancelledChequeImage, "School Documents")
+    : null;
 
-  const response = await fetch("/o/c/schoolbankdetails", {
-    method: "POST",
-    headers: buildHeaders(),
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
+  const payload = buildPayload({ form, uploaded, schoolProfileId });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let msg = `POST /o/c/schoolbankdetails → ${response.status}`;
-    try { msg = JSON.parse(errorText)?.title || JSON.parse(errorText)?.message || msg; } catch {}
-    throw new Error(msg);
+  console.log(`[SchoolBankDetails] ${recordId ? "PATCH" : "POST"} →`, JSON.stringify(payload, null, 2));
+
+  if (recordId) {
+    await patchSchoolBankDetails(recordId, payload);
+  } else {
+    await saveSchoolBankDetails(payload);
   }
 
-  return response.json();
+  return payload;
 }

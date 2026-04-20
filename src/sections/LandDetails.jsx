@@ -1,14 +1,17 @@
 // ============================================================
 //  src/sections/LandDetails.jsx
-//  UI only — all payload/API logic moved to src/api/landdetails.js
+//  UI only — API logic in src/api/landdetails.js
+//
+//  On mount: loads existing record by schoolProfileId → pre-fills form
+//  On save:  POST (new) or PATCH (update) via submitLandDetails
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
-import { submitLandDetails } from "../api/landdetails";
+import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/landdetails";
 
 const YES_NO        = ["Yes", "No"];
 const OWNERSHIP     = ["Owned", "Rented", "Government"];
@@ -69,7 +72,7 @@ const emptyClassRow = {
   classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-export default function LandDetails({ onTabChange, onSave }) {
+export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
   const [land,         setLand]         = useState(emptyLand);
   const [classRow,     setClassRow]     = useState(emptyClassRow);
   const [classRows,    setClassRows]    = useState([]);
@@ -81,6 +84,23 @@ export default function LandDetails({ onTabChange, onSave }) {
   const [alert,        setAlert]        = useState(null);
   const [page,         setPage]         = useState(1);
   const [pageSize,     setPageSize]     = useState(10);
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
+
+  // ── Load existing record when schoolProfileId is available ──
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log('[LandDetails] loading for schoolProfileId →', schoolProfileId);
+    setLoadingData(true);
+    loadLandDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setLand(formData);
+      })
+      .catch((err) => console.error("[LandDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const setL  = (k) => (v) => setLand((p)     => ({ ...p, [k]: v }));
   const setCR = (k) => (v) => setClassRow((p) => ({ ...p, [k]: v }));
@@ -141,8 +161,8 @@ export default function LandDetails({ onTabChange, onSave }) {
     setSaving(true);
     setAlert(null);
     try {
-      await submitLandDetails({ land, photoFile });
-      setAlert({ type: "success", message: "Land Details saved successfully!" });
+      await submitLandDetails({ land, photoFile, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Land Details ${recordId ? "updated" : "saved"} successfully!` });
       onSave?.(land);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -165,6 +185,11 @@ export default function LandDetails({ onTabChange, onSave }) {
 
   return (
     <div style={{ padding: "16px 20px 32px" }}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
@@ -244,7 +269,6 @@ export default function LandDetails({ onTabChange, onSave }) {
               Add
             </button>
           </div>
-
           {classRows.length > 0 && (
             <div style={{ marginTop: 8 }}>
               <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 12 }}>Filled Details</div>

@@ -1,28 +1,22 @@
 // ============================================================
 //  src/sections/Teachersdetails.jsx
+//  UI only — API logic in src/api/teacherDetails.js
 //
-//  FIXES:
-//  1. Uses saveTeacherDetails from liferay.js (Authorization header)
-//  2. POST each teacher row individually (Liferay object API = one record per POST)
-//  3. Subject/Medium dropdowns now use { value, label } to store numeric IDs
-//     instead of SUBJECTS.indexOf() which is fragile and wrong
-//  4. highestQualification mapped to qualificationId (numeric)
-//  ⚠️  Share Teacher swagger payload to confirm exact field names
+//  On mount: loads existing teacher rows by schoolProfileId
+//  On save:  POST new rows, PATCH existing rows (by liferayId)
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
-  SectionHeading, Row3, Row2,
+  SectionHeading, Row3,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
-import { saveTeacherDetails } from "../api/liferay";
+import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/TeacherDetails";
 
 // ⚠️ Replace value IDs with actual Liferay picklist IDs
-// highestQualification is a Text field in Liferay — send string label directly
 const QUALIFICATIONS = ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"];
-
 const MEDIUMS = [
   { value: 1, label: "English" },
   { value: 2, label: "Marathi" },
@@ -30,7 +24,6 @@ const MEDIUMS = [
   { value: 4, label: "Urdu" },
   { value: 5, label: "Other" },
 ];
-
 const SUBJECTS = [
   { value: 1, label: "Mathematics" },
   { value: 2, label: "Science" },
@@ -43,13 +36,8 @@ const SUBJECTS = [
 ];
 
 const themeStyles = {
-  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card: {
-    background: "var(--card-bg, #ffffff)",
-    border: "1px solid var(--border-color, #d6e0e0)",
-    borderRadius: "var(--radius-sm, 3px)",
-    padding: "18px 20px 22px",
-  },
+  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
+  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
   checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
   addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
@@ -57,7 +45,7 @@ const themeStyles = {
 
 const emptyRow = {
   name:                                    "",
-  highestQualification:                    "",  // Text field in Liferay — send string not ID
+  highestQualification:                    "",
   mediumOfEducationTillStd10thId:          "",
   mediumOfEducationForDegreeId:            "",
   mediumForEducationForBedDedBPedBedPhyId: "",
@@ -69,13 +57,28 @@ const emptyRow = {
   teacherDetailStatus:                     "",
 };
 
-export default function TeachersDetails() {
-  const [rows,     setRows]     = useState([]);
-  const [newRow,   setNewRow]   = useState(emptyRow);
-  const [page,     setPage]     = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [alert,    setAlert]    = useState(null);
-  const [saving,   setSaving]   = useState(false);
+export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }) {
+  const [rows,        setRows]        = useState([]);
+  const [newRow,      setNewRow]      = useState(emptyRow);
+  const [page,        setPage]        = useState(1);
+  const [pageSize,    setPageSize]    = useState(10);
+  const [alert,       setAlert]       = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Load existing rows on mount ───────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[TeacherDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadTeacherDetails(schoolProfileId)
+      .then(({ records }) => {
+        const mapped = mapRecordsToRows(records);
+        if (mapped.length > 0) setRows(mapped);
+      })
+      .catch((err) => console.error("[TeacherDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const setR = (k) => (v) => setNewRow((p) => ({ ...p, [k]: v }));
 
@@ -84,7 +87,7 @@ export default function TeachersDetails() {
       setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
       return;
     }
-    setRows((p) => [...p, { ...newRow, id: Date.now() }]);
+    setRows((p) => [...p, { ...newRow, id: Date.now(), liferayId: null }]);
     setNewRow(emptyRow);
   };
 
@@ -96,25 +99,9 @@ export default function TeachersDetails() {
     setSaving(true);
     setAlert(null);
     try {
-      // POST each teacher row individually — Liferay object API = one record per POST
-      for (const row of rows) {
-        const payload = {
-          name:                                    row.name                                    || "",
-          highestQualification:                    row.highestQualification                    || "",  // Text field
-          mediumOfEducationTillStd10thId:          Number(row.mediumOfEducationTillStd10thId)  || 0,
-          mediumOfEducationForDegreeId:            Number(row.mediumOfEducationForDegreeId)    || 0,
-          mediumForEducationForBedDedBPedBedPhyId: Number(row.mediumForEducationForBedDedBPedBedPhyId) || 0,
-          yearOfExperience:                        Number(row.yearOfExperience)                || 0,
-          subject1Id:                              Number(row.subject1Id)                      || 0,
-          subject2Id:                              Number(row.subject2Id)                      || 0,
-          isSportsBPed:                            !!row.isSportsBPed,
-          genderId:                                Number(row.genderId)                        || 0,
-          teacherDetailStatus:                     !!row.teacherDetailStatus,
-        };
-        console.log("[TeacherDetails] payload →", JSON.stringify(payload, null, 2));
-        await saveTeacherDetails(payload);
-      }
+      await submitTeacherDetails({ rows, schoolProfileId });
       setAlert({ type: "success", message: "Teachers data saved successfully!" });
+      onSave?.(rows);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -122,13 +109,16 @@ export default function TeachersDetails() {
     }
   };
 
-  // Helper to get label from value for table display
   const getLabel = (options, value) => options.find((o) => o.value === Number(value))?.label || value;
-
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div style={themeStyles.container}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
@@ -145,7 +135,6 @@ export default function TeachersDetails() {
             <SelectInput value={newRow.mediumOfEducationTillStd10thId} onChange={setR("mediumOfEducationTillStd10thId")} options={MEDIUMS} />
           </Field>
         </Row3>
-
         <Row3>
           <Field label="Medium of Education for Degree" required>
             <SelectInput value={newRow.mediumOfEducationForDegreeId} onChange={setR("mediumOfEducationForDegreeId")} options={MEDIUMS} />
@@ -157,7 +146,6 @@ export default function TeachersDetails() {
             <TextInput value={newRow.yearOfExperience} onChange={setR("yearOfExperience")} type="number" />
           </Field>
         </Row3>
-
         <Row3>
           <Field label="Subject 1" required>
             <SelectInput value={newRow.subject1Id} onChange={setR("subject1Id")} options={SUBJECTS} />

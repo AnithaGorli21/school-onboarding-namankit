@@ -1,21 +1,13 @@
 // ============================================================
-//  src/sections/MedicalFacilities.jsx
-//
-//  FIXES:
-//  1. availabilitOfMedicalSickRoom → boolean (was string "Yes"/"No")
-//  2. availabilityOfDoctorsInSchoolId → number (was string "Full Time" etc)
-//  3. numberOfDoctors/Nurse/Ambulance → number (were strings)
-//  4. Uses saveMedicalFacilities from liferay.js (Authorization header)
-//  5. Payload matches swagger exactly
-//  ⚠️  availabilityOfDoctorsInSchoolId IDs are placeholders — check Liferay picklist
+//  src/sections/Medicalfacilities.jsx
+//  UI only — API logic in src/api/medicalDetails.js
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
-import { saveMedicalFacilities } from "../api/liferay";
+import { loadMedicalDetails, submitMedicalDetails, mapRecordToForm } from "../api/MedicalDetails";
 
 const YES_NO = ["Yes", "No"];
-
 // ⚠️ Replace value IDs with actual Liferay picklist IDs
 const TIME_OPTIONS = [
   { value: 1, label: "Full Time" },
@@ -31,32 +23,38 @@ const emptyForm = {
   numberOfNurse:                   "",
 };
 
-export default function MedicalFacilities({ onTabChange }) {
-  const [form,   setForm]   = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [alert,  setAlert]  = useState(null);
+export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[MedicalDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadMedicalDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[MedicalDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
-
   const isNotAvailable = Number(form.availabilityOfDoctorsInSchoolId) === 3;
 
   const handleSave = async () => {
     setSaving(true);
     setAlert(null);
     try {
-      // Payload exactly matching swagger schema
-      const payload = {
-        availabilitOfMedicalSickRoom:    form.availabilitOfMedicalSickRoom === "Yes",
-        availabilityOfDoctorsInSchoolId: Number(form.availabilityOfDoctorsInSchoolId) || 0,
-        numberOfAmbulance:               Number(form.numberOfAmbulance) || 0,
-        numberOfDoctors:                 Number(form.numberOfDoctors)   || 0,
-        numberOfNurse:                   Number(form.numberOfNurse)     || 0,
-      };
-
-      console.log("[MedicalFacilities] payload →", JSON.stringify(payload, null, 2));
-      await saveMedicalFacilities(payload);
-
-      setAlert({ type: "success", message: "Medical Facilities saved successfully!" });
+      await submitMedicalDetails({ form, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Medical Facilities ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -74,14 +72,18 @@ export default function MedicalFacilities({ onTabChange }) {
       onReset={handleReset}
       saving={saving}
     >
-      <SectionHeading title="Medical Facilities" />
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
 
+      <SectionHeading title="Medical Facilities" />
       <Row3>
         <Field label="Availability of Medical/Sick Room" required>
           <SelectInput value={form.availabilitOfMedicalSickRoom} onChange={set("availabilitOfMedicalSickRoom")} options={YES_NO} />
         </Field>
         <Field label="Availability of Doctors in School" required>
-          {/* ⚠️ Stores numeric ID — replace IDs 1,2,3 with actual Liferay picklist values */}
           <SelectInput value={form.availabilityOfDoctorsInSchoolId} onChange={set("availabilityOfDoctorsInSchoolId")} options={TIME_OPTIONS} />
         </Field>
         <Field label="Number of Doctors" required>

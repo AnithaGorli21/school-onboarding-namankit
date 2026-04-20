@@ -1,7 +1,6 @@
 // ============================================================
 //  src/api/liferay.js
 // ============================================================
-
 const buildHeaders = () => ({
   Accept: "application/json",
   "Content-Type": "application/json",
@@ -32,7 +31,6 @@ async function throwWithBody(res, method, path) {
 }
 
 // ── Generic fetchers ──────────────────────────────────────────
-
 export async function apiFetch(path) {
   const res = await fetch(path, opts);
   if (!res.ok) await throwWithBody(res, "GET", path);
@@ -40,7 +38,6 @@ export async function apiFetch(path) {
 }
 
 export async function apiPost(path, body) {
-  // ✅ FIX: removed stray `o` that was causing syntax error on all POST calls
   const res = await fetch(path, {
     ...opts,
     method: "POST",
@@ -61,7 +58,6 @@ export async function apiPatch(path, body) {
 }
 
 // ── Location dropdowns ────────────────────────────────────────
-
 export const getStates = () =>
   apiFetch("/o/c/states?pageSize=200&sort=name:asc")
     .then((d) => (d.items || []).map((r) => ({ value: r.id, label: r.name })));
@@ -83,41 +79,61 @@ export const getPoNames = (villageId) =>
     .then((d) => (d.items || []).map((r) => ({ value: r.id, label: r.name })));
 
 // ── Section POST endpoints ────────────────────────────────────
-// ⚠️  IF YOU GET 404: the endpoint name must match your Liferay Object Definition exactly.
-//     QUICK FIX: Liferay → Objects → [Object] → Details → REST Endpoint field.
-//     Copy that exact value and replace the path below.
-//     Liferay generates: Object plural label → all lowercase → no spaces/hyphens
-//     e.g. "School Basic Details" → /o/c/schoolbasicdetails
+export const saveSchoolBasicDetails        = (p) => apiPost("/o/c/namankitschoolprofiles",             p);
+export const saveLandDetails               = (p) => apiPost("/o/c/schoollanddetails",                  p);
+export const saveHostelDetails             = (p) => apiPost("/o/c/schoolhosteldetails",                p);
+export const saveDiningFacilities          = (p) => apiPost("/o/c/dinningfacilities",                  p);
+export const saveLabDetails                = (p) => apiPost("/o/c/computerlabdetais",                  p);
+export const saveLibraryDetails            = (p) => apiPost("/o/c/librarydetails",                     p);
+export const saveTeacherDetails            = (p) => apiPost("/o/c/teacherdetails",                     p);
+export const saveExtraCurriculumActivities = (p) => apiPost("/o/c/extracurriculumactivities",          p);
+export const saveSportsFacilities          = (p) => apiPost("/o/c/sportfacilities",                    p);
+export const saveCulturalProgram           = (p) => apiPost("/o/c/culturalprogramsportsfacilities",    p);
+export const saveEducationalTour           = (p) => apiPost("/o/c/educationaltourssportsfacilities",   p);
+export const saveMedicalFacilities         = (p) => apiPost("/o/c/medicalfacilities",                  p);
+export const saveProfileFeeMaster          = (p) => apiPost("/o/c/profilefeemasters",                  p);
+export const saveSchoolBankDetails         = (p) => apiPost("/o/c/schoolbankdetails",                  p);
 
-export const saveSchoolBasicDetails        = (p) => apiPost("/o/c/namankitschoolprofiles",      p);
-export const saveLandDetails               = (p) => apiPost("/o/c/schoollanddetails",         p);
-export const saveHostelDetails             = (p) => apiPost("/o/c/schoolhosteldetails",             p);
-export const saveDiningFacilities          = (p) => apiPost("/o/c/dinningfacilities",          p);
-export const saveLabDetails                = (p) => apiPost("/o/c/computerlabdetais",                p);
-export const saveLibraryDetails            = (p) => apiPost("/o/c/librarydetails",            p);
-export const saveTeacherDetails            = (p) => apiPost("/o/c/teacherdetails",            p);
-export const saveExtraCurriculumActivities = (p) => apiPost("/o/c/extracurriculumactivities", p);
-export const saveSportsFacilities          = (p) => apiPost("/o/c/sportfacilities",           p);
-export const saveCulturalProgram           = (p) => apiPost("/o/c/culturalprogramsportsfacilities", p);
-export const saveEducationalTour           = (p) => apiPost("/o/c/educationaltourssportsfacilities", p);
-export const saveMedicalFacilities         = (p) => apiPost("/o/c/medicalfacilities",         p);
-export const saveProfileFeeMaster          = (p) => apiPost("/o/c/profilefeemasters",          p);
-export const saveSchoolBankDetails          = (p) => apiPost("/o/c/schoolbankdetails",          p);
+// ── Section PATCH endpoints (update by Liferay record id) ─────
+export const patchSchoolBasicDetails        = (id, p) => apiPatch(`/o/c/namankitschoolprofiles/${id}`,            p);
+export const patchLandDetails               = (id, p) => apiPatch(`/o/c/schoollanddetails/${id}`,                 p);
+export const patchHostelDetails             = (id, p) => apiPatch(`/o/c/schoolhosteldetails/${id}`,               p);
+export const patchDiningFacilities          = (id, p) => apiPatch(`/o/c/dinningfacilities/${id}`,                 p);
+export const patchLabDetails                = (id, p) => apiPatch(`/o/c/computerlabdetais/${id}`,                 p);
+export const patchLibraryDetails            = (id, p) => apiPatch(`/o/c/librarydetails/${id}`,                    p);
+export const patchTeacherDetails            = (id, p) => apiPatch(`/o/c/teacherdetails/${id}`,                    p);
+export const patchExtraCurriculumActivities = (id, p) => apiPatch(`/o/c/extracurriculumactivities/${id}`,         p);
+export const patchSportsFacilities          = (id, p) => apiPatch(`/o/c/sportfacilities/${id}`,                   p);
+export const patchCulturalProgram           = (id, p) => apiPatch(`/o/c/culturalprogramsportsfacilities/${id}`,   p);
+export const patchEducationalTour           = (id, p) => apiPatch(`/o/c/educationaltourssportsfacilities/${id}`,  p);
+export const patchMedicalFacilities         = (id, p) => apiPatch(`/o/c/medicalfacilities/${id}`,                 p);
+export const patchProfileFeeMaster          = (id, p) => apiPatch(`/o/c/profilefeemasters/${id}`,                 p);
+export const patchSchoolBankDetails         = (id, p) => apiPatch(`/o/c/schoolbankdetails/${id}`,                 p);
 
-// ── Section GET endpoints ─────────────────────────────────
-// Used by FinalSubmit review to fetch saved data from Liferay
- 
-export const getSchoolProfiles        = () => apiFetch("/o/c/namankitschoolprofiles?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getSchoolLandDetails     = () => apiFetch("/o/c/schoollanddetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getHostelDetails         = () => apiFetch("/o/c/schoolhosteldetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getDiningFacilities      = () => apiFetch("/o/c/dinningfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getLabDetails            = () => apiFetch("/o/c/computerlabdetais?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getLibraryDetails        = () => apiFetch("/o/c/librarydetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getTeacherDetails        = () => apiFetch("/o/c/teacherdetails?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
-export const getExtraCurriculum       = () => apiFetch("/o/c/extracurriculumactivities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getSportsFacilities      = () => apiFetch("/o/c/sportfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getCulturalProgramSportsFacilities     = () => apiFetch("/o/c/culturalprogramsportsfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const geteducationaltourssportsfacilities    = () => apiFetch("/o/c/educationaltourssportsfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getMedicalFacilities     = () => apiFetch("/o/c/medicalfacilities?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);
-export const getProfileFeeMaster      = () => apiFetch("/o/c/profilefeemasters?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
-export const getSchoolBankDetails     = () => apiFetch("/o/c/schoolbankdetails?pageSize=1&sort=dateCreated:desc").then(d => (d.items || [])[0] || null);  
+// ── Section GET endpoints (filtered by schoolProfileId) ───────
+// schoolProfileId = Liferay auto-generated id from namankitschoolprofiles
+// bySchool  → single record (most sections)
+// bySchoolMany → multiple records (teachers, fee rows, cultural, tours)
+
+const bySchool     = (id) => id
+  ? `?filter=schoolProfileId eq ${id}&pageSize=1&sort=dateCreated:desc`
+  : `?pageSize=1&sort=dateCreated:desc`;
+
+const bySchoolMany = (id) => id
+  ? `?filter=schoolProfileId eq ${id}&pageSize=200&sort=dateCreated:desc`
+  : `?pageSize=200&sort=dateCreated:desc`;
+
+export const getSchoolProfiles    = (id) => apiFetch(`/o/c/namankitschoolprofiles${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getSchoolLandDetails = (id) => apiFetch(`/o/c/schoollanddetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getHostelDetails     = (id) => apiFetch(`/o/c/schoolhosteldetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getDiningFacilities  = (id) => apiFetch(`/o/c/dinningfacilities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getLabDetails        = (id) => apiFetch(`/o/c/computerlabdetais${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getLibraryDetails    = (id) => apiFetch(`/o/c/librarydetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getTeacherDetails    = (id) => apiFetch(`/o/c/teacherdetails${bySchoolMany(id)}`).then(d => d.items || []);
+export const getExtraCurriculum   = (id) => apiFetch(`/o/c/extracurriculumactivities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getSportsFacilities  = (id) => apiFetch(`/o/c/sportfacilities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getCulturalPrograms  = (id) => apiFetch(`/o/c/culturalprogramsportsfacilities${bySchoolMany(id)}`).then(d => d.items || []);
+export const getEducationalTours  = (id) => apiFetch(`/o/c/educationaltourssportsfacilities${bySchoolMany(id)}`).then(d => d.items || []);
+export const getMedicalFacilities = (id) => apiFetch(`/o/c/medicalfacilities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getProfileFeeMaster  = (id) => apiFetch(`/o/c/profilefeemasters${bySchoolMany(id)}`).then(d => d.items || []);
+export const getSchoolBankDetails = (id) => apiFetch(`/o/c/schoolbankdetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);

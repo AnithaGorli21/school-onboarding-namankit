@@ -1,13 +1,12 @@
 // ============================================================
 //  src/sections/Profilefeemaster.jsx
+//  UI only — API logic in src/api/profileFeemaster.js
 //
-//  FIX: uploadReceiptProfileFee structure corrected
-//  Liferay expects: { id: number } or just the document id directly
-//  Sending null for now until upload structure is confirmed from swagger
+//  On mount: loads existing fee rows by schoolProfileId
+//  On save:  POST new rows, PATCH existing rows
 // ============================================================
 import { useState, useEffect } from "react";
-import { uploadFileToFolder } from "../api/upload";
-import { saveProfileFeeMaster } from "../api/liferay";
+import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/ProfilefeeMaster";
 
 const FEE_TYPE_OPTS = [
   { id: 1, label: "Admission Fee" },
@@ -68,21 +67,35 @@ function useInjectStyles() {
   }, []);
 }
 
-export default function ProfileFeeMaster({ onTabChange, onSave }) {
+export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId }) {
   useInjectStyles();
 
   const [feesPerStudentST,      setFeesPerStudentST]      = useState(0);
   const [feesPerStudentGeneral, setFeesPerStudentGeneral] = useState(0);
-  const [input,    setInput]    = useState(emptyInput);
-  const [inputErr, setInputErr] = useState("");
-  const [rows,     setRows]     = useState([]);
+  const [input,          setInput]          = useState(emptyInput);
+  const [inputErr,       setInputErr]       = useState("");
+  const [rows,           setRows]           = useState([]);
   const [receiptFile,    setReceiptFile]    = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [alert,  setAlert]  = useState(null);
+  const [saving,         setSaving]         = useState(false);
+  const [alert,          setAlert]          = useState(null);
+  const [loadingData,    setLoadingData]    = useState(false);
 
-  const setI = (k) => (v) => setInput((p) => ({ ...p, [k]: v }));
+  // ── Load existing rows on mount ───────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[ProfileFeeMaster] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadFeemaster(schoolProfileId)
+      .then(({ records }) => {
+        const mapped = mapRecordsToRows(records);
+        if (mapped.length > 0) setRows(mapped);
+      })
+      .catch((err) => console.error("[ProfileFeeMaster] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
+  // ── Recompute totals when rows change ─────────────────────
   useEffect(() => {
     const st      = rows.reduce((s, r) => s + (parseFloat(r.itemFeesTDD)     || 0), 0);
     const general = rows.reduce((s, r) => s + (parseFloat(r.itemFeesGeneral) || 0), 0);
@@ -90,13 +103,15 @@ export default function ProfileFeeMaster({ onTabChange, onSave }) {
     setFeesPerStudentGeneral(general);
   }, [rows]);
 
+  const setI = (k) => (v) => setInput((p) => ({ ...p, [k]: v }));
+
   const handleAdd = () => {
     if (!input.feesItemId || !input.itemFeesTDD || !input.itemFeesGeneral) {
       setInputErr("Please fill all fields before adding.");
       return;
     }
     setInputErr("");
-    setRows((p) => [...p, { ...input, id: Date.now() }]);
+    setRows((p) => [...p, { ...input, id: Date.now(), liferayId: null }]);
     setInput(emptyInput);
   };
 
@@ -120,40 +135,10 @@ export default function ProfileFeeMaster({ onTabChange, onSave }) {
     }
     setSaving(true);
     setAlert(null);
-
     try {
-      // Upload receipt once before the loop
-      const uploadedReceipt = receiptFile
-        ? await uploadFileToFolder(receiptFile, "School Documents")
-        : null;
-
-      for (const row of rows) {
-        const payload = {
-          feesItemId:            Number(row.feesItemId),
-          feesPerStudentST:      feesPerStudentST,
-          feesPerStudentGeneral: feesPerStudentGeneral,
-          itemFeesTDD:           Number(row.itemFeesTDD),
-          itemFeesGeneral:       Number(row.itemFeesGeneral),
-
-          // Attachment — same pattern as all other sections
-          uploadReceiptProfileFee: uploadedReceipt
-            ? {
-                id:         uploadedReceipt.documentId,
-                name:       uploadedReceipt.title,
-                fileURL:    uploadedReceipt.downloadURL,
-                fileBase64: "",
-                folder: { externalReferenceCode: "", siteId: 0 },
-              }
-            : null,
-        };
-
-        console.log("[ProfileFeeMaster] payload →", JSON.stringify(payload, null, 2));
-        await saveProfileFeeMaster(payload);
-      }
-
+      await submitFeemaster({ rows, receiptFile, feesPerStudentST, feesPerStudentGeneral, schoolProfileId });
       setAlert({ type: "success", message: "Profile Fee Master saved successfully!" });
       onSave?.({ rows, feesPerStudentST, feesPerStudentGeneral });
-
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -172,12 +157,17 @@ export default function ProfileFeeMaster({ onTabChange, onSave }) {
     setAlert(null);
   };
 
-  const getFeeLabel = (id) =>
-    FEE_TYPE_OPTS.find((o) => o.id === Number(id))?.label || id;
+  const getFeeLabel = (id) => FEE_TYPE_OPTS.find((o) => o.id === Number(id))?.label || id;
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4 }}>
       <div className="pfm-heading">Profile FeeMaster</div>
+
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
 
       {alert && (
         <div className={`pfm-alert ${alert.type}`}>

@@ -1,21 +1,14 @@
 // ============================================================
 //  src/sections/Labdetails.jsx
-//
-//  FIXES:
-//  1. uploadLapPhoto uses uploadFileToFolder → { id, name, fileURL }
-//     instead of inline base64 — matches swagger exactly
-//  2. Uses saveLabDetails from liferay.js (Authorization header)
-//  3. Payload matches swagger exactly — added wellEquipmentCompLab field
-//  4. Removed isComputerLabAvailable field mapping error
+//  UI only — API logic in src/api/labDetails.js
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
-import { uploadFileToFolder } from "../api/upload";
-import { saveLabDetails } from "../api/liferay";
+import { loadLabDetails, submitLabDetails, mapRecordToForm } from "../api/LabDetails";
 
 const YES_NO = ["Yes", "No"];
 
@@ -35,12 +28,29 @@ const emptyForm = {
   digitalClassroomCount:         "",
 };
 
-export default function LabDetails({ onTabChange }) {
-  const [form,      setForm]      = useState(emptyForm);
-  const [photoFile, setPhotoFile] = useState(null);
-  const [saving,    setSaving]    = useState(false);
-  const [alert,     setAlert]     = useState(null);
-  const [errors,    setErrors]    = useState({});
+export default function LabDetails({ onTabChange, onSave, schoolProfileId }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [photoFile,   setPhotoFile]   = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [errors,      setErrors]      = useState({});
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[LabDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadLabDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[LabDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -71,43 +81,9 @@ export default function LabDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      // Upload photo first → get documentId
-      const uploaded = photoFile
-        ? await uploadFileToFolder(photoFile, "School Documents")
-        : null;
-
-      // Payload exactly matching swagger schema
-      const payload = {
-        areaOfBiologyLabmin150Sqft:            form.isBiologyLabAreaSufficient  === "Yes",
-        areaOfChemistryLabmin150Sqft:          form.isChemistryLabAreaSufficient === "Yes",
-        areaOfPhysicsLabmin150Sqft:            form.isPhysicsLabAreaSufficient   === "Yes",
-        availabilityOfBiologyLabWithLabAsst:   form.isBiologyLabAvailable        === "Yes",
-        availabilityOfChemistryLabWithLabAsst: form.isChemistryLabAvailable      === "Yes",
-        availabilityOfPhysicsLabWithLabAsst:   form.isPhysicsLabAvailable        === "Yes",
-        biologyLabAvailableAreaSqft:           form.biologyLabAreaSqft   ? Number(form.biologyLabAreaSqft)   : 0,
-        chemistryLabAvailableAreaSqft:         form.chemistryLabAreaSqft ? Number(form.chemistryLabAreaSqft) : 0,
-        noOfCompInWorkingCondition:            form.computersWithPeripheralsCount ? Number(form.computersWithPeripheralsCount) : 0,
-        noOfCompInWrkngCond:                   form.computersWorkingCount         ? Number(form.computersWorkingCount)         : 0,
-        numberOfDigitalClassroomInSchool:      form.digitalClassroomCount         ? Number(form.digitalClassroomCount)         : 0,
-        physicsLabAvailableAreaSqft:           form.physicsLabAreaSqft   ? Number(form.physicsLabAreaSqft)   : 0,
-        wellEquipmentCompLab:                  form.isComputerLabAvailable === "Yes",
-
-        // Attachment — exact swagger structure
-        uploadLapPhoto: uploaded
-          ? {
-              id:         uploaded.documentId,
-              name:       uploaded.title,
-              fileURL:    uploaded.downloadURL,
-              fileBase64: "",
-              folder: { externalReferenceCode: "", siteId: 0 },
-            }
-          : null,
-      };
-
-      console.log("[LabDetails] payload →", JSON.stringify(payload, null, 2));
-      await saveLabDetails(payload);
-
-      setAlert({ type: "success", message: "Lab Details saved successfully!" });
+      await submitLabDetails({ form, photoFile, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Lab Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -124,7 +100,13 @@ export default function LabDetails({ onTabChange }) {
 
   return (
     <div style={{ padding: "16px 20px 32px" }}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
+
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
 
         {/* Computer Lab */}
