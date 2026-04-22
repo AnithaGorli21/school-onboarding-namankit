@@ -13,27 +13,10 @@ import {
 } from "../components/FormFields";
 import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
-import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/TeacherDetails";
+import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/teacherDetails";
+import { getPicklist, getQualifications } from "../api/liferay";
 
-// ⚠️ Replace value IDs with actual Liferay picklist IDs
-const QUALIFICATIONS = ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"];
-const MEDIUMS = [
-  { value: 1, label: "English" },
-  { value: 2, label: "Marathi" },
-  { value: 3, label: "Hindi" },
-  { value: 4, label: "Urdu" },
-  { value: 5, label: "Other" },
-];
-const SUBJECTS = [
-  { value: 1, label: "Mathematics" },
-  { value: 2, label: "Science" },
-  { value: 3, label: "English" },
-  { value: 4, label: "Marathi" },
-  { value: 5, label: "Hindi" },
-  { value: 6, label: "Social Science" },
-  { value: 7, label: "Sanskrit" },
-  { value: 8, label: "P.E." },
-];
+// QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
 const themeStyles = {
   container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
@@ -64,7 +47,10 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
   const [pageSize,    setPageSize]    = useState(10);
   const [alert,       setAlert]       = useState(null);
   const [saving,      setSaving]      = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
+  const [loadingData,  setLoadingData]  = useState(false);
+  const [qualificationOpts, setQualificationOpts] = useState([]);
+  const [mediumOpts,        setMediumOpts]        = useState([]);
+  const [subjectOpts,  setSubjectOpts]  = useState([]);
 
   // ── Load existing rows on mount ───────────────────────────
   useEffect(() => {
@@ -79,6 +65,44 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
       .catch((err) => console.error("[TeacherDetails] load error:", err))
       .finally(() => setLoadingData(false));
   }, [schoolProfileId]);
+
+  // ── Load Qualifications from qualificationmasters object ─
+  useEffect(() => {
+    getQualifications()
+      .then(setQualificationOpts)
+      .catch(() => setQualificationOpts(
+        ["SSC","HSC","D.Ed","B.Ed","M.Ed","B.A","B.Sc","M.A","M.Sc","PhD"]
+        .map(q => ({ value: q, label: q }))
+      ));
+  }, []);
+
+  // ── Load Medium and Subject picklists ────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM")
+      .then(setMediumOpts)
+      .catch(() => setMediumOpts([
+        { value: "English", label: "English" },
+        { value: "Marathi", label: "Marathi" },
+        { value: "Hindi",   label: "Hindi" },
+        { value: "Urdu",    label: "Urdu" },
+        { value: "Other",   label: "Other" },
+      ]));
+  }, []);
+
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS")
+      .then(setSubjectOpts)
+      .catch(() => setSubjectOpts([
+        { value: "Mathematics",   label: "Mathematics" },
+        { value: "Science",       label: "Science" },
+        { value: "English",       label: "English" },
+        { value: "Marathi",       label: "Marathi" },
+        { value: "Hindi",         label: "Hindi" },
+        { value: "Social Science",label: "Social Science" },
+        { value: "Sanskrit",      label: "Sanskrit" },
+        { value: "P.E.",          label: "P.E." },
+      ]));
+  }, []);
 
   const setR = (k) => (v) => setNewRow((p) => ({ ...p, [k]: v }));
 
@@ -129,18 +153,18 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
             <TextInput value={newRow.name} onChange={setR("name")} />
           </Field>
           <Field label="Highest Qualification" required>
-            <SelectInput value={newRow.highestQualification} onChange={setR("highestQualification")} options={QUALIFICATIONS} />
+            <SelectInput value={newRow.highestQualification} onChange={setR("highestQualification")} options={qualificationOpts} />
           </Field>
           <Field label="Medium of Education till Std. 10th" required>
-            <SelectInput value={newRow.mediumOfEducationTillStd10thId} onChange={setR("mediumOfEducationTillStd10thId")} options={MEDIUMS} />
+            <SelectInput value={newRow.mediumOfEducationTillStd10thId} onChange={setR("mediumOfEducationTillStd10thId")} options={mediumOpts} />
           </Field>
         </Row3>
         <Row3>
           <Field label="Medium of Education for Degree" required>
-            <SelectInput value={newRow.mediumOfEducationForDegreeId} onChange={setR("mediumOfEducationForDegreeId")} options={MEDIUMS} />
+            <SelectInput value={newRow.mediumOfEducationForDegreeId} onChange={setR("mediumOfEducationForDegreeId")} options={mediumOpts} />
           </Field>
           <Field label="Medium for B.Ed/D.Ed/B.P.Ed" required>
-            <SelectInput value={newRow.mediumForEducationForBedDedBPedBedPhyId} onChange={setR("mediumForEducationForBedDedBPedBedPhyId")} options={MEDIUMS} />
+            <SelectInput value={newRow.mediumForEducationForBedDedBPedBedPhyId} onChange={setR("mediumForEducationForBedDedBPedBedPhyId")} options={mediumOpts} />
           </Field>
           <Field label="Years Of Experience" required>
             <TextInput value={newRow.yearOfExperience} onChange={setR("yearOfExperience")} type="number" />
@@ -148,10 +172,10 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
         </Row3>
         <Row3>
           <Field label="Subject 1" required>
-            <SelectInput value={newRow.subject1Id} onChange={setR("subject1Id")} options={SUBJECTS} />
+            <SelectInput value={newRow.subject1Id} onChange={setR("subject1Id")} options={subjectOpts} />
           </Field>
           <Field label="Subject 2">
-            <SelectInput value={newRow.subject2Id} onChange={setR("subject2Id")} options={SUBJECTS} />
+            <SelectInput value={newRow.subject2Id} onChange={setR("subject2Id")} options={subjectOpts} />
           </Field>
           <label style={themeStyles.checkboxLabel}>
             <input
@@ -217,9 +241,9 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
                     <tr key={r.id}>
                       <td style={TD}>{r.name}</td>
                       <td style={TD}>{r.highestQualification}</td>
-                      <td style={TD}>{getLabel(SUBJECTS, r.subject1Id)}</td>
-                      <td style={TD}>{getLabel(MEDIUMS, r.mediumOfEducationTillStd10thId)}</td>
-                      <td style={TD}>{getLabel(MEDIUMS, r.mediumOfEducationForDegreeId)}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.subject1Id)?.label || subjectOpts.find(o => o.value === String(r.subject1Id))?.label || r.subject1Id}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationTillStd10thId)?.label || r.mediumOfEducationTillStd10thId}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationForDegreeId)?.label || r.mediumOfEducationForDegreeId}</td>
                       <td style={TD}>{r.genderId === 1 ? "Male" : r.genderId === 2 ? "Female" : "Other"}</td>
                       <td style={TD}>{r.yearOfExperience}</td>
                       <td style={TD}>

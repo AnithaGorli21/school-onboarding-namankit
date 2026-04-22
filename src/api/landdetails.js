@@ -12,9 +12,8 @@
 import { uploadFileToFolder } from "./upload";
 import { saveLandDetails, patchLandDetails, getSchoolLandDetails } from "./liferay";
 
-// ⚠️ Replace with actual Liferay picklist IDs
-const OWNERSHIP_IDS = { Owned: 1, Rented: 2, Government: 3 };
-const QUALITY_IDS   = { Excellent: 1, Good: 2, Average: 3, Poor: 4 };
+// Picklist values come from Liferay picklist API (key field)
+// No hardcoded IDs needed — send the key string directly
 
 // ── Load existing record ──────────────────────────────────────
 export async function loadLandDetails(schoolProfileId) {
@@ -29,7 +28,7 @@ export async function loadLandDetails(schoolProfileId) {
 export function mapRecordToForm(record) {
   if (!record) return null;
   return {
-    ownership:           record.ownershipId === 1 ? "Owned" : record.ownershipId === 2 ? "Rented" : "Government",
+    ownership:           record.ownershipId || "",
     totalAreaAcres:      record.totalAreainAcres      || "",
     compoundWall:        record.schoolCompoundWall    ? "Yes" : "No",
     playground:          record.playground            ? "Yes" : "No",
@@ -38,10 +37,7 @@ export function mapRecordToForm(record) {
     runningTrack:        record.runningTrack          ? "Yes" : "No",
     basketballGround:    record.basketBallGround      ? "Yes" : "No",
     khoKhokabaddiGround: record.khokhoKabbadiGround   ? "Yes" : "No",
-    sportsFacilityQuality:
-      record.qualityOfSportFacilitiesInfrastrcAvaId === 1 ? "Excellent" :
-      record.qualityOfSportFacilitiesInfrastrcAvaId === 2 ? "Good"      :
-      record.qualityOfSportFacilitiesInfrastrcAvaId === 3 ? "Average"   : "Poor",
+    sportsFacilityQuality: record.qualityOfSportFacilitiesInfrastrcAvaId || "",
     otherSports: record.othersSports || "",
   };
 }
@@ -53,10 +49,10 @@ function buildPayload({ land, uploaded, schoolProfileId }) {
     basketBallGround:    land.basketballGround    === "Yes",
     khokhoKabbadiGround: land.khoKhokabaddiGround === "Yes",
     othersSports:        land.otherSports         || "",
-    ownershipId:         OWNERSHIP_IDS[land.ownership] || 3,
+    ownershipId:         land.ownership || "",
     playground:          land.playground          === "Yes",
     playgroundAreainAcres: land.playgroundAreaAcres ? Number(land.playgroundAreaAcres) : 0,
-    qualityOfSportFacilitiesInfrastrcAvaId: QUALITY_IDS[land.sportsFacilityQuality] || 4,
+    qualityOfSportFacilitiesInfrastrcAvaId: land.sportsFacilityQuality || "",
     runningTrack:        land.runningTrack        === "Yes",
     schoolCompoundWall:  land.compoundWall        === "Yes",
     swimmingTank:        land.swimmingTank        === "Yes",

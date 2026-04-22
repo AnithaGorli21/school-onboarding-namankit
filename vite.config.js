@@ -30,6 +30,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/o/headless-admin-list-type": {
+  target: "https://mahadbt2-qa-dashboard.quantela.com",
+  changeOrigin: true,
+  secure: false,
+},
     },
   },
 });

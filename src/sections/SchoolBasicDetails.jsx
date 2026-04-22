@@ -1,14 +1,14 @@
 // ============================================================
 //  src/sections/SchoolBasicDetails.jsx
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SchoolProfile from "./SchoolProfile";
 import SchoolIntake from "./SchoolIntake";
 import SchoolPerformance from "./SchoolPerformance";
 import UploadSchoolProfile from "./UploadSchoolProfile";
 import { Alert, BtnSave, BtnReset, BtnBack } from "../components/FormFields";
 import { validateSchoolProfile } from "../utils/validate";
-import { saveSchoolBasicDetails } from "../api/liferay";
+import { saveSchoolBasicDetails, patchSchoolBasicDetails, getSchoolProfileById } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
 
 const emptyProfile = {
@@ -47,13 +47,56 @@ const emptyIntake = {
   other_girls_nonresidential: "",
 };
 
-export default function SchoolBasicDetails({ onTabChange, onSave }) {
+export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId }) {
   const [profile,  setProfile]  = useState(emptyProfile);
   const [intake,   setIntake]   = useState(emptyIntake);
   const [perfRows, setPerfRows] = useState([]);
   const [errors,   setErrors]   = useState({});
   const [saving,   setSaving]   = useState(false);
-  const [alert,    setAlert]    = useState(null);
+  const [alert,       setAlert]       = useState(null);
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  console.log('schoolProfileId #######', schoolProfileId)
+
+  // ── Load existing record when in edit mode ────────────────
+  useEffect(() => {
+    console.log("[SchoolBasicDetails] schoolProfileId prop →", schoolProfileId);
+    if (!schoolProfileId) return;
+    setLoadingData(true);
+    getSchoolProfileById(schoolProfileId)
+      .then((record) => {
+        if (!record) return;
+        setRecordId(record.id);
+        // Map Liferay response → form state
+        setProfile({
+          trusteeName:              record.trusteeName              || "",
+          schoolName:               record.schoolName               || "",
+          address:                  record.address                  || "",
+          mobileNumber:             record.mobileNumberTrustee      || "",
+          state:                    record.stateId                  || "",
+          district:                 record.districtId               || "",
+          taluka:                   record.talukaId                 || "",
+          village:                  record.villageId                || "",
+          pincode:                  record.pincode                  || "",
+          emailId:                  record.emailId                  || "",
+          poName:                   record.poNameId                 || "",
+          udiseCode:                record.udiseCode                || "",
+          schoolSelectionYear:      record.schoolSelectionYear      || "",
+          schoolRegistrationNumber: record.schoolRegistrationNo     || "",
+          schoolBoard:              record.schoolBoardId            || "",
+          sscBatchesCompletedCount: record.totalNoOfSscBatchesCompleted || "",
+          yearOfEstablishment:      record.yearOfEstablishment      || "",
+          isWebsiteAvailable:       record.schoolWebsiteAvailable   ? "Yes" : "No",
+          websiteLink:              record.websiteLink              || "",
+          schoolAreaType:           record.schoolFallsUnderWhichAreaId || "",
+          toiletsPerFloorCount:     record.noOfToiletsOnEachFloorInSchlBuilding || "",
+          schoolPhoto:              null,
+        });
+      })
+      .catch((err) => console.error("[SchoolBasicDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+      console.log('profile=========>',profile)
+  }, [schoolProfileId]);
 
   const handleSave = async () => {
     const errs = validateSchoolProfile(profile);
@@ -122,8 +165,11 @@ export default function SchoolBasicDetails({ onTabChange, onSave }) {
       };
 
       console.log("[SchoolBasicDetails] payload →", JSON.stringify(payload, null, 2));
-      await saveSchoolBasicDetails(payload);
-      onSave?.({ ...profile, ...intake, performance: perfRows });
+      const response = recordId
+        ? await patchSchoolBasicDetails(recordId, payload)
+        : await saveSchoolBasicDetails(payload);
+      // Pass Liferay auto-generated id as schoolId — used as foreign key in all other sections
+      onSave?.({ ...profile, ...intake, performance: perfRows, schoolId: response?.id });
       setAlert({ type: "success", message: "School Basic Details saved successfully!" });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -143,6 +189,11 @@ export default function SchoolBasicDetails({ onTabChange, onSave }) {
 
   return (
     <div style={{ padding: "16px 20px 32px" }}>
+      {loadingData && (
+        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
+          Loading saved data...
+        </div>
+      )}
       {alert && (
         <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
       )}

@@ -6,17 +6,10 @@
 //  On save:  POST new rows, PATCH existing rows
 // ============================================================
 import { useState, useEffect } from "react";
-import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/ProfilefeeMaster";
+import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
+import { getPicklist } from "../api/liferay";
 
-const FEE_TYPE_OPTS = [
-  { id: 1, label: "Admission Fee" },
-  { id: 2, label: "Tuition Fee" },
-  { id: 3, label: "Examination Fee" },
-  { id: 4, label: "Library Fee" },
-  { id: 5, label: "Laboratory Fee" },
-  { id: 6, label: "Sports Fee" },
-  { id: 7, label: "Other" },
-];
+// FEE_TYPE_OPTS loaded from Liferay picklist
 
 const emptyInput = { feesItemId: "", itemFeesTDD: "", itemFeesGeneral: "" };
 
@@ -80,6 +73,22 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId 
   const [saving,         setSaving]         = useState(false);
   const [alert,          setAlert]          = useState(null);
   const [loadingData,    setLoadingData]    = useState(false);
+  const [feeTypeOpts,    setFeeTypeOpts]    = useState([]);
+
+  // ── Load Fee Type picklist ───────────────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-SPORTS-FACILITY-FEES")
+      .then(setFeeTypeOpts)
+      .catch(() => setFeeTypeOpts([
+        { value: "AdmissionFee",  label: "Admission Fee" },
+        { value: "TuitionFee",    label: "Tuition Fee" },
+        { value: "ExaminationFee",label: "Examination Fee" },
+        { value: "LibraryFee",    label: "Library Fee" },
+        { value: "LaboratoryFee", label: "Laboratory Fee" },
+        { value: "SportsFee",     label: "Sports Fee" },
+        { value: "Other",         label: "Other" },
+      ]));
+  }, []);
 
   // ── Load existing rows on mount ───────────────────────────
   useEffect(() => {
@@ -157,7 +166,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId 
     setAlert(null);
   };
 
-  const getFeeLabel = (id) => FEE_TYPE_OPTS.find((o) => o.id === Number(id))?.label || id;
+  const getFeeLabel = (id) => feeTypeOpts.find((o) => o.value === id || o.value === String(id))?.label || id;
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4 }}>
@@ -193,8 +202,8 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId 
           <label className="pfm-label">Fees Item <span className="req">*</span></label>
           <select className="pfm-select" value={input.feesItemId} onChange={(e) => setI("feesItemId")(e.target.value)}>
             <option value="">Select</option>
-            {FEE_TYPE_OPTS.map((o) => (
-              <option key={o.id} value={o.id}>{o.label}</option>
+            {feeTypeOpts.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>

@@ -38,7 +38,7 @@ const emptyForm = {
   actualWashrooms:             "",
 };
 
-export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function HostelDetails({ onTabChange, onSave, schoolProfileId}) {
   const [form,         setForm]         = useState(emptyForm);
   const [photoFile,    setPhotoFile]    = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);

@@ -16,21 +16,17 @@ import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
 import {
   loadSportsDetails, submitSportsDetails,
   mapRecordToForm, mapCulturalToRows, mapToursToRows,
-} from "../api/SportsDetails";
+} from "../api/sportsDetails";
+import { getPicklist } from "../api/liferay";
 
 const YES_NO = ["Yes", "No"];
-// ⚠️ Replace value IDs with actual Liferay picklist IDs
 const MAGAZINE_TYPES = [
   { value: 1, label: "Monthly" },
   { value: 2, label: "Quarterly" },
   { value: 3, label: "Half-Yearly" },
   { value: 4, label: "Annual" },
 ];
-const YEARS = [
-  { value: 1, label: "2023-2024" },
-  { value: 2, label: "2024-2025" },
-  { value: 3, label: "2025-2026" },
-];
+// YEARS loaded from Liferay picklist
 
 const themeStyles = {
   container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
@@ -49,12 +45,13 @@ const emptyForm = {
   schoolMagazineTypeId:                     "",
 };
 
-export default function SportsFacilities({ onTabChange, onSave, schoolProfileId }) {
+export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode }) {
   const [form,         setForm]         = useState(emptyForm);
   const [saving,       setSaving]       = useState(false);
   const [alert,        setAlert]        = useState(null);
   const [recordId,     setRecordId]     = useState(null);
   const [loadingData,  setLoadingData]  = useState(false);
+  const [yearOpts,     setYearOpts]     = useState([]);
 
   const [culturalRows, setCulturalRows] = useState([]);
   const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
@@ -62,9 +59,20 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId 
   const [tourRows,     setTourRows]     = useState([]);
   const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
 
+  // ── Load Year picklist ───────────────────────────────────
+  useEffect(() => {
+    getPicklist("44a7021a-e02e-2a85-16c5-5173bd49bd02")
+      .then(setYearOpts)
+      .catch(() => setYearOpts([
+        { value: "2023-2024", label: "2023-2024" },
+        { value: "2024-2025", label: "2024-2025" },
+        { value: "2025-2026", label: "2025-2026" },
+      ]));
+  }, []);
+
   // ── Load all 3 objects on mount ───────────────────────────
   useEffect(() => {
-    if (!schoolProfileId) return;
+    if (!schoolProfileId || !isEditMode) return;
     console.log("[SportsFacilities] loading for schoolProfileId →", schoolProfileId);
     setLoadingData(true);
     loadSportsDetails(schoolProfileId)
@@ -82,7 +90,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId 
   }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
-  const getYearLabel = (id) => YEARS.find((y) => y.value === Number(id))?.label || id;
+  const getYearLabel = (id) => yearOpts.find((y) => y.value === id || y.value === Number(id))?.label || id;
 
   const addCultural = () => {
     if (!newCultural.yearId || !newCultural.programName) return;
@@ -169,7 +177,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId 
           <SectionHeading title="Cultural programs conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newCultural.yearId} onChange={(v) => setNewCultural({ ...newCultural, yearId: v })} options={YEARS} />
+              <SelectInput value={newCultural.yearId} onChange={(v) => setNewCultural({ ...newCultural, yearId: v })} options={yearOpts} />
             </Field>
             <Field label="Program Name" required>
               <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({ ...newCultural, programName: v })} />
@@ -214,7 +222,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId 
           <SectionHeading title="Educational tours conducted by school" />
           <Row3>
             <Field label="Year" required>
-              <SelectInput value={newTour.yearId} onChange={(v) => setNewTour({ ...newTour, yearId: v })} options={YEARS} />
+              <SelectInput value={newTour.yearId} onChange={(v) => setNewTour({ ...newTour, yearId: v })} options={yearOpts} />
             </Field>
             <Field label="Program Name" required>
               <TextInput value={newTour.programName} onChange={(v) => setNewTour({ ...newTour, programName: v })} />

@@ -1,17 +1,17 @@
 // ============================================================
 //  src/sections/FinalSubmit.jsx
-//  Review button: fetches all data from Liferay GET APIs,
+//  Review button: fetches all data filtered by schoolProfileId
 //  stores in sessionStorage, opens /preview in new tab.
 // ============================================================
 import React, { useState } from "react";
 import {
-  getSchoolProfiles, getSchoolLandDetails, getHostelDetails,
+  getSchoolProfileById, getSchoolLandDetails, getHostelDetails,
   getDiningFacilities, getLabDetails, getLibraryDetails,
   getTeacherDetails, getExtraCurriculum, getSportsFacilities,
   getMedicalFacilities, getProfileFeeMaster, getSchoolBankDetails,
 } from "../api/liferay";
 
-export default function FinalSubmit({ data, onTabChange }) {
+export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
   const [loading, setLoading] = useState(false);
 
   const handleFinalSubmit = () => {
@@ -21,17 +21,30 @@ export default function FinalSubmit({ data, onTabChange }) {
   };
 
   const handleReview = async () => {
+    if (!schoolProfileId) {
+      alert("Please save School Basic Details first before reviewing.");
+      return;
+    }
     setLoading(true);
     try {
+      // All APIs called with schoolProfileId — fetches THIS school's data only
       const [
         schoolBasic, landDetails, hostelDetails, diningDetails,
         labDetails, libraryDetails, teacherDetails, extraCurriculum,
         sportsDetails, medicalDetails, feeMaster, bankDetails,
       ] = await Promise.all([
-        getSchoolProfiles(), getSchoolLandDetails(), getHostelDetails(),
-        getDiningFacilities(), getLabDetails(), getLibraryDetails(),
-        getTeacherDetails(), getExtraCurriculum(), getSportsFacilities(),
-        getMedicalFacilities(), getProfileFeeMaster(), getSchoolBankDetails(),
+        getSchoolProfileById(schoolProfileId),
+        getSchoolLandDetails(schoolProfileId),
+        getHostelDetails(schoolProfileId),
+        getDiningFacilities(schoolProfileId),
+        getLabDetails(schoolProfileId),
+        getLibraryDetails(schoolProfileId),
+        getTeacherDetails(schoolProfileId),
+        getExtraCurriculum(schoolProfileId),
+        getSportsFacilities(schoolProfileId),
+        getMedicalFacilities(schoolProfileId),
+        getProfileFeeMaster(schoolProfileId),
+        getSchoolBankDetails(schoolProfileId),
       ]);
 
       const reviewData = {
@@ -40,12 +53,8 @@ export default function FinalSubmit({ data, onTabChange }) {
         sportsDetails, medicalDetails, feeMaster, bankDetails,
       };
 
-      // Store in sessionStorage so preview page can read it
       sessionStorage.setItem("schoolReviewData", JSON.stringify(reviewData));
-
-      // Open preview in new tab — same as reference site
       window.open("/preview", "_blank");
-
     } catch (e) {
       alert("Failed to load review data — " + e.message);
     } finally {

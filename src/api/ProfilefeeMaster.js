@@ -32,12 +32,12 @@ export function mapRecordsToRows(records) {
 // ── Build single row payload ──────────────────────────────────
 function buildPayload({ row, uploadedReceipt, feesPerStudentST, feesPerStudentGeneral, schoolProfileId }) {
   return {
-    schoolProfileId:       schoolProfileId || 0,
-    feesItemId:            Number(row.feesItemId),
+    schoolProfileId,
+    feesItemId:            row.feesItemId,
     feesPerStudentST,
     feesPerStudentGeneral,
-    itemFeesTDD:           Number(row.itemFeesTDD),
-    itemFeesGeneral:       Number(row.itemFeesGeneral),
+    itemFeesTDD:           parseInt(row.itemFeesTDD, 10),
+    itemFeesGeneral:       parseInt(row.itemFeesGeneral, 10),
     uploadReceiptProfileFee: uploadedReceipt
       ? {
           id:         uploadedReceipt.documentId,
@@ -52,6 +52,8 @@ function buildPayload({ row, uploadedReceipt, feesPerStudentST, feesPerStudentGe
 
 // ── Submit (POST new rows, PATCH existing rows) ───────────────
 export async function submitFeemaster({ rows, receiptFile, feesPerStudentST, feesPerStudentGeneral, schoolProfileId }) {
+  if (!schoolProfileId) throw new Error("School Profile ID is missing. Please complete School Basic Details first.");
+
   // Upload receipt once before the loop
   const uploadedReceipt = receiptFile
     ? await uploadFileToFolder(receiptFile, "School Documents")

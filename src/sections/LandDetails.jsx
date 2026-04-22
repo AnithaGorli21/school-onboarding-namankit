@@ -12,11 +12,12 @@ import {
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/landdetails";
+import { getPicklist } from "../api/liferay";
 
 const YES_NO        = ["Yes", "No"];
-const OWNERSHIP     = ["Owned", "Rented", "Government"];
-const SPORT_QUALITY = ["Excellent", "Good", "Average", "Poor"];
-const STANDARD_OPTS = Array.from({ length: 12 }, (_, i) => String(i + 1));
+// Ownership and Sport Quality loaded from Liferay picklists
+// Standard options loaded from Liferay picklist on mount
+// ERC: update with your actual Standard/Grade picklist ERC from Liferay
 
 const TH = {
   padding: "10px 12px", background: "#ffffff",
@@ -86,6 +87,9 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
   const [pageSize,     setPageSize]     = useState(10);
   const [recordId,     setRecordId]     = useState(null);
   const [loadingData,  setLoadingData]  = useState(false);
+  const [standardOpts,     setStandardOpts]     = useState([]);
+  const [ownershipOpts,    setOwnershipOpts]    = useState([]);
+  const [sportQualityOpts, setSportQualityOpts] = useState([]);
 
   // ── Load existing record when schoolProfileId is available ──
   useEffect(() => {
@@ -101,6 +105,45 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
       .catch((err) => console.error("[LandDetails] load error:", err))
       .finally(() => setLoadingData(false));
   }, [schoolProfileId]);
+
+  // ── Load Ownership picklist ───────────────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-LAND-DETAILS-OWNERSHIP")
+      .then(opts => setOwnershipOpts(opts.map(o => ({
+        value: Number(o.label),  // name field has the number (1,2,3)
+        label: o.value,          // key field has the text (Owned, Rented)
+      }))))
+      .catch(() => setOwnershipOpts([
+        { value: "Owned", label: "Owned" },
+        { value: "Rented", label: "Rented" },
+        { value: "Government", label: "Government" },
+      ]));
+  }, []);
+
+  // ── Load Sport Quality picklist ───────────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-LAND-DETAILS-SPORTS-QUALITY")
+      .then(opts => setSportQualityOpts(opts.map(o => ({
+        value: Number(o.label),  // name field has the number
+        label: o.value,          // key field has the text
+      }))))
+      .catch(() => setSportQualityOpts([
+        { value: "Excellent", label: "Excellent" },
+        { value: "Good", label: "Good" },
+        { value: "Average", label: "Average" },
+        { value: "Poor", label: "Poor" },
+      ]));
+  }, []);
+
+  // ── Load Standard picklist from Liferay ──────────────────
+  useEffect(() => {
+    getPicklist("dbt-standard-grade")   // ⚠️ Replace with actual ERC from Liferay picklist
+      .then(setStandardOpts)
+      .catch(() => {
+        // Fallback to hardcoded if API fails
+        setStandardOpts(Array.from({ length: 12 }, (_, i) => ({ value: String(i+1), label: String(i+1) })));
+      });
+  }, []);
 
   const setL  = (k) => (v) => setLand((p)     => ({ ...p, [k]: v }));
   const setCR = (k) => (v) => setClassRow((p) => ({ ...p, [k]: v }));
@@ -197,7 +240,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
         <SectionHeading title="School Land Details" />
         <Row3>
           <Field label="Ownership" required error={errors.ownership}>
-            <SelectInput value={land.ownership} onChange={setL("ownership")} options={OWNERSHIP} />
+            <SelectInput value={land.ownership} onChange={setL("ownership")} options={ownershipOpts} />
           </Field>
           <Field label="Total Area(In Acres)[Building + Playground + Hostel etc]" required error={errors.totalAreaAcres}>
             <TextInput value={land.totalAreaAcres} onChange={setL("totalAreaAcres")} type="number" placeholder="e.g. 35.00" />
@@ -230,7 +273,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
         </Row3>
         <Row2>
           <Field label="Quality Of Sport Facilities / Infrastructure available" required error={errors.sportsFacilityQuality}>
-            <SelectInput value={land.sportsFacilityQuality} onChange={setL("sportsFacilityQuality")} options={SPORT_QUALITY} />
+            <SelectInput value={land.sportsFacilityQuality} onChange={setL("sportsFacilityQuality")} options={sportQualityOpts} />
           </Field>
           <Field label="Others Sports" required error={errors.otherSports}>
             <TextInput value={land.otherSports} onChange={setL("otherSports")} placeholder="e.g. cricket, horse riding, kabaddi" />
@@ -245,7 +288,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
           {rowError && <Alert type="error" message={rowError} onClose={() => setRowError("")} />}
           <Row3>
             <Field label="Standard" required>
-              <SelectInput value={classRow.standard} onChange={setCR("standard")} options={STANDARD_OPTS} />
+              <SelectInput value={classRow.standard} onChange={setCR("standard")} options={standardOpts} />
             </Field>
             <Field label="Division" required>
               <TextInput value={classRow.division} onChange={setCR("division")} type="number" />

@@ -8,7 +8,7 @@ import {
   SectionHeading, Row3, Row2,
 } from "../components/FormFields";
 import {
-  getStates, getDistricts, getTalukas, getVillages, getPoNames,
+  getStates, getDistricts, getTalukas, getVillages, getPoNames, getPicklist,
 } from "../api/liferay";
 
 // ⚠️  value IDs are placeholders — replace with actual Liferay picklist IDs
@@ -38,7 +38,10 @@ export default function SchoolProfile({ form, setForm, errors }) {
   const [districts, setDistricts] = useState([]);
   const [talukas,   setTalukas]   = useState([]);
   const [villages,  setVillages]  = useState([]);
-  const [poNames,   setPoNames]   = useState([]);
+  const [poNames,        setPoNames]        = useState([]);
+  const [boardOpts,      setBoardOpts]      = useState([]);
+  const [areaOpts,       setAreaOpts]       = useState([]);
+  const [yearOpts,       setYearOpts]       = useState([]);
 
   useEffect(() => {
     getStates()
@@ -69,6 +72,39 @@ export default function SchoolProfile({ form, setForm, errors }) {
     if (!form.village) { setPoNames([]); return; }
     getPoNames(form.village).then(setPoNames).catch(() => setPoNames([]));
   }, [form.village]);
+
+  // ── Load Board picklist ───────────────────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS")
+      .then(setBoardOpts)
+      .catch(() => setBoardOpts([
+        { value: "SSC",   label: "SSC Board" },
+        { value: "CBSE",  label: "CBSE Board" },
+        { value: "ICSE",  label: "ICSE Board" },
+        { value: "State", label: "State Board" },
+      ]));
+  }, []);
+
+  // ── Load Area picklist ────────────────────────────────────
+  useEffect(() => {
+    getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS")
+      .then(setAreaOpts)
+      .catch(() => setAreaOpts([
+        { value: "Rural",     label: "Rural" },
+        { value: "Urban",     label: "Urban" },
+        { value: "SemiUrban", label: "Semi-Urban" },
+        { value: "Tribal",    label: "Tribal" },
+      ]));
+  }, []);
+
+  // ── Load Year Of Establishment picklist ───────────────────
+  useEffect(() => {
+    getPicklist("DBT-ADMISSION-YEAR-IN-COLLEGE")
+      .then(setYearOpts)
+      .catch(() => setYearOpts(
+        Array.from({ length: 75 }, (_, i) => ({ value: String(2024 - i), label: String(2024 - i) }))
+      ));
+  }, []);
 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
@@ -137,7 +173,7 @@ export default function SchoolProfile({ form, setForm, errors }) {
           <TextInput value={form.schoolRegistrationNumber} onChange={set("schoolRegistrationNumber")} />
         </Field>
         <Field label="School Board" required error={errors.schoolBoard}>
-          <SelectInput value={form.schoolBoard} onChange={set("schoolBoard")} options={SCHOOL_BOARD_OPTIONS} />
+          <SelectInput value={form.schoolBoard} onChange={set("schoolBoard")} options={boardOpts} />
         </Field>
       </Row3>
 
@@ -146,7 +182,7 @@ export default function SchoolProfile({ form, setForm, errors }) {
           <TextInput value={form.sscBatchesCompletedCount} onChange={set("sscBatchesCompletedCount")} type="number" />
         </Field>
         <Field label="Year Of Establishment" required error={errors.yearOfEstablishment}>
-          <SelectInput value={form.yearOfEstablishment} onChange={set("yearOfEstablishment")} options={YEAR_OPTIONS} />
+          <SelectInput value={form.yearOfEstablishment} onChange={set("yearOfEstablishment")} options={yearOpts} />
         </Field>
         <Field label="School Website Available" required error={errors.isWebsiteAvailable}>
           <SelectInput value={form.isWebsiteAvailable} onChange={set("isWebsiteAvailable")} options={WEBSITE_OPTIONS} />
@@ -163,7 +199,7 @@ export default function SchoolProfile({ form, setForm, errors }) {
           />
         </Field>
         <Field label="School Falls Under Which Area" required error={errors.schoolAreaType}>
-          <SelectInput value={form.schoolAreaType} onChange={set("schoolAreaType")} options={AREA_OPTIONS} />
+          <SelectInput value={form.schoolAreaType} onChange={set("schoolAreaType")} options={areaOpts} />
         </Field>
         <Field label="Number of Toilets On Each Floor In School Building" required error={errors.toiletsPerFloorCount}>
           <TextInput value={form.toiletsPerFloorCount} onChange={set("toiletsPerFloorCount")} type="number" />

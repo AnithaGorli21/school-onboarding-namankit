@@ -125,7 +125,9 @@ const bySchoolMany = (id) => id
 
 // Get ALL schools — for List Page
 export const getAllSchools         = ()   => apiFetch("/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
-export const getSchoolProfiles    = (id) => apiFetch(`/o/c/namankitschoolprofiles${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+export const getSchoolProfiles      = (id) => apiFetch(`/o/c/namankitschoolprofiles${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+// Fetch school profile directly by its Liferay record id (used in edit mode)
+export const getSchoolProfileById   = (id) => apiFetch(`/o/c/namankitschoolprofiles/${id}`);
 export const getSchoolLandDetails = (id) => apiFetch(`/o/c/schoollanddetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
 export const getHostelDetails     = (id) => apiFetch(`/o/c/schoolhosteldetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
 export const getDiningFacilities  = (id) => apiFetch(`/o/c/dinningfacilities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
@@ -139,3 +141,23 @@ export const getEducationalTours  = (id) => apiFetch(`/o/c/educationaltourssport
 export const getMedicalFacilities = (id) => apiFetch(`/o/c/medicalfacilities${bySchool(id)}`).then(d => (d.items || [])[0] || null);
 export const getProfileFeeMaster  = (id) => apiFetch(`/o/c/profilefeemasters${bySchoolMany(id)}`).then(d => d.items || []);
 export const getSchoolBankDetails = (id) => apiFetch(`/o/c/schoolbankdetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
+
+// ── Picklist helper ───────────────────────────────────────────
+// Fetches picklist entries by ERC (External Reference Code)
+// Returns [{ value: key, label: name }] for use in SelectInput
+export async function getPicklist(erc) {
+  // Step 1 — get definition id by ERC
+  const def = await apiFetch(
+    `/o/headless-admin-list-type/v1.0/list-type-definitions/by-external-reference-code/${erc}`
+  );
+  // Step 2 — get entries
+  const entries = await apiFetch(
+    `/o/headless-admin-list-type/v1.0/list-type-definitions/${def.id}/list-type-entries?pageSize=200`
+  );
+  return (entries.items || []).map((e) => ({ value: e.key, label: e.name }));
+}
+
+// ── Qualification Masters ─────────────────────────────────────
+export const getQualifications = () =>
+  apiFetch("/o/c/qualificationmasters?pageSize=200&sort=name:asc")
+    .then(d => (d.items || []).map(r => ({ value: r.id, label: r.name })));
