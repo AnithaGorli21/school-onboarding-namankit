@@ -4,37 +4,35 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // When deployed inside Liferay, set the base path if needed:
-  // base: "/o/school-registration/",
   server: {
     port: 5001,
+      historyApiFallback: true,
     proxy: {
-      // ── Object Definition APIs (your form data) ──────────
+      // ── Object Definition APIs (form data) ───────────────
       "/o/c": {
         target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
-        secure: false,       // allow self-signed certs on UAT
+        secure: false,
       },
-
       // ── Headless Delivery API (file uploads) ─────────────
-      // Required by src/api/upload.js for uploading to Documents & Media
       "/o/headless-delivery": {
         target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
         secure: false,
       },
-
-      // ── Headless Admin (optional — for site listing) ──────
+      // ── Headless Admin User ───────────────────────────────
       "/o/headless-admin-user": {
         target: "https://mahadbt2-qa-dashboard.quantela.com",
         changeOrigin: true,
         secure: false,
       },
+      // ── Headless Admin List Type (Picklists) ──────────────
+      // Required for getPicklist() — Standard/Grade, Ownership etc.
       "/o/headless-admin-list-type": {
-  target: "https://mahadbt2-qa-dashboard.quantela.com",
-  changeOrigin: true,
-  secure: false,
-},
+        target: "https://mahadbt2-qa-dashboard.quantela.com",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
