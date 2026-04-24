@@ -3,7 +3,7 @@
 //  ATC School Approval List — shows schools with
 //  "PO Recommended for Approval" status
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllSchoolsForPO } from "../api/poGrading";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
@@ -16,6 +16,12 @@ const STATUS_BADGE = {
   "SendBack":                     { bg: "#d1ecf1", color: "#0c5460" },
 };
 
+// Liferay returns picklist fields as { key, name } objects; normalise to string
+const getStatus = (s) =>
+  s.approvalStatus && typeof s.approvalStatus === "object"
+    ? (s.approvalStatus.key || s.approvalStatus.name || "")
+    : (s.approvalStatus || "");
+
 export default function ATCApprovalList({ onGrading, onViewDetails }) {
   const [schools,   setSchools]   = useState([]);
   const [loading,   setLoading]   = useState(false);
@@ -24,23 +30,39 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
   const [page,      setPage]      = useState(1);
   const [pageSize,  setPageSize]  = useState(5);
 
-  const handleSearch = () => {
+  // const handleSearch = () => {
+  //   setLoading(true);
+  //   setError(null);
+  //   getAllSchoolsForPO("")
+  //     .then(all => {
+  //       const filtered = all.filter(s => {
+  //         const status = getStatus(s);
+  //         return (
+  //           status === "PO Recommended for Approval" ||
+  //           status === "ATC Recommended for Approval" ||
+  //           status === "SendBack"
+  //         );
+  //       });
+  //       console.log('filtered=======>',filtered)
+  //       setSchools(filtered);
+  //     })
+  //     .catch(e => setError(e.message))
+  //     .finally(() => setLoading(false));
+  // };
+
+   const handleSearch = () => {
     setLoading(true);
     setError(null);
-    // Fetch all schools — filter client side for PO Recommended
     getAllSchoolsForPO("")
-      .then(all => {
-        // ATC sees only schools recommended by PO
-        const filtered = all.filter(s =>
-          s.approvalStatus === "PO Recommended for Approval" ||
-          s.approvalStatus === "ATC Recommended for Approval" ||
-          s.approvalStatus === "SendBack"
-        );
-        setSchools(filtered);
-      })
+      .then(setSchools)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   };
+  useEffect(()=>{
+  console.log('schoolData====>', schools)
+
+  }, [schools]
+)
 
   const filtered = schools.filter(s => {
     const q = search.toLowerCase();
@@ -110,7 +132,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
                   <td style={TD}>{school.udiseCode || "—"}</td>
                   <td style={TD}>{school.trusteeName || "—"}</td>
                   <td style={{ ...TD, fontWeight: 500 }}>{school.schoolName || "—"}</td>
-                  <td style={TD}>{badge(school.approvalStatus)}</td>
+                  <td style={TD}>{badge(getStatus(school))}</td>
                   <td style={TD}>
                     <button onClick={() => onViewDetails?.(school.id)}
                       style={{ background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
@@ -118,7 +140,8 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
                     </button>
                   </td>
                   <td style={TD}>
-                    {(school.approvalStatus === "PO Recommended for Approval" || school.approvalStatus === "SendBack") ? (
+                    {/* {(getStatus(school) === "PO Recommended for Approval" || getStatus(school) === "SendBack") ? ( */}
+                      {true?(
                       <button onClick={() => onGrading(school)}
                         style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
                         Grading

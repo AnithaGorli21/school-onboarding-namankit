@@ -142,6 +142,24 @@ export const getMedicalFacilities = (id) => apiFetch(`/o/c/medicalfacilities${by
 export const getProfileFeeMaster  = (id) => apiFetch(`/o/c/profilefeemasters${bySchoolMany(id)}`).then(d => d.items || []);
 export const getSchoolBankDetails = (id) => apiFetch(`/o/c/schoolbankdetails${bySchool(id)}`).then(d => (d.items || [])[0] || null);
 
+// Bill Generation
+export const saveBillGeneration    = (p)     => apiPost("/o/c/billgenerations", p);
+export const getBillGenerations    = ()      => apiFetch("/o/c/billgenerations?pageSize=200&sort=dateCreated:desc").then(d => d.items || []);
+export const getBillById           = (id)    => apiFetch(`/o/c/billgenerations/${id}`);
+
+// Bill child records
+export const saveBillAdmissionSummary = (p) => apiPost("/o/c/billadmissionsummary", p);
+export const saveBillStudent          = (p) => apiPost("/o/c/billstudents", p);
+export const saveBillArrear           = (p) => apiPost("/o/c/billarrears", p);
+export const saveBillDeduction        = (p) => apiPost("/o/c/billdeductions", p);
+export const saveBillPODeduction      = (p) => apiPost("/o/c/billpodeductions", p);
+
+// Fetch children by billGenerationId
+export const getBillStudents      = (billId) => apiFetch(`/o/c/billstudents?filter=billGenerationId eq ${billId}&pageSize=200`).then(d => d.items || []);
+export const getBillArrears       = (billId) => apiFetch(`/o/c/billarrears?filter=billGenerationId eq ${billId}&pageSize=200`).then(d => d.items || []);
+export const getBillDeductions    = (billId) => apiFetch(`/o/c/billdeductions?filter=billGenerationId eq ${billId}&pageSize=200`).then(d => d.items || []);
+export const getBillPODeductions  = (billId) => apiFetch(`/o/c/billpodeductions?filter=billGenerationId eq ${billId}&pageSize=200`).then(d => d.items || []);
+
 // ── Picklist helper ───────────────────────────────────────────
 // Fetches picklist entries by ERC (External Reference Code)
 // Returns [{ value: key, label: name }] for use in SelectInput
