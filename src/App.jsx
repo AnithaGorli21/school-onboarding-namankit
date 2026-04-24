@@ -29,6 +29,7 @@ import POApprovalList             from "./sections/POApprovalList";
 import POGrading                  from "./sections/POGrading";
 import ATCApprovalList            from "./sections/ATCApprovalList";
 import ATCGrading                 from "./sections/ATCGrading";
+import BillGeneration from "./sections/Billgeneration";
 
 // ── Route: /preview ──────────────────────────────────────────
 if (window.location.pathname === "/preview") {
@@ -37,6 +38,8 @@ if (window.location.pathname === "/preview") {
   window.__ROUTE__ = "po-grading";
 } else if (window.location.pathname === "/atc-grading") {
   window.__ROUTE__ = "atc-grading";
+  } else if (window.location.pathname === "/bill-generation") {
+  window.__ROUTE__ = "bill-generation";
 } else {
   window.__ROUTE__ = "main";
 }
@@ -103,6 +106,20 @@ function ATCGradingApp() {
           ? <ATCApprovalList onGrading={handleGrading} onViewDetails={(id) => window.open(`/?schoolId=${id}`, "_blank")} />
           : <ATCGrading school={selectedSchool} onBack={() => setView("list")} />
         }
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+function BillGenerationApp() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f5", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "#1a2a5e", padding: "12px 24px" }}>
+        <span style={{ color: "#fff", fontSize: 18, fontWeight: 600 }}>Namankit School Onboarding — ATC Bill Generation</span>
+      </div>
+      <div style={{ flex: 1, background: "#fff" }}>
+        <BillGeneration />
       </div>
       <Footer />
     </div>
@@ -236,5 +253,6 @@ export default function App() {
   if (route === "preview")     return <PreviewPage />;
   if (route === "po-grading")  return <POGradingApp />;
   if (route === "atc-grading") return <ATCGradingApp />;
+  if (route === "bill-generation") return <BillGenerationApp />;
   return <MainApp />;
 }
