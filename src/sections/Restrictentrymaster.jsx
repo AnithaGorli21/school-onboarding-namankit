@@ -1,5 +1,11 @@
 // ============================================================
 //  src/sections/RestrictEntryMaster.jsx
+//
+//  Validations (from Excel spec):
+//  1. Restrict Entry List — Mandatory (cannot save with --Select--)
+//  2. Date fields — Mandatory when type is selected
+//  3. School Registration — From Date must be before To Date
+//  4. Profile Registration — From Date must be before To Date
 // ============================================================
 import { useState, useEffect } from "react";
 import {
@@ -20,18 +26,18 @@ const RESTRICT_OPTIONS = [
 
 const FIELD_CONFIG = {
   studentRegistration: [
-    { key: "billgeneration",       label: "Student Registration Date" },
+    { key: "billgeneration",      label: "Student Registration Date" },
   ],
   studentRenewal: [
     { key: "billadmissionsummary", label: "Student Renewal Date" },
   ],
   schoolRegistration: [
-    { key: "billstudent",          label: "From School Date" },
-    { key: "billarrear",           label: "To School Date" },
+    { key: "billstudent", label: "From School Date" },
+    { key: "billarrear",  label: "To School Date" },
   ],
   profileRegistration: [
-    { key: "billdeduction",        label: "Profile Registration From Date" },
-    { key: "billpodeduction",      label: "Profile Registration To Date" },
+    { key: "billdeduction",   label: "Profile Registration From Date" },
+    { key: "billpodeduction", label: "Profile Registration To Date" },
   ],
 };
 
@@ -43,6 +49,43 @@ const EMPTY_DATES = {
   billdeduction:        "",
   billpodeduction:      "",
 };
+
+// ── Validation ────────────────────────────────────────────────
+function validate(selectedType, dates) {
+  // Rule 1 — Dropdown is mandatory
+  if (!selectedType) {
+    return "Please select a value from Restrict Entry List.";
+  }
+
+  const fields = FIELD_CONFIG[selectedType] || [];
+
+  // Rule 2 — All date fields for selected type are mandatory
+  for (const f of fields) {
+    if (!dates[f.key]) {
+      return `"${f.label}" is required.`;
+    }
+  }
+
+  // Rule 3 — School Registration: From Date must be before To Date
+  if (selectedType === "schoolRegistration") {
+    if (dates.billstudent && dates.billarrear) {
+      if (new Date(dates.billstudent) >= new Date(dates.billarrear)) {
+        return "From School Date must be earlier than To School Date.";
+      }
+    }
+  }
+
+  // Rule 4 — Profile Registration: From Date must be before To Date
+  if (selectedType === "profileRegistration") {
+    if (dates.billdeduction && dates.billpodeduction) {
+      if (new Date(dates.billdeduction) >= new Date(dates.billpodeduction)) {
+        return "Profile Registration From Date must be earlier than Profile Registration To Date.";
+      }
+    }
+  }
+
+  return null; // no error
+}
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
@@ -65,11 +108,23 @@ const s = {
     borderBottom: "2px solid #e8b400", display: "inline-block",
   },
   label:    { display: "block", fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 4 },
-  select:   { display: "block", width: 300, padding: "6px 10px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, background: "#ffffff", color: "#333", cursor: "pointer", outline: "none", marginBottom: 14, height: 32 },
-  dateInput:{ display: "block", width: 300, padding: "5px 10px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, background: "#ffffff", color: "#333", outline: "none", marginBottom: 14, height: 32, boxSizing: "border-box" },
+  req:      { color: "#e53935", marginLeft: 2 },                    // red asterisk
+  select:   (hasErr) => ({
+    display: "block", width: 300, padding: "6px 10px", fontSize: 13,
+    border: `1px solid ${hasErr ? "#e53935" : "#cccccc"}`,
+    borderRadius: 3, background: "#ffffff", color: "#333",
+    cursor: "pointer", outline: "none", marginBottom: hasErr ? 4 : 14, height: 32,
+  }),
+  dateInput:(hasErr) => ({
+    display: "block", width: 300, padding: "5px 10px", fontSize: 13,
+    border: `1px solid ${hasErr ? "#e53935" : "#cccccc"}`,
+    borderRadius: 3, background: "#ffffff", color: "#333",
+    outline: "none", marginBottom: hasErr ? 4 : 14, height: 32, boxSizing: "border-box",
+  }),
+  fieldErr: { color: "#e53935", fontSize: 12, marginBottom: 10, display: "block" },
   saveBtn:  { background: "#5cb85c", color: "#ffffff", border: "1px solid #4cae4c", borderRadius: 3, padding: "7px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginTop: 4, marginBottom: 22 },
   saveBtnDisabled: { background: "#aaa", color: "#fff", border: "1px solid #999", borderRadius: 3, padding: "7px 20px", fontSize: 13, fontWeight: 600, cursor: "not-allowed", marginTop: 4, marginBottom: 22 },
-  tableWrap:{ overflowX: "auto", marginBottom: 16 },
+  tableWrap: { overflowX: "auto", marginBottom: 16 },
   table:    { width: "100%", borderCollapse: "collapse", fontSize: 13 },
   th:       { padding: "9px 12px", textAlign: "left", fontWeight: 700, color: "#333", background: "#ffffff", border: "1px solid #dddddd", whiteSpace: "nowrap" },
   td:       { padding: "9px 12px", border: "1px solid #dddddd", color: "#333", background: "#ffffff", whiteSpace: "nowrap" },
@@ -79,14 +134,14 @@ const s = {
   paginRight:{ display: "flex", gap: 4 },
   btnActive: { padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" },
   btnDisabled:{ padding: "5px 16px", fontSize: 13, background: "#fff", color: "#333", border: "1px solid #cccccc", borderRadius: 3, cursor: "not-allowed" },
-  overlay:  { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 },
-  modalBox: { background: "#fff", borderRadius: 4, width: 440, boxShadow: "0 4px 24px rgba(0,0,0,0.25)", overflow: "hidden" },
-  modalHead:{ background: "#f8d7da", padding: "12px 18px", fontWeight: 700, fontSize: 15, color: "#c0392b", borderBottom: "1px solid #f5c6cb" },
-  modalBody:{ padding: "22px 18px", fontSize: 14, color: "#333" },
+  overlay:   { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 },
+  modalBox:  { background: "#fff", borderRadius: 4, width: 440, boxShadow: "0 4px 24px rgba(0,0,0,0.25)", overflow: "hidden" },
+  modalHead: { background: "#f8d7da", padding: "12px 18px", fontWeight: 700, fontSize: 15, color: "#c0392b", borderBottom: "1px solid #f5c6cb" },
+  modalBody: { padding: "22px 18px", fontSize: 14, color: "#333" },
   modalFooter:{ padding: "10px 18px 18px", textAlign: "center", borderTop: "1px solid #eee" },
   modalOkBtn:{ background: "#e74c3c", color: "#fff", border: "none", borderRadius: 4, padding: "8px 36px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  errBox:   { background: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: 4, padding: "12px 16px", fontSize: 13, color: "#721c24", marginBottom: 16 },
-  inlineErr:{ color: "#c0392b", fontSize: 13, marginBottom: 8 },
+  errBox:    { background: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: 4, padding: "12px 16px", fontSize: 13, color: "#721c24", marginBottom: 16 },
+  inlineErr: { color: "#c0392b", fontSize: 13, marginBottom: 10, padding: "8px 12px", background: "#fff5f5", border: "1px solid #f5c6cb", borderRadius: 3 },
 };
 
 // ── Info Modal ────────────────────────────────────────────────
@@ -113,9 +168,12 @@ export default function RestrictEntryMaster() {
   const [loading,      setLoading]      = useState(true);
   const [saving,       setSaving]       = useState(false);
   const [modalMsg,     setModalMsg]     = useState("");
-  const [inlineErr,    setInlineErr]    = useState("");
+  const [inlineErr,    setInlineErr]    = useState("");  // general form error
+  const [fieldErrors,  setFieldErrors]  = useState({});  // per-field errors
   const [loadErr,      setLoadErr]      = useState("");
+  const [touched,      setTouched]      = useState({});  // track user interaction
 
+  // ── Load on mount ──────────────────────────────────────────
   useEffect(() => {
     setLoading(true);
     loadRestrictEntry()
@@ -130,29 +188,61 @@ export default function RestrictEntryMaster() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDate = (key, val) =>
-    setDates((prev) => ({ ...prev, [key]: val }));
+  // ── Handle dropdown change ─────────────────────────────────
+  const handleTypeChange = (val) => {
+    setSelectedType(val);
+    setInlineErr("");
+    setFieldErrors({});
+    setTouched({});
+  };
 
+  // ── Handle date change ─────────────────────────────────────
+  const handleDate = (key, val) => {
+    setDates((prev) => ({ ...prev, [key]: val }));
+    setTouched((prev) => ({ ...prev, [key]: true }));
+    // Clear field error on change
+    setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+    setInlineErr("");
+  };
+
+  // ── Validate single field on blur ──────────────────────────
+  const handleBlur = (key, label) => {
+    if (!dates[key]) {
+      setFieldErrors((prev) => ({ ...prev, [key]: `${label} is required.` }));
+    }
+  };
+
+  // ── Save handler ───────────────────────────────────────────
   const handleSave = async () => {
     setInlineErr("");
-    if (selectedType) {
-      for (const f of (FIELD_CONFIG[selectedType] || [])) {
-        if (!dates[f.key]) {
-          setInlineErr(`Please select a date for "${f.label}".`);
-          return;
-        }
+    setFieldErrors({});
+
+    // Run full validation
+    const error = validate(selectedType, dates);
+    if (error) {
+      setInlineErr(error);
+
+      // Also highlight specific fields
+      if (selectedType) {
+        const newFieldErrors = {};
+        const fields = FIELD_CONFIG[selectedType] || [];
+        fields.forEach((f) => {
+          if (!dates[f.key]) newFieldErrors[f.key] = `${f.label} is required.`;
+        });
+        setFieldErrors(newFieldErrors);
       }
-    }
-    if (!Object.values(dates).some(Boolean)) {
-      setInlineErr("Please select a type and enter a date.");
       return;
     }
+
     setSaving(true);
     try {
       const result = await submitRestrictEntry({ dates, recordId });
       if (!recordId) setRecordId(result.id);
       setSavedData(result);
       setLoadErr("");
+      setInlineErr("");
+      setFieldErrors({});
+      setTouched({});
       setModalMsg(recordId ? "Data Updated Successfully" : "Data Saved Successfully");
     } catch (err) {
       setModalMsg(err.message || "Failed to save. Please try again.");
@@ -162,6 +252,7 @@ export default function RestrictEntryMaster() {
   };
 
   const activeFields = FIELD_CONFIG[selectedType] || [];
+  const showDropdownErr = touched.__dropdown && !selectedType;
 
   return (
     <>
@@ -171,36 +262,56 @@ export default function RestrictEntryMaster() {
         <div style={s.card}>
           <div style={s.heading}>Restrict Entry Master</div>
 
-          {loadErr && <div style={s.errBox}><strong>API Error:</strong> {loadErr}</div>}
+          {loadErr && (
+            <div style={s.errBox}><strong>API Error:</strong> {loadErr}</div>
+          )}
 
           {loading ? (
             <div style={{ color: "#888", fontSize: 13, padding: "12px 0" }}>Loading...</div>
           ) : (
             <>
-              {/* Form */}
+              {/* ── Form ── */}
               <div>
-                {inlineErr && <div style={s.inlineErr}>{inlineErr}</div>}
 
-                <label style={s.label}>Restrict Entry List</label>
+                {/* General inline error */}
+                {inlineErr && (
+                  <div style={s.inlineErr}>⚠️ {inlineErr}</div>
+                )}
+
+                {/* Dropdown — Mandatory */}
+                <label style={s.label}>
+                  Restrict Entry List <span style={s.req}>*</span>
+                </label>
                 <select
-                  style={s.select}
+                  style={s.select(showDropdownErr)}
                   value={selectedType}
-                  onChange={(e) => { setSelectedType(e.target.value); setInlineErr(""); }}
+                  onBlur={() => setTouched((p) => ({ ...p, __dropdown: true }))}
+                  onChange={(e) => handleTypeChange(e.target.value)}
                 >
                   {RESTRICT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
+                {showDropdownErr && (
+                  <span style={s.fieldErr}>Please select a value from Restrict Entry List.</span>
+                )}
 
+                {/* Dynamic date fields — each mandatory */}
                 {activeFields.map((f) => (
                   <div key={f.key}>
-                    <label style={s.label}>{f.label}</label>
+                    <label style={s.label}>
+                      {f.label} <span style={s.req}>*</span>
+                    </label>
                     <input
                       type="date"
-                      style={s.dateInput}
+                      style={s.dateInput(!!fieldErrors[f.key])}
                       value={dates[f.key]}
                       onChange={(e) => handleDate(f.key, e.target.value)}
+                      onBlur={() => handleBlur(f.key, f.label)}
                     />
+                    {fieldErrors[f.key] && (
+                      <span style={s.fieldErr}>{fieldErrors[f.key]}</span>
+                    )}
                   </div>
                 ))}
 
@@ -213,7 +324,7 @@ export default function RestrictEntryMaster() {
                 </button>
               </div>
 
-              {/* Table */}
+              {/* ── Table ── */}
               {savedData ? (
                 <>
                   <div style={s.tableWrap}>
