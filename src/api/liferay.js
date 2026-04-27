@@ -43,7 +43,7 @@ export async function apiPost(path, body) {
     method: "POST",
     body: JSON.stringify(body),
   });
-  if (!res.ok) await throwWithBody(res, "POST", path);
+  if (!res.ok) await throwWithBody(res, "POST", path);z
   return res.json();
 }
 
@@ -69,6 +69,7 @@ export const getDistricts = (stateId) =>
 export const getTalukas = (districtId) =>
   apiFetch(`/o/c/talukas?filter=districtId eq '${districtId}'&pageSize=200&sort=name:asc`)
     .then((d) => (d.items || []).map((r) => ({ value: r.id, label: r.name })));
+
 
 export const getVillages = (talukaId) =>
   apiFetch(`/o/c/villages?filter=talukaId eq '${talukaId}'&pageSize=200&sort=name:asc`)
