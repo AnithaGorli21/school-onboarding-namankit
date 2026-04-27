@@ -2,28 +2,28 @@
 //  src/sections/POApprovalList.jsx
 //  PO School Approval List — filter by NEW/OLD, search, grading
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllSchoolsForPO } from "../api/poGrading";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
 
 const STATUS_BADGE = {
-  "PO Approval Pending":         { bg: "#fff3cd", color: "#856404" },
+  "PO Approval Pending": { bg: "#fff3cd", color: "#856404" },
   "PO Recommended for Approval": { bg: "#d4edda", color: "#155724" },
-  "Rejected":                    { bg: "#f8d7da", color: "#721c24" },
-  "SendBack":                    { bg: "#d1ecf1", color: "#0c5460" },
+  "Rejected": { bg: "#f8d7da", color: "#721c24" },
+  "SendBack": { bg: "#d1ecf1", color: "#0c5460" },
 };
 
 export default function POApprovalList({ onGrading, onViewDetails }) {
-  const [schools,    setSchools]    = useState([]);
+  const [schools, setSchools] = useState([]);
   const [schoolType, setSchoolType] = useState("");
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [search,     setSearch]     = useState("");
-  const [page,       setPage]       = useState(1);
-  const [pageSize,   setPageSize]   = useState(5);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const handleSearch = () => {
     setLoading(true);
@@ -33,19 +33,21 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   };
-
+  useEffect(() => {
+    console.log("po school list...", schools)
+  }, [schools])
   const filtered = schools.filter(s => {
     const q = search.toLowerCase();
     const matchSearch = (
-      (s.schoolName  || "").toLowerCase().includes(q) ||
+      (s.schoolName || "").toLowerCase().includes(q) ||
       (s.trusteeName || "").toLowerCase().includes(q) ||
-      (s.udiseCode   || "").toLowerCase().includes(q)
+      (s.udiseCode || "").toLowerCase().includes(q)
     );
     return matchSearch;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged      = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const badge = (status) => {
     const s = STATUS_BADGE[status] || { bg: "#e9ecef", color: "#555" };

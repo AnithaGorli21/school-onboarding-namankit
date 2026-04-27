@@ -32,7 +32,6 @@ export default function Footer() {
       {/* Right: Maintained by + logo */}
       <div style={{
         display: "flex",
-        alignItems: "center",
         gap: 6,
         flexDirection: "column",
         alignItems: "flex-end",

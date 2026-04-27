@@ -10,25 +10,25 @@ const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWei
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
 
 const STATUS_BADGE = {
-  "PO Recommended for Approval":  { bg: "#d4edda", color: "#155724" },
+  "PO Recommended for Approval": { bg: "#d4edda", color: "#155724" },
   "ATC Recommended for Approval": { bg: "#cce5ff", color: "#004085" },
-  "Rejected":                     { bg: "#f8d7da", color: "#721c24" },
-  "SendBack":                     { bg: "#d1ecf1", color: "#0c5460" },
+  "Rejected": { bg: "#f8d7da", color: "#721c24" },
+  "SendBack": { bg: "#d1ecf1", color: "#0c5460" },
 };
 
 // Liferay returns picklist fields as { key, name } objects; normalise to string
 const getStatus = (s) =>
   s.approvalStatus && typeof s.approvalStatus === "object"
     ? (s.approvalStatus.key || s.approvalStatus.name || "")
-    : (s.approvalStatus || "");
+    : (s.approvalStatus === 'PO Recommended for Approval' ? s.approvalStatus : "PO Approval Pending");
 
 export default function ATCApprovalList({ onGrading, onViewDetails }) {
-  const [schools,   setSchools]   = useState([]);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState(null);
-  const [search,    setSearch]    = useState("");
-  const [page,      setPage]      = useState(1);
-  const [pageSize,  setPageSize]  = useState(5);
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   // const handleSearch = () => {
   //   setLoading(true);
@@ -50,7 +50,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
   //     .finally(() => setLoading(false));
   // };
 
-   const handleSearch = () => {
+  const handleSearch = () => {
     setLoading(true);
     setError(null);
     getAllSchoolsForPO("")
@@ -58,23 +58,23 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(()=>{
-  console.log('schoolData====>', schools)
+  useEffect(() => {
+    console.log('schoolData====>', schools)
 
   }, [schools]
-)
+  )
 
   const filtered = schools.filter(s => {
     const q = search.toLowerCase();
     return (
-      (s.schoolName  || "").toLowerCase().includes(q) ||
+      (s.schoolName || "").toLowerCase().includes(q) ||
       (s.trusteeName || "").toLowerCase().includes(q) ||
-      (s.udiseCode   || "").toLowerCase().includes(q)
+      (s.udiseCode || "").toLowerCase().includes(q)
     );
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged      = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const badge = (status) => {
     const s = STATUS_BADGE[status] || { bg: "#e9ecef", color: "#555" };
@@ -141,7 +141,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails }) {
                   </td>
                   <td style={TD}>
                     {/* {(getStatus(school) === "PO Recommended for Approval" || getStatus(school) === "SendBack") ? ( */}
-                      {true?(
+                    {school?.approvalStatus === 'PO Recommended for Approval' ? (
                       <button onClick={() => onGrading(school)}
                         style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
                         Grading
