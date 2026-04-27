@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Footer from "./Footer";
+import Header from "../components/Header";
 
-export default function ControllerApp() {
+export default function ScheduleMeeting() {
     const emptyForm = { committeeDate: "", grDate: "", atcName: "", schoolType: "", grFile: null, momFile: null, description: "" };
 
     const [view, setView] = useState("list");
@@ -73,7 +74,8 @@ export default function ControllerApp() {
 
     return (
         <div style={{ minHeight: "100vh", background: "#f8fbfb", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-            <div style={{ background: "#1a2a5e", padding: "12px 24px", color: "#fff", fontWeight: 600 }}>Namankit School Onboarding — Controller Panel</div>
+            {/* <div style={{ background: "#1a2a5e", padding: "12px 24px", color: "#fff", fontWeight: 600 }}>Namankit School Onboarding — Controller Panel</div> */}
+            <Header />
 
             <div style={{ flex: 1, padding: 24 }}>
                 {view === "list" ? (
@@ -197,8 +199,6 @@ export default function ControllerApp() {
                     </div>
                 )}
             </div>
-
-            <Footer />
         </div>
     );
 }

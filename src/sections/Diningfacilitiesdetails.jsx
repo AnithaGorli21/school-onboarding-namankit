@@ -1,6 +1,10 @@
 // ============================================================
 //  src/sections/Diningfacilitiesdetails.jsx
-//  UI only — API logic in src/api/diningDetails.js
+//  Validations added per Excel spec:
+//  - Dining Hall Area: shown ONLY if Separate Dining Hall = Yes (row 85)
+//  - Upload Dining Hall Photo: mandatory (row 88)
+//  - Upload Menu: mandatory (row 89)
+//  - All existing working code unchanged
 // ============================================================
 import { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
@@ -29,7 +33,6 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
-    console.log("[DiningDetails] loading for schoolProfileId →", schoolProfileId);
     setLoadingData(true);
     loadDiningDetails(schoolProfileId)
       .then(({ record, recordId: rid }) => {
@@ -43,15 +46,47 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // ── Clear Dining Hall Area when Separate Dining Hall = No
+  const onSeparateDiningChange = (v) => {
+    setForm((p) => ({
+      ...p,
+      SeparateDiningHallforBoysandGirls: v,
+      DiningHallAreainSqft: v !== "Yes" ? "" : p.DiningHallAreainSqft,
+    }));
+  };
+
   const handleFileChange = (k) => (e) => {
-    setForm((p) => ({ ...p, [k]: e.target.files[0] || null }));
+    const file = e.target.files[0] || null;
+    setForm((p) => ({ ...p, [k]: file }));
+    // Clear file error on selection
+    setErrors((p) => ({ ...p, [k]: "" }));
   };
 
   const validate = () => {
     const e = {};
-    if (!form.SeparateDiningHallforBoysandGirls) e.SeparateDiningHallforBoysandGirls = "Required";
-    if (!form.DiningTable)                       e.DiningTable                       = "Required";
-    if (!form.FoodServedAsPerMenu)               e.FoodServedAsPerMenu               = "Required";
+
+    // Row 84 — Separate Dining Hall: Mandatory
+    if (!form.SeparateDiningHallforBoysandGirls)
+      e.SeparateDiningHallforBoysandGirls = "Separate Dining Hall for Boys and Girls is required.";
+
+    // Row 85 — Dining Hall Area: Not mandatory, shown only if Yes (no validation needed)
+
+    // Row 86 — Dining Table: Mandatory
+    if (!form.DiningTable)
+      e.DiningTable = "Dining Table is required.";
+
+    // Row 87 — Food Served As Per Menu: Mandatory
+    if (!form.FoodServedAsPerMenu)
+      e.FoodServedAsPerMenu = "Food Served As Per Menu is required.";
+
+    // Row 88 — Upload Dining Hall Photo: Mandatory
+    if (!form.DiningHallPhoto)
+      e.DiningHallPhoto = "Upload Dining Hall Photo is required.";
+
+    // Row 89 — Upload Menu: Mandatory
+    if (!form.MenuPhoto)
+      e.MenuPhoto = "Upload Menu is required.";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -97,18 +132,30 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
       <SectionHeading title="Dining Facilities Details" />
 
       <Row3>
+        {/* Row 84 — Separate Dining Hall: Mandatory */}
         <Field label="Separate Dining Hall for Boys and Girls" required error={errors.SeparateDiningHallforBoysandGirls}>
-          <SelectInput value={form.SeparateDiningHallforBoysandGirls} onChange={set("SeparateDiningHallforBoysandGirls")} options={YES_NO} />
+          <SelectInput
+            value={form.SeparateDiningHallforBoysandGirls}
+            onChange={onSeparateDiningChange}
+            options={YES_NO}
+          />
         </Field>
-        <Field label="Dining Hall Area in Sq.Ft">
-          <TextInput value={form.DiningHallAreainSqft} onChange={set("DiningHallAreainSqft")} type="number" />
-        </Field>
+
+        {/* Row 85 — Dining Hall Area: shown ONLY if Yes selected */}
+        {form.SeparateDiningHallforBoysandGirls === "Yes" && (
+          <Field label="Dining Hall Area in Sq.Ft" error={errors.DiningHallAreainSqft}>
+            <TextInput value={form.DiningHallAreainSqft} onChange={set("DiningHallAreainSqft")} type="number" />
+          </Field>
+        )}
+
+        {/* Row 86 — Dining Table: Mandatory */}
         <Field label="Dining Table" required error={errors.DiningTable}>
           <SelectInput value={form.DiningTable} onChange={set("DiningTable")} options={YES_NO} />
         </Field>
       </Row3>
 
       <Row3>
+        {/* Row 87 — Food Served As Per Menu: Mandatory */}
         <Field label="Food Served As Per Menu" required error={errors.FoodServedAsPerMenu}>
           <SelectInput value={form.FoodServedAsPerMenu} onChange={set("FoodServedAsPerMenu")} options={YES_NO} />
         </Field>
@@ -123,18 +170,29 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
           Note:- The size of the photograph should fall between 5KB to 100KB.
         </p>
         <Row2>
-          <Field label="Upload Dining Hall Photo">
-            <input type="file" accept="image/*" onChange={handleFileChange("DiningHallPhoto")}
-              style={{ fontSize: 13, padding: "4px 0" }} />
+          {/* Row 88 — Dining Hall Photo: Mandatory */}
+          <Field label="Upload Dining Hall Photo" required error={errors.DiningHallPhoto}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange("DiningHallPhoto")}
+              style={{ fontSize: 13, padding: "4px 0" }}
+            />
             {form.DiningHallPhoto && (
               <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
                 {form.DiningHallPhoto.name}
               </span>
             )}
           </Field>
-          <Field label="Upload Menu">
-            <input type="file" accept="image/*,.pdf" onChange={handleFileChange("MenuPhoto")}
-              style={{ fontSize: 13, padding: "4px 0" }} />
+
+          {/* Row 89 — Upload Menu: Mandatory */}
+          <Field label="Upload Menu" required error={errors.MenuPhoto}>
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileChange("MenuPhoto")}
+              style={{ fontSize: 13, padding: "4px 0" }}
+            />
             {form.MenuPhoto && (
               <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
                 {form.MenuPhoto.name}

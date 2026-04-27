@@ -316,6 +316,7 @@ import UpdateGradingComments from "./sections/UpdateGradingComments";
 import RestrictEntryMaster from "./sections/RestrictEntryMaster";
 import TransactionMaster from "./sections/TransactionMaster";
 import BillReport from "./sections/BillReport";
+import SchoolMasterForm from "./schools/SchoolMasterForm";
 
 const IS_DEV = window.location.hostname === "localhost";
 
@@ -475,6 +476,25 @@ function DevLoginApp({ onLogin }) {
           Login as {roles.find(r => r.value === selected)?.label}
         </button>
 
+        {/* ── NEW: Public School Registration link ── */}
+        <div style={{ marginTop: 16, borderTop: "1px solid #eee", paddingTop: 16 }}>
+          <div style={{ fontSize: 11, color: "#999", textAlign: "center", marginBottom: 10 }}>
+            PUBLIC ACCESS
+          </div>
+          <button
+            onClick={() => window.location.href = "/school-registration"}
+            style={{
+              width: "100%", background: "#fff", color: "#1a2a5e",
+              border: "2px solid #1a2a5e", borderRadius: 6,
+              padding: "10px", fontSize: 13, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", gap: 8,
+            }}
+          >
+            🏫 School Registration (Public)
+          </button>
+        </div>
+
         <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 16 }}>
           This screen only appears on localhost
         </div>
@@ -622,6 +642,9 @@ const SCHOOL_NAV = [
 
 function SchoolApp({ role }) {
   const path = window.location.pathname;
+  if (path === "/school-registration" || path === "/") {
+    return <SchoolMasterForm />;
+  }
   if (path === "/preview") return <PreviewPage />;
 
   const [screen, setScreen] = useState("schoolList");
@@ -736,6 +759,12 @@ function ComingSoon({ title }) {
 
 // ── Root App ──────────────────────────────────────────────────
 export default function App() {
+  const path = window.location.pathname;
+
+  // ✅ Only these specific paths show school registration
+  if (path === "/school-registration" || path === "/school-master") {
+    return <SchoolMasterForm />;
+  }
   const [role, setRole] = useState(null);
   const [checked, setChecked] = useState(false);
 

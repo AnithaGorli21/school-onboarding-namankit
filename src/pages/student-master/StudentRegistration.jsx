@@ -179,7 +179,7 @@ export default function StudentRegistration() {
         const errs = validateStudentRegistration(form);
         setErrors(errs);
         if (Object.keys(errs).length > 0) {
-            setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+            setAlert({ type: "error", message: "Please fill mandatory fields before saving." });
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
@@ -201,9 +201,19 @@ export default function StudentRegistration() {
     }, []);
 
     useEffect(() => {
-        if (!form.state) { setDistricts([]); return; }
-        getDistricts(form.state).then(setDistricts).catch(() => setDistricts([]));
-    }, [form.state]);
+        console.log('States....', states)
+    }, [states])
+
+    useEffect(() => {
+        //if (!form.state) { setDistricts([]); return; }
+        //console.log('Selected state..in form..', form.state);
+        if (states.length > 0) {
+            let state = states?.find(item => item.label === "MAHARASHTRA");
+            form.state = state;
+            console.log('selected state....', state)
+            getDistricts(state.value).then(setDistricts).catch(() => setDistricts([]));
+        }
+    }, [states]);
 
     useEffect(() => {
         if (!form.district) { setTalukas([]); return; }
@@ -599,7 +609,10 @@ export default function StudentRegistration() {
                                             value={form.currentClass || ""}
                                             onChange={handleChange}
                                         >
-                                            <option>-- Select --</option>
+                                            <option value="">-- Select --</option>
+                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                                                <option key={n} value={n}>{n}</option>
+                                            ))}
                                         </select>
                                         {errors.currentClass && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.currentClass}</div>
@@ -747,7 +760,7 @@ export default function StudentRegistration() {
                                     )}
                                 </div>
 
-                                <div style={{ marginTop: 12 }}>
+                                {/* <div style={{ marginTop: 12 }}>
                                     <label style={{ fontSize: 13, marginRight: 10 }}>
                                         State
                                     </label>
@@ -768,7 +781,7 @@ export default function StudentRegistration() {
                                             <option key={s.value} value={s.value}>{s.label}</option>
                                         ))}
                                     </select>
-                                </div>
+                                </div> */}
 
                                 <div
                                     style={{
@@ -1238,7 +1251,7 @@ export default function StudentRegistration() {
                     </div>
                 </div>
             </div>
-            <Footer />
+
         </div>
     );
 }

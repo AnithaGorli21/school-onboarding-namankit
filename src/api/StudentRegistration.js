@@ -33,6 +33,7 @@ function buildPayload({ form, uploadedPhoto }) {
     aadharNumberUID: form.aadharNumberUID ? Number(form.aadharNumberUID) : 0,
     admissionDate: form.admissionDate || "",
     birthDate: form.birthDate || "",
+    currentAdmissionDate: form.currentAdmissionDate || "",
     concernedPO: form.concernedPO || "",
     currentClass: form.currentClass || "",
     state: form.state || "",

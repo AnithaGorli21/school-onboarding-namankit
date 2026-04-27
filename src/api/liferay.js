@@ -45,7 +45,7 @@ export async function apiPost(path, body) {
     method: "POST",
     body: JSON.stringify(body),
   });
-  if (!res.ok) await throwWithBody(res, "POST", path);z
+  if (!res.ok) await throwWithBody(res, "POST", path);
   return res.json();
 }
 
