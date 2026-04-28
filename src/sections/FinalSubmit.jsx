@@ -20,7 +20,45 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
     }
   };
 
+  const hasFilled = (obj) => {
+    if (obj == null) return false;
+    if (typeof obj === 'string') return obj.trim() !== '';
+    if (typeof obj === 'number' || typeof obj === 'boolean') return true;
+    if (Array.isArray(obj)) return obj.length > 0 && obj.some(hasFilled);
+    if (typeof obj === 'object') return Object.keys(obj).length > 0 && Object.values(obj).some(hasFilled);
+    return false;
+  };
+
+  const SECTION_ORDER = [
+    ['schoolBasic', 'School Basic Details'],
+    ['landDetails', 'Land Details'],
+    ['hostelDetails', 'Hostel Details'],
+    ['diningDetails', 'Dining Facilities Details'],
+    ['labDetails', 'Lab Details'],
+    ['libraryDetails', 'Library Details'],
+    ['teacherDetails', 'Teachers Details'],
+    ['extraCurriculum', 'Extra Curriculum Activities'],
+    ['sportsDetails', 'Sports Facilities'],
+    ['medicalDetails', 'Medical Facilities'],
+    ['feeMaster', 'Profile FeeMaster'],
+    ['bankDetails', 'School Bank Details'],
+  ];
+
+  const validateData = (d) => {
+    const missing = [];
+    for (const [k, label] of SECTION_ORDER) {
+      if (!hasFilled(d?.[k])) missing.push(label);
+    }
+    return missing;
+  };
+
   const handleReview = async () => {
+    // Validate collected data first — ensure mandatory sections have values
+    const missing = validateData(data);
+    if (missing.length > 0) {
+      alert(`Please fill all mandatory fields in ${missing[0]}`);
+      return;
+    }
     if (!schoolProfileId) {
       alert("Please save School Basic Details first before reviewing.");
       return;

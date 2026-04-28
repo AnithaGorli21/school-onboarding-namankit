@@ -701,6 +701,55 @@ function SchoolApp({ role }) {
     }
   };
 
+  // Helper: deep-check if an object has any meaningful (non-empty) value
+  const hasFilled = (obj) => {
+    if (obj == null) return false;
+    if (typeof obj === 'string') return obj.trim() !== '';
+    if (typeof obj === 'number' || typeof obj === 'boolean') return true;
+    if (Array.isArray(obj)) return obj.length > 0 && obj.some(hasFilled);
+    if (typeof obj === 'object') {
+      return Object.keys(obj).length > 0 && Object.values(obj).some(hasFilled);
+    }
+    return false;
+  };
+
+  const SECTION_ORDER = [
+    ['schoolBasic', 'School Basic Details'],
+    ['landDetails', 'Land Details'],
+    ['hostelDetails', 'Hostel Details'],
+    ['diningDetails', 'Dining Facilities Details'],
+    ['labDetails', 'Lab Details'],
+    ['libraryDetails', 'Library Details'],
+    ['teacherDetails', 'Teachers Details'],
+    ['extraCurriculum', 'Extra Curriculum Activities'],
+    ['sportsDetails', 'Sports Facilities'],
+    ['medicalDetails', 'Medical Facilities'],
+    ['feeMaster', 'Profile FeeMaster'],
+    ['bankDetails', 'School Bank Details'],
+  ];
+
+  const validateMasterData = (data) => {
+    const missing = [];
+    for (const [key, label] of SECTION_ORDER) {
+      if (!hasFilled(data[key])) missing.push(label);
+    }
+    return missing;
+  };
+
+  const handleTabChange = (tab) => {
+    if (tab === 'Final Submit') {
+      const missing = validateMasterData(masterData);
+      if (missing.length > 0) {
+        alert(`Please fill all mandatory fields in ${missing[0]}`);
+        setActiveTab(missing[0])
+        return;
+      } else {
+        setActiveTab('Final Submit');
+      }
+    }
+    setActiveTab(tab);
+  };
+
   const renderScreen = () => {
     switch (screen) {
       case "schoolList":
@@ -728,7 +777,7 @@ function SchoolApp({ role }) {
                 </span>
               )}
             </div>
-            <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+            <TabNav activeTab={activeTab} onTabChange={handleTabChange} />
             <div style={{ background: "#f0f4f5", flex: 1 }}>{renderTab()}</div>
           </div>
         );
