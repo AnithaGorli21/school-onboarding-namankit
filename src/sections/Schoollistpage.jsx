@@ -11,12 +11,12 @@ import React, { useState, useEffect } from "react";
 import { getAllSchools } from "../api/liferay";
 
 export default function SchoolListPage({ onEdit }) {
-  const [schools,   setSchools]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
-  const [search,    setSearch]    = useState("");
-  const [page,      setPage]      = useState(1);
-  const [pageSize,  setPageSize]  = useState(5);
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   useEffect(() => {
     setLoading(true);
@@ -30,13 +30,13 @@ export default function SchoolListPage({ onEdit }) {
     const q = search.toLowerCase();
     return (
       (s.schoolName || "").toLowerCase().includes(q) ||
-      (s.udiseCode  || "").toLowerCase().includes(q) ||
-      (s.address    || "").toLowerCase().includes(q)
+      (s.udiseCode || "").toLowerCase().includes(q) ||
+      (s.address || "").toLowerCase().includes(q)
     );
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged      = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const goTo = (p) => setPage(Math.min(Math.max(1, p), totalPages));
 
