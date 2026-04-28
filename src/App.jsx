@@ -646,9 +646,9 @@ const SCHOOL_NAV = [
 
 function SchoolApp({ role }) {
   const path = window.location.pathname;
-  if (path === "/school-registration" || path === "/") {
-    return <SchoolMasterForm />;
-  }
+  // if (path !== "/school-registration" || path !== "/") {
+  //   return <SchoolMasterForm />;
+  // }
   if (path === "/preview") return <PreviewPage />;
 
   const [screen, setScreen] = useState("schoolList");

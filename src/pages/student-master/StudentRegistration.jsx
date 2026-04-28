@@ -232,10 +232,10 @@ export default function StudentRegistration() {
     }, [form.village]);
 
     return (
-        <div style={{ fontFamily: "var(--font-main)", background: "#fff" }}>
+        <div style={{ fontFamily: "var(--font-main)", background: "rgb(240, 244, 245)" }}>
             <Header />
             {/* <PageHeader title="Student Registration" /> */}
-            <div style={{ padding: "18px 24px" }}>
+            <div style={{ padding: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", marginBottom: '5px', gap: 12 }}>
                     <div
                         style={{
@@ -252,41 +252,27 @@ export default function StudentRegistration() {
                     >
                         📘
                     </div>
-                    <h1 style={{ margin: 0, color: "#1a2a5e", fontWeight: '400' }}>
+                    <h5 style={{ margin: 0, color: "#1a2a5e", fontWeight: '400' }}>
                         STUDENT REGISTRATION
-                    </h1>
+                    </h5>
                 </div>
 
-                <hr
-                    style={{
-                        border: "none",
-                        height: "1.5px",
-                        backgroundColor: "#e6e6e6",
-                        margin: "1px 0",
-                    }}
-                />
-                <hr
-                    style={{
-                        border: "none",
-                        height: "1.5px",
-                        backgroundColor: "#e6e6e6",
-                        margin: "1px 0",
-                    }}
-                />
+
+
             </div>
 
-            <div style={{ padding: 20 }}>
-                <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+            <div style={{ padding: 0 }}>
+                <div style={{ maxWidth: "100%", margin: "0 auto", backgroundColor: 'rgb(240, 244, 245)', padding: 10 }}>
                     {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
                     <div
-                        style={{ border: "1px solid #eee", borderRadius: 4, padding: 18 }}
+                        style={{ border: "1px solid #272525", borderRadius: 4, padding: 18, backgroundColor: 'rgb(240, 244, 245)' }}
                     >
-                        <h3 style={{ margin: 0, color: "#333" }}>Student Details</h3>
+                        <h5 style={{ margin: 0, color: "#333" }}>Student Details</h5>
 
                         <div
                             style={{
-                                marginTop: 12,
-                                paddingTop: 12,
+                                marginTop: 1,
+                                paddingTop: 1,
                                 borderTop: "1px solid #f0f0f0",
                             }}
                         >
@@ -298,15 +284,16 @@ export default function StudentRegistration() {
                                             color: "#e53935",
                                             fontWeight: 700,
                                             marginBottom: 6,
+                                            fontSize: 12
                                         }}
                                     >
                                         Note: School :Approval Pending
                                     </div>
-                                    <h4
+                                    <h6
                                         style={{ color: "#17a2b8", marginTop: 4, marginBottom: 6 }}
                                     >
                                         Applicant Photo
-                                    </h4>
+                                    </h6>
                                     <div
                                         style={{
                                             height: 1,
@@ -718,7 +705,10 @@ export default function StudentRegistration() {
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: 14 }}>
+                                <div style={{
+                                    marginTop: 14, display: 'flex', flexDirection: 'row', justifyContent: 'flex-start',
+                                    alignItems: "baseline"
+                                }}>
                                     <label style={{ fontSize: 13 }}>
                                         Mother's Name <span style={{ color: "#e53935" }}>*</span>
                                     </label>
@@ -729,6 +719,7 @@ export default function StudentRegistration() {
                                             marginTop: 6,
                                             border: "1px solid #ddd",
                                             borderRadius: 4,
+                                            marginLeft: 10
                                         }}
                                         name="mothersName"
                                         value={form.mothersName || ""}
@@ -1167,7 +1158,7 @@ export default function StudentRegistration() {
                                     style={{
                                         marginTop: 12,
                                         display: "grid",
-                                        gridTemplateColumns: "1fr 1fr",
+                                        gridTemplateColumns: "1fr 1fr 1fr",
                                         gap: 12,
                                     }}
                                 >
@@ -1211,32 +1202,35 @@ export default function StudentRegistration() {
                                             ))}
                                         </select>
                                     </div>
+                                    <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: 'flex-start', alignItems: 'flex-end' }}>
+                                        <button
+                                            style={{
+                                                background: "#28a745",
+                                                color: "#fff",
+                                                border: "none",
+                                                width: 100,
+                                                height: 30,
+                                                borderRadius: 4,
+                                            }}
+                                        >
+                                            Search
+                                        </button>
+                                        <button
+                                            style={{
+                                                background: "#28a745",
+                                                color: "#fff",
+                                                border: "none",
+                                                width: 100,
+                                                height: 30,
+                                                borderRadius: 4,
+                                            }}
+                                        >
+                                            Export to Excel
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                                    <button
-                                        style={{
-                                            background: "#28a745",
-                                            color: "#fff",
-                                            border: "none",
-                                            padding: "8px 12px",
-                                            borderRadius: 4,
-                                        }}
-                                    >
-                                        Search
-                                    </button>
-                                    <button
-                                        style={{
-                                            background: "#28a745",
-                                            color: "#fff",
-                                            border: "none",
-                                            padding: "8px 12px",
-                                            borderRadius: 4,
-                                        }}
-                                    >
-                                        Export to Excel
-                                    </button>
-                                </div>
+
                             </div>
 
                             <div
