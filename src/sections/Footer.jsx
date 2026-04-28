@@ -3,8 +3,10 @@
 //  Exact match to original footer — appears on every page
 //  Left:  Copyright © Tribal Department, Maharashtra...
 //  Right: Maintained by MahaOnline limited + logo
-// ============================================================
 
+import React from "react";
+
+// ============================================================
 const MAHAONLINE_LOGO = "https://testsnamankit.mahaitgov.in/Images/MahaOnline_LogoM1.png";
 
 export default function Footer() {

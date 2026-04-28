@@ -4,7 +4,7 @@
 //  PO Marks + PO Remarks = READ ONLY
 //  ATC fills: ATC Marks, ATC Remarks, No. of Proposed Students
 // ============================================================
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
 

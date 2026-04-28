@@ -5,7 +5,7 @@
 //  On mount: loads existing fee rows by schoolProfileId
 //  On save:  POST new rows, PATCH existing rows
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
 import { getPicklist } from "../api/liferay";
 
@@ -63,30 +63,30 @@ function useInjectStyles() {
 export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId }) {
   useInjectStyles();
 
-  const [feesPerStudentST,      setFeesPerStudentST]      = useState(0);
+  const [feesPerStudentST, setFeesPerStudentST] = useState(0);
   const [feesPerStudentGeneral, setFeesPerStudentGeneral] = useState(0);
-  const [input,          setInput]          = useState(emptyInput);
-  const [inputErr,       setInputErr]       = useState("");
-  const [rows,           setRows]           = useState([]);
-  const [receiptFile,    setReceiptFile]    = useState(null);
+  const [input, setInput] = useState(emptyInput);
+  const [inputErr, setInputErr] = useState("");
+  const [rows, setRows] = useState([]);
+  const [receiptFile, setReceiptFile] = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
-  const [saving,         setSaving]         = useState(false);
-  const [alert,          setAlert]          = useState(null);
-  const [loadingData,    setLoadingData]    = useState(false);
-  const [feeTypeOpts,    setFeeTypeOpts]    = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [feeTypeOpts, setFeeTypeOpts] = useState([]);
 
   // ── Load Fee Type picklist ───────────────────────────────
   useEffect(() => {
     getPicklist("DBT-NAMANKIT-SPORTS-FACILITY-FEES")
       .then(setFeeTypeOpts)
       .catch(() => setFeeTypeOpts([
-        { value: "AdmissionFee",  label: "Admission Fee" },
-        { value: "TuitionFee",    label: "Tuition Fee" },
-        { value: "ExaminationFee",label: "Examination Fee" },
-        { value: "LibraryFee",    label: "Library Fee" },
+        { value: "AdmissionFee", label: "Admission Fee" },
+        { value: "TuitionFee", label: "Tuition Fee" },
+        { value: "ExaminationFee", label: "Examination Fee" },
+        { value: "LibraryFee", label: "Library Fee" },
         { value: "LaboratoryFee", label: "Laboratory Fee" },
-        { value: "SportsFee",     label: "Sports Fee" },
-        { value: "Other",         label: "Other" },
+        { value: "SportsFee", label: "Sports Fee" },
+        { value: "Other", label: "Other" },
       ]));
   }, []);
 
@@ -106,7 +106,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId 
 
   // ── Recompute totals when rows change ─────────────────────
   useEffect(() => {
-    const st      = rows.reduce((s, r) => s + (parseFloat(r.itemFeesTDD)     || 0), 0);
+    const st = rows.reduce((s, r) => s + (parseFloat(r.itemFeesTDD) || 0), 0);
     const general = rows.reduce((s, r) => s + (parseFloat(r.itemFeesGeneral) || 0), 0);
     setFeesPerStudentST(st);
     setFeesPerStudentGeneral(general);

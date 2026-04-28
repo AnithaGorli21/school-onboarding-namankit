@@ -10,7 +10,7 @@
 //  - Actual Bathrooms/Washrooms: mandatory (rows 79,81)
 //  - Photo: mandatory (row 82)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
@@ -21,41 +21,41 @@ import { loadHostelDetails, submitHostelDetails, mapRecordToForm } from "../api/
 const YES_NO = ["Yes", "No"];
 
 const HOT_WATER_OPTIONS = [
-  { key: "solarWaterheater",   label: "Solar Waterheater" },
-  { key: "gasElectric",        label: "Gas/Electric" },
+  { key: "solarWaterheater", label: "Solar Waterheater" },
+  { key: "gasElectric", label: "Gas/Electric" },
   { key: "traditionalSources", label: "Traditional Sources" },
-  { key: "notAvailable",       label: "Not Available" },
+  { key: "notAvailable", label: "Not Available" },
 ];
 
 const emptyForm = {
-  studentsClass1to4:           "",
-  femaleCaretakers1to4:        "",
-  availabilityIncinerators:    "",
-  washingMachine:              "",
-  separateHostelBuilding:      "",
-  areaInSqFt:                  "",
-  lightFanBedding:             "",
-  hotWater_solarWaterheater:   false,
-  hotWater_gasElectric:        false,
+  studentsClass1to4: "",
+  femaleCaretakers1to4: "",
+  availabilityIncinerators: "",
+  washingMachine: "",
+  separateHostelBuilding: "",
+  areaInSqFt: "",
+  lightFanBedding: "",
+  hotWater_solarWaterheater: false,
+  hotWater_gasElectric: false,
   hotWater_traditionalSources: false,
-  hotWater_notAvailable:       false,
-  totalBoysHostels:            "",
-  capacityBoysHostels:         "",
-  totalGirlsHostels:           "",
-  capacityGirlsHostels:        "",
-  actualBathrooms:             "",
-  actualWashrooms:             "",
+  hotWater_notAvailable: false,
+  totalBoysHostels: "",
+  capacityBoysHostels: "",
+  totalGirlsHostels: "",
+  capacityGirlsHostels: "",
+  actualBathrooms: "",
+  actualWashrooms: "",
 };
 
 export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [form,         setForm]         = useState(emptyForm);
-  const [photoFile,    setPhotoFile]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [saving,       setSaving]       = useState(false);
-  const [alert,        setAlert]        = useState(null);
-  const [errors,       setErrors]       = useState({});
-  const [recordId,     setRecordId]     = useState(null);
-  const [loadingData,  setLoadingData]  = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -74,15 +74,15 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
 
   // ── Auto-calculated values ────────────────────────────────
   // Row 75 — Grand Total Number of Hostels
-  const grandTotalHostels  = (Number(form.totalBoysHostels)    || 0) + (Number(form.totalGirlsHostels)    || 0);
+  const grandTotalHostels = (Number(form.totalBoysHostels) || 0) + (Number(form.totalGirlsHostels) || 0);
   // Row 76 — Grand Total Capacity
   const grandTotalCapacity = (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
   // Row 77 — Total Residential Students = Grand Total Capacity
   const totalResidentialStudents = grandTotalCapacity;
   // Row 78 — Expected Bathrooms (1 per 20 students)
-  const expectedBathrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedBathrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
   // Row 80 — Expected Washrooms (1 per 20 students)
-  const expectedWashrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedWashrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];

@@ -2,7 +2,7 @@
 //  src/sections/POApprovalList.jsx
 //  PO School Approval List — filter by NEW/OLD, search, grading
 // ============================================================
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getAllSchoolsForPO } from "../api/poGrading";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };

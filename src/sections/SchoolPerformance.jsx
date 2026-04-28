@@ -5,7 +5,7 @@
 //  - Students Passed cannot exceed Students Appeared
 //  - "Any Other" standard requires text in Others field
 // ============================================================
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Field, SelectInput, TextInput,
   SectionHeading, Row3, BtnAdd, Alert,
@@ -13,11 +13,11 @@ import {
 import { validatePerformanceRow } from "../utils/validate";
 
 const YEAR_OPTIONS = [
-  "2020-2021","2021-2022","2022-2023","2023-2024","2024-2025",
+  "2020-2021", "2021-2022", "2022-2023", "2023-2024", "2024-2025",
 ];
 
 // Excel row 37: DDL Value - HSC, SSC, Scholarship, MTS, NTS, Any Other
-const STANDARD_OPTIONS = ["SSC","HSC","Scholarship","MTS","NTS","Any Other"];
+const STANDARD_OPTIONS = ["SSC", "HSC", "Scholarship", "MTS", "NTS", "Any Other"];
 
 const th = {
   padding: "9px 12px",
@@ -39,7 +39,7 @@ const errStyle = {
 };
 
 export default function SchoolPerformance({ rows, setRows, perfError }) {
-  const [newRow,    setNewRow]    = useState({
+  const [newRow, setNewRow] = useState({
     year: "", standard: "", others: "", studentsAppeared: "", studentsPassed: "",
   });
   const [rowErrors, setRowErrors] = useState({});
@@ -152,7 +152,7 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr>
-                {["Sr No","Year","Standard","Others","No of Students Appeared","No of Students Passed","Delete"]
+                {["Sr No", "Year", "Standard", "Others", "No of Students Appeared", "No of Students Passed", "Delete"]
                   .map((h) => <th key={h} style={th}>{h}</th>)}
               </tr>
             </thead>

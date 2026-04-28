@@ -21,7 +21,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 
 // ─── Field resolution helpers ────────────────────────────────
 
@@ -32,11 +32,11 @@ import { useState, useEffect, useCallback } from 'react';
 function firstOf(item, ...keys) {
   for (const key of keys) {
     const v = item[key];
-    if (v !== undefined && v !== null && String(v).trim() !== '') {
+    if (v !== undefined && v !== null && String(v).trim() !== "") {
       return String(v).trim();
     }
   }
-  return '';
+  return "";
 }
 
 /**
@@ -44,13 +44,24 @@ function firstOf(item, ...keys) {
  * which key the backend uses (id, ID, value, stateId, …).
  */
 export function resolveId(item) {
-  if (!item || typeof item !== 'object') return '';
-  return firstOf(item,
-    'id', 'ID', 'Id',
-    'value', 'Value',
-    'stateId', 'districtId', 'talukaId', 'villageId',
-    'stateID', 'districtID', 'talukaID', 'villageID',
-    'code', 'Code',
+  if (!item || typeof item !== "object") return "";
+  return firstOf(
+    item,
+    "id",
+    "ID",
+    "Id",
+    "value",
+    "Value",
+    "stateId",
+    "districtId",
+    "talukaId",
+    "villageId",
+    "stateID",
+    "districtID",
+    "talukaID",
+    "villageID",
+    "code",
+    "Code",
   );
 }
 
@@ -59,13 +70,21 @@ export function resolveId(item) {
  * which key the backend uses (name, label, title, …).
  */
 export function resolveLabel(item) {
-  if (!item || typeof item !== 'object') return '';
-  return firstOf(item,
-    'name', 'Name',
-    'label', 'Label',
-    'title', 'Title',
-    'stateName', 'districtName', 'talukaName', 'villageName',
-    'description', 'Description',
+  if (!item || typeof item !== "object") return "";
+  return firstOf(
+    item,
+    "name",
+    "Name",
+    "label",
+    "Label",
+    "title",
+    "Title",
+    "stateName",
+    "districtName",
+    "talukaName",
+    "villageName",
+    "description",
+    "Description",
   );
 }
 
@@ -74,7 +93,7 @@ export function resolveLabel(item) {
 /** Sort an array of normalised { id, name, raw } items A→Z by name. */
 export function sortByName(items) {
   return [...items].sort((a, b) =>
-    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+    a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
   );
 }
 
@@ -87,11 +106,11 @@ export function normalizeItems(items) {
   return sortByName(
     items
       .map((item) => ({
-        id:   resolveId(item),
+        id: resolveId(item),
         name: resolveLabel(item),
-        raw:  item,
+        raw: item,
       }))
-      .filter((item) => item.id && item.name)
+      .filter((item) => item.id && item.name),
   );
 }
 
@@ -99,19 +118,30 @@ export function normalizeItems(items) {
 // Kept here so the form never needs to know which key the API uses.
 
 export function extractStateCodeCensus(raw = {}) {
-  return firstOf(raw, 'statecodecensus', 'stateCodeCensus', 'stateCensus', 'statecode');
+  return firstOf(
+    raw,
+    "statecodecensus",
+    "stateCodeCensus",
+    "stateCensus",
+    "statecode",
+  );
 }
 
 export function extractDistrictCode(raw = {}) {
-  return firstOf(raw, 'districtCode', 'districtcode', 'districtCodeCensus');
+  return firstOf(raw, "districtCode", "districtcode", "districtCodeCensus");
 }
 
 export function extractDistrictCodeCensus(raw = {}) {
-  return firstOf(raw, 'districtcodecensus', 'districtCodeCensus', 'districtCensus');
+  return firstOf(
+    raw,
+    "districtcodecensus",
+    "districtCodeCensus",
+    "districtCensus",
+  );
 }
 
 export function extractTalukaCodeCensus(raw = {}) {
-  return firstOf(raw, 'talukacodecensus', 'talukaCodeCensus', 'talukaCensus');
+  return firstOf(raw, "talukacodecensus", "talukaCodeCensus", "talukaCensus");
 }
 
 // ─── Custom hook ─────────────────────────────────────────────
@@ -154,16 +184,16 @@ export function useLocationCascade({
   fetchVillagesByTaluka,
 }) {
   // ── Normalised dropdown data
-  const [states,    setStates]    = useState([]);
+  const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [talukas,   setTalukas]   = useState([]);
-  const [villages,  setVillages]  = useState([]);
+  const [talukas, setTalukas] = useState([]);
+  const [villages, setVillages] = useState([]);
 
   // ── Loading flags
-  const [isLoadingStates,    setIsLoadingStates]    = useState(false);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
-  const [isLoadingTalukas,   setIsLoadingTalukas]   = useState(false);
-  const [isLoadingVillages,  setIsLoadingVillages]  = useState(false);
+  const [isLoadingTalukas, setIsLoadingTalukas] = useState(false);
+  const [isLoadingVillages, setIsLoadingVillages] = useState(false);
 
   // ── Load states once on mount ──────────────────────────────
   useEffect(() => {
@@ -175,7 +205,7 @@ export function useLocationCascade({
         const items = await getStates();
         if (!cancelled) setStates(normalizeItems(items));
       } catch (err) {
-        console.error('[locationUtils] loadStates failed:', err);
+        console.error("[locationUtils] loadStates failed:", err);
         if (!cancelled) setStates([]);
       } finally {
         if (!cancelled) setIsLoadingStates(false);
@@ -183,7 +213,9 @@ export function useLocationCascade({
     }
 
     loadStates();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [getStates]);
 
   // ── Cascade: state → districts ─────────────────────────────
@@ -199,13 +231,15 @@ export function useLocationCascade({
 
     async function loadDistricts() {
       try {
-        const selectedState = states.find((item) => item.name === schoolData.state);
+        const selectedState = states.find(
+          (item) => item.name === schoolData.state,
+        );
         if (!selectedState) return;
 
         const items = await fetchDistrictsByState(selectedState.id);
         if (!cancelled) setDistricts(normalizeItems(items));
       } catch (err) {
-        console.error('[locationUtils] loadDistricts failed:', err);
+        console.error("[locationUtils] loadDistricts failed:", err);
         if (!cancelled) setDistricts([]);
       } finally {
         if (!cancelled) setIsLoadingDistricts(false);
@@ -213,7 +247,9 @@ export function useLocationCascade({
     }
 
     loadDistricts();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [schoolData.state, states, fetchDistrictsByState]);
 
   // ── Cascade: district → talukas ────────────────────────────
@@ -229,13 +265,15 @@ export function useLocationCascade({
 
     async function loadTalukas() {
       try {
-        const selectedDistrict = districts.find((item) => item.name === schoolData.district);
+        const selectedDistrict = districts.find(
+          (item) => item.name === schoolData.district,
+        );
         if (!selectedDistrict) return;
 
         const items = await fetchTalukasByDistrict(selectedDistrict.id);
         if (!cancelled) setTalukas(normalizeItems(items));
       } catch (err) {
-        console.error('[locationUtils] loadTalukas failed:', err);
+        console.error("[locationUtils] loadTalukas failed:", err);
         if (!cancelled) setTalukas([]);
       } finally {
         if (!cancelled) setIsLoadingTalukas(false);
@@ -243,7 +281,9 @@ export function useLocationCascade({
     }
 
     loadTalukas();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [schoolData.district, districts, fetchTalukasByDistrict]);
 
   // ── Cascade: taluka → villages ─────────────────────────────
@@ -259,13 +299,15 @@ export function useLocationCascade({
 
     async function loadVillages() {
       try {
-        const selectedTaluka = talukas.find((item) => item.name === schoolData.taluka);
+        const selectedTaluka = talukas.find(
+          (item) => item.name === schoolData.taluka,
+        );
         if (!selectedTaluka) return;
 
         const items = await fetchVillagesByTaluka(selectedTaluka.id);
         if (!cancelled) setVillages(normalizeItems(items));
       } catch (err) {
-        console.error('[locationUtils] loadVillages failed:', err);
+        console.error("[locationUtils] loadVillages failed:", err);
         if (!cancelled) setVillages([]);
       } finally {
         if (!cancelled) setIsLoadingVillages(false);
@@ -273,7 +315,9 @@ export function useLocationCascade({
     }
 
     loadVillages();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [schoolData.taluka, talukas, fetchVillagesByTaluka]);
 
   // ── handleLocationSelect ────────────────────────────────────
@@ -284,73 +328,76 @@ export function useLocationCascade({
    * @param {'state'|'district'|'taluka'|'village'} field
    * @param {{ label?, name?, value?, id?, raw? } | null} option
    */
-  const handleLocationSelect = useCallback((field, option = null) => {
-    const value = option ? (option.label || option.name || '') : '';
-    const id    = option ? (option.value || option.id    || '') : '';
-    const raw   = option?.raw || {};
+  const handleLocationSelect = useCallback(
+    (field, option = null) => {
+      const value = option ? option.label || option.name || "" : "";
+      const id = option ? option.value || option.id || "" : "";
+      const raw = option?.raw || {};
 
-    setSchoolData((prev) => {
-      const next = {
+      setSchoolData((prev) => {
+        const next = {
+          ...prev,
+          [field]: value,
+          [`${field}Id`]: id,
+        };
+
+        if (field === "state") {
+          next.stateName = value;
+          next.statecodecensus = extractStateCodeCensus(raw);
+          // Clear downstream
+          next.district = "";
+          next.districtId = "";
+          next.districtName = "";
+          next.districtCode = "";
+          next.districtcodecensus = "";
+          next.taluka = "";
+          next.talukaId = "";
+          next.talukaName = "";
+          next.talukacodecensus = "";
+          next.village = "";
+          next.villageId = "";
+          next.villageName = "";
+        }
+
+        if (field === "district") {
+          next.districtName = value;
+          next.districtCode = extractDistrictCode(raw);
+          next.districtcodecensus = extractDistrictCodeCensus(raw);
+          // Clear downstream
+          next.taluka = "";
+          next.talukaId = "";
+          next.talukaName = "";
+          next.talukacodecensus = "";
+          next.village = "";
+          next.villageId = "";
+          next.villageName = "";
+        }
+
+        if (field === "taluka") {
+          next.talukaName = value;
+          next.talukacodecensus = extractTalukaCodeCensus(raw);
+          // Clear downstream
+          next.village = "";
+          next.villageId = "";
+          next.villageName = "";
+        }
+
+        if (field === "village") {
+          next.villageName = value;
+        }
+
+        return next;
+      });
+
+      // Clear existing error for this field immediately,
+      // then run fresh validation on the new value.
+      setErrors((prev) => ({
         ...prev,
-        [field]:         value,
-        [`${field}Id`]:  id,
-      };
-
-      if (field === 'state') {
-        next.stateName          = value;
-        next.statecodecensus    = extractStateCodeCensus(raw);
-        // Clear downstream
-        next.district           = '';
-        next.districtId         = '';
-        next.districtName       = '';
-        next.districtCode       = '';
-        next.districtcodecensus = '';
-        next.taluka             = '';
-        next.talukaId           = '';
-        next.talukaName         = '';
-        next.talukacodecensus   = '';
-        next.village            = '';
-        next.villageId          = '';
-        next.villageName        = '';
-      }
-
-      if (field === 'district') {
-        next.districtName       = value;
-        next.districtCode       = extractDistrictCode(raw);
-        next.districtcodecensus = extractDistrictCodeCensus(raw);
-        // Clear downstream
-        next.taluka             = '';
-        next.talukaId           = '';
-        next.talukaName         = '';
-        next.talukacodecensus   = '';
-        next.village            = '';
-        next.villageId          = '';
-        next.villageName        = '';
-      }
-
-      if (field === 'taluka') {
-        next.talukaName         = value;
-        next.talukacodecensus   = extractTalukaCodeCensus(raw);
-        // Clear downstream
-        next.village            = '';
-        next.villageId          = '';
-        next.villageName        = '';
-      }
-
-      if (field === 'village') {
-        next.villageName = value;
-      }
-
-      return next;
-    });
-
-    // Clear existing error for this field immediately,
-    // then run fresh validation on the new value.
-    setErrors((prev) => ({
-      ...prev,
-      [field]: validateField ? validateField(field, value) : '',
-    }));
-  }, [setSchoolData, setErrors, validateField]);
+        [field]: validateField ? validateField(field, value) : "",
+      }));
+    },
+    [setSchoolData, setErrors, validateField],
+  );
 
   // ── Return ──────────────────────────────────────────────────
   return {

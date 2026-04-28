@@ -5,7 +5,7 @@
 //  On mount: loads existing teacher rows by schoolProfileId
 //  On save:  POST new rows, PATCH existing rows (by liferayId)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3,
@@ -19,38 +19,38 @@ import { getPicklist, getQualifications } from "../api/liferay";
 // QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
 const themeStyles = {
-  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
-  radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
+  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
+  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
+  radioGroup: { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
   checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
-  addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
+  addBtn: { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
 };
 
 const emptyRow = {
-  name:                                    "",
-  highestQualification:                    "",
-  mediumOfEducationTillStd10thId:          "",
-  mediumOfEducationForDegreeId:            "",
+  name: "",
+  highestQualification: "",
+  mediumOfEducationTillStd10thId: "",
+  mediumOfEducationForDegreeId: "",
   mediumForEducationForBedDedBPedBedPhyId: "",
-  yearOfExperience:                        "",
-  subject1Id:                              "",
-  subject2Id:                              "",
-  isSportsBPed:                            false,
-  genderId:                                "",
-  teacherDetailStatus:                     "",
+  yearOfExperience: "",
+  subject1Id: "",
+  subject2Id: "",
+  isSportsBPed: false,
+  genderId: "",
+  teacherDetailStatus: "",
 };
 
 export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [rows,        setRows]        = useState([]);
-  const [newRow,      setNewRow]      = useState(emptyRow);
-  const [page,        setPage]        = useState(1);
-  const [pageSize,    setPageSize]    = useState(10);
-  const [alert,       setAlert]       = useState(null);
-  const [saving,      setSaving]      = useState(false);
-  const [loadingData,  setLoadingData]  = useState(false);
+  const [rows, setRows] = useState([]);
+  const [newRow, setNewRow] = useState(emptyRow);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [alert, setAlert] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [qualificationOpts, setQualificationOpts] = useState([]);
-  const [mediumOpts,        setMediumOpts]        = useState([]);
-  const [subjectOpts,  setSubjectOpts]  = useState([]);
+  const [mediumOpts, setMediumOpts] = useState([]);
+  const [subjectOpts, setSubjectOpts] = useState([]);
 
   // ── Load existing rows on mount ───────────────────────────
   useEffect(() => {
@@ -71,8 +71,8 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
     getQualifications()
       .then(setQualificationOpts)
       .catch(() => setQualificationOpts(
-        ["SSC","HSC","D.Ed","B.Ed","M.Ed","B.A","B.Sc","M.A","M.Sc","PhD"]
-        .map(q => ({ value: q, label: q }))
+        ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"]
+          .map(q => ({ value: q, label: q }))
       ));
   }, []);
 
@@ -83,9 +83,9 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
       .catch(() => setMediumOpts([
         { value: "English", label: "English" },
         { value: "Marathi", label: "Marathi" },
-        { value: "Hindi",   label: "Hindi" },
-        { value: "Urdu",    label: "Urdu" },
-        { value: "Other",   label: "Other" },
+        { value: "Hindi", label: "Hindi" },
+        { value: "Urdu", label: "Urdu" },
+        { value: "Other", label: "Other" },
       ]));
   }, []);
 
@@ -93,14 +93,14 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
     getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS")
       .then(setSubjectOpts)
       .catch(() => setSubjectOpts([
-        { value: "Mathematics",   label: "Mathematics" },
-        { value: "Science",       label: "Science" },
-        { value: "English",       label: "English" },
-        { value: "Marathi",       label: "Marathi" },
-        { value: "Hindi",         label: "Hindi" },
-        { value: "Social Science",label: "Social Science" },
-        { value: "Sanskrit",      label: "Sanskrit" },
-        { value: "P.E.",          label: "P.E." },
+        { value: "Mathematics", label: "Mathematics" },
+        { value: "Science", label: "Science" },
+        { value: "English", label: "English" },
+        { value: "Marathi", label: "Marathi" },
+        { value: "Hindi", label: "Hindi" },
+        { value: "Social Science", label: "Social Science" },
+        { value: "Sanskrit", label: "Sanskrit" },
+        { value: "P.E.", label: "P.E." },
       ]));
   }, []);
 

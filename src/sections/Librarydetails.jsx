@@ -2,7 +2,7 @@
 //  src/sections/Librarydetails.jsx
 //  UI only — API logic in src/api/libraryDetails.js
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3,
@@ -13,29 +13,29 @@ import { loadLibraryDetails, submitLibraryDetails, mapRecordToForm } from "../ap
 const YES_NO = ["Yes", "No"];
 
 const themeStyles = {
-  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)" },
-  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
+  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)" },
+  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   uploadSection: { marginTop: "28px", borderTop: "1px solid var(--divider-color, #cccccc)", paddingTop: "20px" },
-  sectionTitle:  { fontSize: "16px", fontWeight: "400", color: "var(--text-primary, #333)", marginBottom: "14px" },
-  noteText:      { color: "var(--error-color, #cc0000)", fontSize: "13px", marginBottom: "14px" },
-  fileInput:     { fontSize: "13px", padding: "4px 0" },
-  buttonRow:     { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" },
+  sectionTitle: { fontSize: "16px", fontWeight: "400", color: "var(--text-primary, #333)", marginBottom: "14px" },
+  noteText: { color: "var(--error-color, #cc0000)", fontSize: "13px", marginBottom: "14px" },
+  fileInput: { fontSize: "13px", padding: "4px 0" },
+  buttonRow: { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" },
 };
 
 const emptyForm = {
-  separateLibrary:           "",
+  separateLibrary: "",
   areamin200FtWithFurniture: "",
-  actualArea:                "",
-  noOfBooks:                 "",
+  actualArea: "",
+  noOfBooks: "",
 };
 
 export default function LibraryDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [form,        setForm]        = useState(emptyForm);
-  const [photoFile,   setPhotoFile]   = useState(null);
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [errors,      setErrors]      = useState({});
-  const [recordId,    setRecordId]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
@@ -69,10 +69,10 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId })
 
   const validate = () => {
     const e = {};
-    if (!form.separateLibrary)           e.separateLibrary           = "Required";
+    if (!form.separateLibrary) e.separateLibrary = "Required";
     if (!form.areamin200FtWithFurniture) e.areamin200FtWithFurniture = "Required";
-    if (!form.noOfBooks)                 e.noOfBooks                 = "Required";
-    if (!photoFile && !recordId)         e.photo                     = "Library photo is required";
+    if (!form.noOfBooks) e.noOfBooks = "Required";
+    if (!photoFile && !recordId) e.photo = "Library photo is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };

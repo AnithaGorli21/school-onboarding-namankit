@@ -2,7 +2,7 @@
 //  src/sections/POGrading.jsx
 //  School Profile Grading — 28 questions, PO marks, auto totals
 // ============================================================
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
 
@@ -187,7 +187,7 @@ const styles = {
   btn: (bg, color = "#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
 };
 
-export default function POGrading({ school, onBack, selectedSchool }) {
+export default function POGrading({ school, onBack }) {
   const [schoolData, setSchoolData] = useState(null);
   const [gradingRecordId, setGradingRecordId] = useState(null);
   const [existingQs, setExistingQs] = useState([]);
@@ -262,12 +262,12 @@ export default function POGrading({ school, onBack, selectedSchool }) {
 
       await submitGrading({
         schoolProfileId: school.id,
-        questions: sanitizedQuestions,
+        questions: questionData,
         poRemarksSummary,
-        totalMarks: sanitizedTotal,
-        assignedFees: sanitizedAssignedFees,
+        totalMarks,
+        assignedFees,
         tddFees: TDD_FEES,
-        finalFees: sanitizedFinalFees,
+        finalFees,
         approvalStatus,
         gradingRecordId,
         existingQuestions: existingQs,

@@ -2,7 +2,7 @@
 //  src/sections/Medicalfacilities.jsx
 //  UI only — API logic in src/api/medicalDetails.js
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadMedicalDetails, submitMedicalDetails, mapRecordToForm } from "../api/MedicalDetails";
@@ -16,18 +16,18 @@ const TIME_OPTIONS = [
 ];
 
 const emptyForm = {
-  availabilitOfMedicalSickRoom:    "",
+  availabilitOfMedicalSickRoom: "",
   availabilityOfDoctorsInSchoolId: "",
-  numberOfAmbulance:               "",
-  numberOfDoctors:                 "",
-  numberOfNurse:                   "",
+  numberOfAmbulance: "",
+  numberOfDoctors: "",
+  numberOfNurse: "",
 };
 
 export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId }) {
-  const [form,        setForm]        = useState(emptyForm);
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [recordId,    setRecordId]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
