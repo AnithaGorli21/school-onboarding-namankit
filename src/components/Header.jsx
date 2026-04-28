@@ -2,7 +2,7 @@
 //  src/components/Header.jsx
 //  Pixel-perfect match to the original Tribal Dev Dept header
 // ============================================================
-
+import React from "react";
 // Left tribal logo — official URL
 const TRIBAL_LOGO = "https://testsnamankit.mahaitgov.in/Images/tribal-logo.png";
 
