@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import Footer from "./Footer";
 import Header from "../components/Header";
+import { apiPost } from "../api/liferay";
+import { uploadFileToFolder } from "../api/upload";
+import { Alert } from "../components/FormFields";
+import { validateGRDetails } from "../utils/validate";
 
 export default function ScheduleMeeting() {
     const emptyForm = { committeeDate: "", grDate: "", atcName: "", schoolType: "", grFile: null, momFile: null, description: "" };
 
     const [view, setView] = useState("list");
     const [form, setForm] = useState(emptyForm);
+    const [errors, setErrors] = useState({});
+    const [alert, setAlert] = useState(null);
 
     // sample meeting data — replace with API data as needed
     const [meetings] = useState([
@@ -43,6 +49,7 @@ export default function ScheduleMeeting() {
         const { name, value, files } = e.target;
         if (files) setForm(prev => ({ ...prev, [name]: files[0] }));
         else setForm(prev => ({ ...prev, [name]: value }));
+        setErrors((s) => ({ ...s, [name]: undefined }));
     };
 
     const handleNewMeeting = () => {
@@ -67,9 +74,65 @@ export default function ScheduleMeeting() {
         setForm(emptyForm);
     };
 
-    const handleSearch = (e) => {
+    const handleSearch = async (e) => {
         e.preventDefault();
-        console.log("Search/Save", form);
+        const errs = validateGRDetails(form);
+        setErrors(errs);
+
+        // If file-type specific errors exist for PDF requirement, show prominent alert (and browser alert to match existing UX)
+        if (errs.grFile && errs.grFile.toLowerCase().includes("pdf")) {
+            const msg = errs.grFile;
+            setAlert({ type: "error", message: msg });
+            try { window.alert(msg); } catch (e) { }
+            return;
+        }
+        if (errs.momFile && errs.momFile.toLowerCase().includes("pdf")) {
+            const msg = errs.momFile;
+            setAlert({ type: "error", message: msg });
+            try { window.alert(msg); } catch (e) { }
+            return;
+        }
+
+        if (Object.keys(errs).length > 0) return;
+
+        setAlert(null);
+        try {
+            const uploadedGR = form.grFile ? await uploadFileToFolder(form.grFile, "GR Documents") : null;
+            const uploadedMOM = form.momFile ? await uploadFileToFolder(form.momFile, "GR Documents") : null;
+
+            const payload = {
+                aTCName: form.atcName,
+                briefDescription: form.description,
+                commiteeMeetingDate: form.committeeDate,
+                gRDate: form.grDate,
+                schoolType: form.schoolType,
+                uploadGRFile: uploadedGR
+                    ? {
+                        id: uploadedGR.documentId,
+                        name: uploadedGR.title,
+                        fileURL: uploadedGR.downloadURL,
+                        fileBase64: "",
+                        folder: { externalReferenceCode: "", siteId: 0 },
+                    }
+                    : null,
+                uploadMOMFile: uploadedMOM
+                    ? {
+                        id: uploadedMOM.documentId,
+                        name: uploadedMOM.title,
+                        fileURL: uploadedMOM.downloadURL,
+                        fileBase64: "",
+                        folder: { externalReferenceCode: "", siteId: 0 },
+                    }
+                    : null,
+            };
+
+            const res = await apiPost("/o/c/grdetails", payload);
+            setAlert({ type: "success", message: `GR record saved (id=${res?.id || "-"})` });
+            setForm(emptyForm);
+        } catch (err) {
+            console.error(err);
+            setAlert({ type: "error", message: err.message || "Failed to save GR details" });
+        }
     };
 
     return (
@@ -141,15 +204,19 @@ export default function ScheduleMeeting() {
                             <button onClick={() => setView("list")} style={{ background: "#fff", color: "#1a2a5e", border: "1px solid #1a2a5e", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>← Back to List</button>
                         </div>
 
+                        {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
+
                         <form onSubmit={handleSearch}>
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 18 }}>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Committee Meeting Date <span style={{ color: "#d9534f" }}>*</span></label>
                                     <input name="committeeDate" type="date" value={form.committeeDate} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                    {errors.committeeDate && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.committeeDate}</div>}
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>GR Date <span style={{ color: "#d9534f" }}>*</span></label>
                                     <input name="grDate" type="date" value={form.grDate} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                    {errors.grDate && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.grDate}</div>}
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>ATC Name <span style={{ color: "#d9534f" }}>*</span></label>
@@ -158,6 +225,7 @@ export default function ScheduleMeeting() {
                                         <option>Thane</option>
                                         <option>Amravati</option>
                                     </select>
+                                    {errors.atcName && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.atcName}</div>}
                                 </div>
                             </div>
 
@@ -168,22 +236,26 @@ export default function ScheduleMeeting() {
                                     <option>NEW</option>
                                     <option>OLD</option>
                                 </select>
+                                {errors.schoolType && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.schoolType}</div>}
                             </div>
 
                             <div style={{ display: "flex", gap: 30, marginBottom: 18 }}>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Upload GR File <span style={{ color: "#d9534f" }}>*</span></label>
                                     <input name="grFile" type="file" onChange={handleChange} />
+                                    {errors.grFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.grFile}</div>}
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Upload MOM File <span style={{ color: "#d9534f" }}>*</span></label>
                                     <input name="momFile" type="file" onChange={handleChange} />
+                                    {errors.momFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.momFile}</div>}
                                 </div>
                             </div>
 
                             <div style={{ marginBottom: 18 }}>
                                 <label style={{ display: "block", marginBottom: 6 }}>Brief Description <span style={{ color: "#d9534f" }}>*</span></label>
                                 <textarea name="description" value={form.description} onChange={handleChange} rows={5} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                {errors.description && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.description}</div>}
                             </div>
 
                             <div style={{ display: "flex", gap: 12 }}>

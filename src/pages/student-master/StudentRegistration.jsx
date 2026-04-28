@@ -227,7 +227,8 @@ export default function StudentRegistration() {
 
     useEffect(() => {
         if (!form.village) { setPoNames([]); return; }
-        getPoNames(form.village).then(setPoNames).catch(() => setPoNames([]));
+        setPoNames(states)
+        // getPoNames(form.village).then(setPoNames).catch(() => setPoNames([]));
     }, [form.village]);
 
     return (

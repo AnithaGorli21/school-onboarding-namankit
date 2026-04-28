@@ -273,6 +273,46 @@ export function validateStudentRegistration(form) {
   return errors;
 }
 
+// ── GR Details validation ───────────────────────────────────
+export function validateGRDetails(form) {
+  const errors = {};
+  if (!form.committeeDate)
+    errors.committeeDate = "Committee meeting date is required.";
+  if (!form.grDate) errors.grDate = "GR date is required.";
+  if (form.committeeDate && form.grDate) {
+    const c = new Date(form.committeeDate);
+    const g = new Date(form.grDate);
+    if (isNaN(c.getTime()) || isNaN(g.getTime())) {
+      errors.grDate = "Invalid date format.";
+    } else if (g < c) {
+      errors.grDate = "GR date cannot be before committee meeting date.";
+    }
+  }
+
+  if (!form.atcName) errors.atcName = "Please select ATC.";
+  if (!form.schoolType) errors.schoolType = "Please select School Type.";
+  if (!form.description || !form.description.trim())
+    errors.description = "Brief description is required.";
+
+  const maxSize = 5 * 1024 * 1024; // 5 MB
+  // Only PDF allowed per requirement
+  const allowed = ["application/pdf"];
+
+  if (!form.grFile) errors.grFile = "GR file is required.";
+  else if (form.grFile.size > maxSize)
+    errors.grFile = "GR file must be <= 5MB.";
+  else if (form.grFile.type && !allowed.includes(form.grFile.type))
+    errors.grFile = "GR file should be PDF.";
+
+  if (!form.momFile) errors.momFile = "MOM file is required.";
+  else if (form.momFile.size > maxSize)
+    errors.momFile = "MOM file must be <= 5MB.";
+  else if (form.momFile.type && !allowed.includes(form.momFile.type))
+    errors.momFile = "MOM file should be PDF.";
+
+  return errors;
+}
+
 // ── Photo upload validation (row 42) ─────────────────────────
 export function validateSchoolPhoto(form) {
   const errors = {};

@@ -75,7 +75,6 @@ export const getTalukas = (districtId) =>
     `/o/c/talukas?filter=districtId eq '${districtId}'&pageSize=200&sort=name:asc`,
   ).then((d) => (d.items || []).map((r) => ({ value: r.id, label: r.name })));
 
-
 export const getVillages = (talukaId) =>
   apiFetch(
     `/o/c/villages?filter=talukaId eq '${talukaId}'&pageSize=200&sort=name:asc`,
@@ -141,6 +140,12 @@ export const patchSchoolBankDetails = (id, p) =>
   apiPatch(`/o/c/schoolbankdetails/${id}`, p);
 export const patchStudentRegistration = (id, p) =>
   apiPatch(`/o/c/studentregistarions/${id}`, p);
+
+// Fetch student registrations — used for approval list (filtered by schoolProfileId)
+export const getStudentApprovalList = (id) =>
+  apiFetch(`/o/c/studentregistarions${bySchoolMany(id)}`).then(
+    (d) => d.items || [],
+  );
 
 // ── Section GET endpoints (filtered by schoolProfileId) ───────
 // schoolProfileId = Liferay auto-generated id from namankitschoolprofiles

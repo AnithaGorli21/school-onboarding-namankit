@@ -317,6 +317,9 @@ import RestrictEntryMaster from "./sections/RestrictEntryMaster";
 import TransactionMaster from "./sections/TransactionMaster";
 import BillReport from "./sections/BillReport";
 import SchoolMasterForm from "./schools/SchoolMasterForm";
+import ScheduleMeeting from "./sections/ScheduleMeeting";
+import StudentRegistration from "./pages/student-master/StudentRegistration";
+import StudentApproval from "./pages/PO/StudentApproval";
 
 const IS_DEV = window.location.hostname === "localhost";
 
@@ -533,7 +536,7 @@ function ControllerApp({ role }) {
       case "restrictEntry": return <RestrictEntryMaster />;
       case "transactionMaster": return <TransactionMaster />;
       case "billReport": return <BillReport />;
-      case "meeting": return <ComingSoon title="State Level Meeting" />;
+      case "meeting": return <ScheduleMeeting />;
       default: return null;
     }
   };
@@ -573,7 +576,7 @@ function POApp({ role }) {
       case "poGrading":
         return <POGrading school={selectedSchool} onBack={() => setScreen("approveSchool")} />;
       case "approveStudent":
-        return <ComingSoon title="Approve Students" />;
+        return <StudentApproval />;
       default: return null;
     }
   };
@@ -612,6 +615,7 @@ function ATCApp({ role }) {
           <ATCApprovalList
             onGrading={(school) => { setSelectedSchool(school); }}
             onViewDetails={(id) => window.open(`/?schoolId=${id}`, "_blank")}
+            selectedSchool={selectedSchool}
           />
         );
       case "billGeneration": return <BillGeneration />;
@@ -729,7 +733,7 @@ function SchoolApp({ role }) {
           </div>
         );
       case "studentReg":
-        return <ComingSoon title="Student Registration" />;
+        return <StudentRegistration />;
       default: return null;
     }
   };
