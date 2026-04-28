@@ -20,7 +20,7 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
 
     // 1. Update the parent form state
     setForm((prev) => ({ ...prev, schoolPhoto: file }));
-    
+
     // 2. Generate preview URL
     setPhotoPreview(URL.createObjectURL(file));
   };
@@ -28,7 +28,7 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
   return (
     /* REMOVE Row3 from the outer wrapper to fix the layout "going up" */
     <div style={{ marginTop: 28, borderTop: "1px solid #eee", paddingTop: 20 }}>
-      
+
       <div style={{
         fontSize: 16,
         fontWeight: 400,
@@ -65,10 +65,10 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
             flexShrink: 0,
             marginTop: 10
           }}>
-            <img 
-              src={photoPreview} 
-              alt="Preview" 
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            <img
+              src={photoPreview}
+              alt="Preview"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </div>
         )}

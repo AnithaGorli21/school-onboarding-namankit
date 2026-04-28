@@ -30,34 +30,34 @@ const MAGAZINE_TYPES = [
 
 const themeStyles = {
   container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card:      { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
+  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
   addBtnRow: { display: "flex", justifyContent: "center", marginTop: "10px", marginBottom: "20px" },
 };
 
 const emptyForm = {
-  noOfPhysicalEducationPTTeacherAvailable:  "",
-  numberOfSportsPlayedOnPlayground:         "",
-  detailsOfSportsPlayedOnPlayground:        "",
+  noOfPhysicalEducationPTTeacherAvailable: "",
+  numberOfSportsPlayedOnPlayground: "",
+  detailsOfSportsPlayedOnPlayground: "",
   availOfQualifiedSportsTeacherAsPerStuCnt: "",
-  availabilityOfSeparateAuditorium:         "",
-  auditoriumAreasqFt:                       "",
-  schoolMagazine:                           "",
-  schoolMagazineTypeId:                     "",
+  availabilityOfSeparateAuditorium: "",
+  auditoriumAreasqFt: "",
+  schoolMagazine: "",
+  schoolMagazineTypeId: "",
 };
 
 export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode }) {
-  const [form,         setForm]         = useState(emptyForm);
-  const [saving,       setSaving]       = useState(false);
-  const [alert,        setAlert]        = useState(null);
-  const [recordId,     setRecordId]     = useState(null);
-  const [loadingData,  setLoadingData]  = useState(false);
-  const [yearOpts,     setYearOpts]     = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [yearOpts, setYearOpts] = useState([]);
 
   const [culturalRows, setCulturalRows] = useState([]);
-  const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
+  const [newCultural, setNewCultural] = useState({ yearId: "", programName: "", remarks: "" });
 
-  const [tourRows,     setTourRows]     = useState([]);
-  const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
+  const [tourRows, setTourRows] = useState([]);
+  const [newTour, setNewTour] = useState({ yearId: "", programName: "", place: "", purpose: "" });
 
   // ── Load Year picklist ───────────────────────────────────
   useEffect(() => {

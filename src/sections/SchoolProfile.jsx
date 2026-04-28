@@ -12,20 +12,20 @@ import {
   getStates, getDistricts, getTalukas, getVillages, getPoNames, getPicklist,
 } from "../api/liferay";
 
-const WEBSITE_OPTIONS        = ["Yes", "No"];
+const WEBSITE_OPTIONS = ["Yes", "No"];
 const SELECTION_YEAR_OPTIONS = [
-  "2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25",
+  "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
 
 export default function SchoolProfile({ form, setForm, errors }) {
-  const [states,    setStates]    = useState([]);
+  const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [talukas,   setTalukas]   = useState([]);
-  const [villages,  setVillages]  = useState([]);
-  const [poNames,   setPoNames]   = useState([]);
+  const [talukas, setTalukas] = useState([]);
+  const [villages, setVillages] = useState([]);
+  const [poNames, setPoNames] = useState([]);
   const [boardOpts, setBoardOpts] = useState([]);
-  const [areaOpts,  setAreaOpts]  = useState([]);
-  const [yearOpts,  setYearOpts]  = useState([]);
+  const [areaOpts, setAreaOpts] = useState([]);
+  const [yearOpts, setYearOpts] = useState([]);
 
   useEffect(() => {
     getStates()
@@ -58,19 +58,19 @@ export default function SchoolProfile({ form, setForm, errors }) {
   // }, [form.village]);
 
   // ✅ Temporary — load all states as PO options
-useEffect(() => {
-  getStates()
-    .then(setPoNames)
-    .catch(() => setPoNames([]));
-}, []);
+  useEffect(() => {
+    getStates()
+      .then(setPoNames)
+      .catch(() => setPoNames([]));
+  }, []);
 
   useEffect(() => {
     getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS")
       .then(setBoardOpts)
       .catch(() => setBoardOpts([
-        { value: "SSC",   label: "SSC Board" },
-        { value: "CBSE",  label: "CBSE Board" },
-        { value: "ICSE",  label: "ICSE Board" },
+        { value: "SSC", label: "SSC Board" },
+        { value: "CBSE", label: "CBSE Board" },
+        { value: "ICSE", label: "ICSE Board" },
         { value: "State", label: "State Board" },
       ]));
   }, []);
@@ -79,8 +79,8 @@ useEffect(() => {
     getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS")
       .then(setAreaOpts)
       .catch(() => setAreaOpts([
-        { value: "Rural",        label: "Rural" },
-        { value: "NagarPalika",  label: "Nagar Palika" },
+        { value: "Rural", label: "Rural" },
+        { value: "NagarPalika", label: "Nagar Palika" },
         { value: "MahaNagarPalika", label: "Maha Nagar Palika" },
       ]));
   }, []);
@@ -98,10 +98,10 @@ useEffect(() => {
 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
-  const onStateChange    = (val) => setForm((p) => ({ ...p, state: val,    district: "", taluka: "", village: "", poName: "" }));
-  const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "",   village: "", poName: "" }));
-  const onTalukaChange   = (val) => setForm((p) => ({ ...p, taluka: val,   village: "",  poName: "" }));
-  const onVillageChange  = (val) => setForm((p) => ({ ...p, village: val,  poName: "" }));
+  const onStateChange = (val) => setForm((p) => ({ ...p, state: val, district: "", taluka: "", village: "", poName: "" }));
+  const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "", village: "", poName: "" }));
+  const onTalukaChange = (val) => setForm((p) => ({ ...p, taluka: val, village: "", poName: "" }));
+  const onVillageChange = (val) => setForm((p) => ({ ...p, village: val, poName: "" }));
 
   return (
     <div>

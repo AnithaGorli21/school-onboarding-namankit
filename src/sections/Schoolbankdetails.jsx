@@ -44,24 +44,24 @@ function useInjectStyles() {
 }
 
 const emptyForm = {
-  bankName:                   "",
-  bankBranchName:             "",
-  bankIFSCCode:               "",
-  bankAccountNo:              "",
-  bankBranchAddress:          "",
+  bankName: "",
+  bankBranchName: "",
+  bankIFSCCode: "",
+  bankAccountNo: "",
+  bankBranchAddress: "",
   uploadCancelledChequeImage: null,
 };
 
 export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId }) {
   useInjectStyles();
 
-  const [form,            setForm]            = useState(emptyForm);
-  const [errors,          setErrors]          = useState({});
-  const [saving,          setSaving]          = useState(false);
-  const [alert,           setAlert]           = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
-  const [recordId,        setRecordId]        = useState(null);
-  const [loadingData,     setLoadingData]     = useState(false);
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
@@ -82,15 +82,15 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
 
   const validate = () => {
     const e = {};
-    if (!form.bankName.trim())                 e.bankName                   = "Required";
-    if (!form.bankBranchName.trim())           e.bankBranchName             = "Required";
-    if (!form.bankIFSCCode.trim())             e.bankIFSCCode               = "Required";
+    if (!form.bankName.trim()) e.bankName = "Required";
+    if (!form.bankBranchName.trim()) e.bankBranchName = "Required";
+    if (!form.bankIFSCCode.trim()) e.bankIFSCCode = "Required";
     else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
-                                               e.bankIFSCCode               = "Invalid IFSC format (e.g. SBIN0001234)";
-    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo              = "Required";
-    if (!form.bankBranchAddress.trim())        e.bankBranchAddress          = "Required";
+      e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
+    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo = "Required";
+    if (!form.bankBranchAddress.trim()) e.bankBranchAddress = "Required";
     if (!form.uploadCancelledChequeImage && !recordId)
-                                               e.uploadCancelledChequeImage = "Required";
+      e.uploadCancelledChequeImage = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };

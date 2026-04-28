@@ -14,16 +14,16 @@ import { saveExtraCurriculumActivities } from "../api/liferay";
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  nccsanctioned:           "",
-  scoutguide:              "",
-  nSS:                     "",
+  nccsanctioned: "",
+  scoutguide: "",
+  nSS: "",
   otherCurriculumActivity: "",
 };
 
 export default function ExtraCurriculumActivities({ onTabChange }) {
-  const [form,   setForm]   = useState(emptyForm);
+  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [alert,  setAlert]  = useState(null);
+  const [alert, setAlert] = useState(null);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -33,10 +33,10 @@ export default function ExtraCurriculumActivities({ onTabChange }) {
     try {
       // Payload exactly matching swagger schema
       const payload = {
-        nccsanctioned:           form.nccsanctioned === "Yes",
-        nSS:                     form.nSS           === "Yes",
+        nccsanctioned: form.nccsanctioned === "Yes",
+        nSS: form.nSS === "Yes",
         otherCurriculumActivity: form.otherCurriculumActivity || "",
-        scoutguide:              form.scoutguide    === "Yes",
+        scoutguide: form.scoutguide === "Yes",
       };
 
       console.log("[ExtraCurriculumActivities] payload →", JSON.stringify(payload, null, 2));

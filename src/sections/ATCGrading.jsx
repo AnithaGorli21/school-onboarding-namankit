@@ -10,33 +10,33 @@ import { getSchoolProfileById } from "../api/liferay";
 
 // ── Same 28 questions as POGrading ───────────────────────────
 const QUESTIONS = [
-  { no: 3,   label: "Q.No. 3",   title: "No. of year since establishment of School",                                                            maxMarks: 3,  criteria: [{ label: ">=20", marks: 3 }, { label: "15 to 19", marks: 2 }, { label: "13 to 14.99", marks: 1 }, { label: "<13", marks: 0 }] },
-  { no: 4,   label: "Q.No. 4",   title: "No. of female teachers",                                                                               maxMarks: 3,  criteria: [{ label: ">=25%", marks: 3 }, { label: "31% to 50%", marks: 1 }, { label: "<=30%", marks: 0 }] },
-  { no: 5,   label: "Q.No. 5",   title: "Total number Of SSC batches completed",                                                                 maxMarks: 5,  criteria: [{ label: ">=10", marks: 5 }, { label: "7 to 9", marks: 4 }, { label: "5 to 6", marks: 3 }, { label: "3 to 4", marks: 2 }, { label: "<3", marks: 0 }] },
-  { no: "6A",label: "Q.No. 6A",  title: "Total students under Namankit scheme are less than or equal to 50% of total students",                  maxMarks: 10, criteria: [{ label: "less than or equal to 50%", marks: 10 }, { label: "equal to 50%", marks: 0 }] },
-  { no: "6B",label: "Q.No. 6B",  title: "Total residential students under Namankit scheme are less than or equal to 50% of total Residential students", maxMarks: 10, criteria: [{ label: "less than or equal to 50%", marks: 10 }, { label: "equal to 50%", marks: 0 }] },
-  { no: 7,   label: "Q.No. 7",   title: "avg SSC results of last 3 years",                                                                      maxMarks: 9,  criteria: [{ label: ">=91%", marks: 9 }, { label: "81% to 90%", marks: 6 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }] },
-  { no: 8,   label: "Q.No. 8",   title: "avg HSC results of last 3 years",                                                                      maxMarks: 7,  criteria: [{ label: ">=91%", marks: 7 }, { label: "81% to 90%", marks: 4 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }] },
-  { no: 9,   label: "Q.No. 9",   title: "No. of students who successfully cleared NTS/NTM/other scholarship exams during last academic year",   maxMarks: 2,  criteria: [{ label: ">=10", marks: 2 }, { label: "5 to 9", marks: 1 }, { label: "1 to 4", marks: 0.5 }] },
-  { no: "10A",label: "Q.No. 10A",title: "Total land area in rural(School+PlayGround+Hostel etc)",                                                maxMarks: 5,  criteria: [{ label: ">8", marks: 5 }, { label: "7.1 to 8", marks: 4 }, { label: "5.1 to 7", marks: 3 }, { label: "4 to 5", marks: 2 }, { label: "<4", marks: 0 }] },
-  { no: 11,  label: "Q.No. 11",  title: "Does school have properly constructed compound wall and entrance",                                      maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 12,  label: "Q.No. 12",  title: "No Of sports facilities available",                                                                    maxMarks: 5,  criteria: [{ label: ">=7", marks: 5 }, { label: "5 to 6", marks: 3 }, { label: "4", marks: 1 }] },
-  { no: 13,  label: "Q.No. 13",  title: "No. of computers in working condition (With Printers,Scanners,Internet,etc)",                          maxMarks: 4,  criteria: [{ label: ">=50", marks: 4 }, { label: "35 to 49", marks: 3 }, { label: "20 to 34", marks: 2 }, { label: "0 to 19", marks: 0 }] },
-  { no: 14,  label: "Q.No. 14",  title: "Total books available in school library",                                                              maxMarks: 3,  criteria: [{ label: ">5 Per Student", marks: 3 }, { label: "3 to 4 Per Student", marks: 2 }, { label: "1 to 2 Per Student", marks: 1 }, { label: "< 1 Per Student", marks: 0 }] },
-  { no: 15,  label: "Q.No. 15",  title: "No. Of digital Classroom",                                                                            maxMarks: 3,  criteria: [{ label: "4", marks: 3 }, { label: "3", marks: 2 }, { label: "2", marks: 1 }] },
-  { no: 16,  label: "Q.No. 16",  title: "Does school have separate lab for Physics,chemistry and biology with lab Assistant",                   maxMarks: 3,  criteria: [{ label: "Yes", marks: 3 }, { label: "No", marks: 0 }] },
-  { no: 17,  label: "Q.No. 17",  title: "Availability of full time doctor and sick room",                                                       maxMarks: 3,  criteria: [{ label: "Full Time", marks: 3 }, { label: "Part Time", marks: 1 }, { label: "Not Available", marks: 0 }] },
-  { no: 18,  label: "Q.No. 18",  title: "No. of students Per teacher",                                                                         maxMarks: 4,  criteria: [{ label: "<=30", marks: 4 }, { label: ">30", marks: 2 }] },
-  { no: 19,  label: "Q.No. 19",  title: "No. Of Qualified Sports Teacher count",                                                               maxMarks: 2,  criteria: [{ label: ">=2", marks: 2 }, { label: "1", marks: 1 }, { label: "0", marks: 0 }] },
-  { no: 20,  label: "Q.No. 20",  title: "Does school have separate teacher for music/arts/drawing",                                            maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 21,  label: "Q.No. 21",  title: "Availability of washing machine for student use",                                                     maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 22,  label: "Q.No. 22",  title: "No. of female caretakers for students studying in class 1st to 4th",                                  maxMarks: 3,  criteria: [{ label: "1 to 15", marks: 3 }, { label: "16 to 30", marks: 2 }, { label: ">30", marks: 0 }] },
-  { no: 23,  label: "Q.No. 23",  title: "Availability Of incinerator",                                                                         maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 24,  label: "Q.No. 24",  title: "No of toilets and bathrooms on each floor in Hostel(with ratio 20:1)",                                maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 25,  label: "Q.No. 25",  title: "Residential teachers: Total student",                                                                 maxMarks: 3,  criteria: [{ label: "<500", marks: 2 }, { label: "1:200 and more", marks: 1 }] },
-  { no: 26,  label: "Q.No. 26",  title: "Availability Of school website",                                                                      maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 27,  label: "Q.No. 27",  title: "No of toilets on each floor in school building(with ratio 20:1)",                                     maxMarks: 2,  criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
-  { no: 28,  label: "Q.No. 28",  title: "School academic performance",                                                                         maxMarks: 3,  criteria: [{ label: "Extraordinary", marks: 3 }, { label: "Excellent", marks: 2 }, { label: "Satisfactory", marks: 1 }] },
+  { no: 3, label: "Q.No. 3", title: "No. of year since establishment of School", maxMarks: 3, criteria: [{ label: ">=20", marks: 3 }, { label: "15 to 19", marks: 2 }, { label: "13 to 14.99", marks: 1 }, { label: "<13", marks: 0 }] },
+  { no: 4, label: "Q.No. 4", title: "No. of female teachers", maxMarks: 3, criteria: [{ label: ">=25%", marks: 3 }, { label: "31% to 50%", marks: 1 }, { label: "<=30%", marks: 0 }] },
+  { no: 5, label: "Q.No. 5", title: "Total number Of SSC batches completed", maxMarks: 5, criteria: [{ label: ">=10", marks: 5 }, { label: "7 to 9", marks: 4 }, { label: "5 to 6", marks: 3 }, { label: "3 to 4", marks: 2 }, { label: "<3", marks: 0 }] },
+  { no: "6A", label: "Q.No. 6A", title: "Total students under Namankit scheme are less than or equal to 50% of total students", maxMarks: 10, criteria: [{ label: "less than or equal to 50%", marks: 10 }, { label: "equal to 50%", marks: 0 }] },
+  { no: "6B", label: "Q.No. 6B", title: "Total residential students under Namankit scheme are less than or equal to 50% of total Residential students", maxMarks: 10, criteria: [{ label: "less than or equal to 50%", marks: 10 }, { label: "equal to 50%", marks: 0 }] },
+  { no: 7, label: "Q.No. 7", title: "avg SSC results of last 3 years", maxMarks: 9, criteria: [{ label: ">=91%", marks: 9 }, { label: "81% to 90%", marks: 6 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }] },
+  { no: 8, label: "Q.No. 8", title: "avg HSC results of last 3 years", maxMarks: 7, criteria: [{ label: ">=91%", marks: 7 }, { label: "81% to 90%", marks: 4 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }] },
+  { no: 9, label: "Q.No. 9", title: "No. of students who successfully cleared NTS/NTM/other scholarship exams during last academic year", maxMarks: 2, criteria: [{ label: ">=10", marks: 2 }, { label: "5 to 9", marks: 1 }, { label: "1 to 4", marks: 0.5 }] },
+  { no: "10A", label: "Q.No. 10A", title: "Total land area in rural(School+PlayGround+Hostel etc)", maxMarks: 5, criteria: [{ label: ">8", marks: 5 }, { label: "7.1 to 8", marks: 4 }, { label: "5.1 to 7", marks: 3 }, { label: "4 to 5", marks: 2 }, { label: "<4", marks: 0 }] },
+  { no: 11, label: "Q.No. 11", title: "Does school have properly constructed compound wall and entrance", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 12, label: "Q.No. 12", title: "No Of sports facilities available", maxMarks: 5, criteria: [{ label: ">=7", marks: 5 }, { label: "5 to 6", marks: 3 }, { label: "4", marks: 1 }] },
+  { no: 13, label: "Q.No. 13", title: "No. of computers in working condition (With Printers,Scanners,Internet,etc)", maxMarks: 4, criteria: [{ label: ">=50", marks: 4 }, { label: "35 to 49", marks: 3 }, { label: "20 to 34", marks: 2 }, { label: "0 to 19", marks: 0 }] },
+  { no: 14, label: "Q.No. 14", title: "Total books available in school library", maxMarks: 3, criteria: [{ label: ">5 Per Student", marks: 3 }, { label: "3 to 4 Per Student", marks: 2 }, { label: "1 to 2 Per Student", marks: 1 }, { label: "< 1 Per Student", marks: 0 }] },
+  { no: 15, label: "Q.No. 15", title: "No. Of digital Classroom", maxMarks: 3, criteria: [{ label: "4", marks: 3 }, { label: "3", marks: 2 }, { label: "2", marks: 1 }] },
+  { no: 16, label: "Q.No. 16", title: "Does school have separate lab for Physics,chemistry and biology with lab Assistant", maxMarks: 3, criteria: [{ label: "Yes", marks: 3 }, { label: "No", marks: 0 }] },
+  { no: 17, label: "Q.No. 17", title: "Availability of full time doctor and sick room", maxMarks: 3, criteria: [{ label: "Full Time", marks: 3 }, { label: "Part Time", marks: 1 }, { label: "Not Available", marks: 0 }] },
+  { no: 18, label: "Q.No. 18", title: "No. of students Per teacher", maxMarks: 4, criteria: [{ label: "<=30", marks: 4 }, { label: ">30", marks: 2 }] },
+  { no: 19, label: "Q.No. 19", title: "No. Of Qualified Sports Teacher count", maxMarks: 2, criteria: [{ label: ">=2", marks: 2 }, { label: "1", marks: 1 }, { label: "0", marks: 0 }] },
+  { no: 20, label: "Q.No. 20", title: "Does school have separate teacher for music/arts/drawing", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 21, label: "Q.No. 21", title: "Availability of washing machine for student use", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 22, label: "Q.No. 22", title: "No. of female caretakers for students studying in class 1st to 4th", maxMarks: 3, criteria: [{ label: "1 to 15", marks: 3 }, { label: "16 to 30", marks: 2 }, { label: ">30", marks: 0 }] },
+  { no: 23, label: "Q.No. 23", title: "Availability Of incinerator", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 24, label: "Q.No. 24", title: "No of toilets and bathrooms on each floor in Hostel(with ratio 20:1)", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 25, label: "Q.No. 25", title: "Residential teachers: Total student", maxMarks: 3, criteria: [{ label: "<500", marks: 2 }, { label: "1:200 and more", marks: 1 }] },
+  { no: 26, label: "Q.No. 26", title: "Availability Of school website", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 27, label: "Q.No. 27", title: "No of toilets on each floor in school building(with ratio 20:1)", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
+  { no: 28, label: "Q.No. 28", title: "School academic performance", maxMarks: 3, criteria: [{ label: "Extraordinary", marks: 3 }, { label: "Excellent", marks: 2 }, { label: "Satisfactory", marks: 1 }] },
 ];
 
 
@@ -53,38 +53,38 @@ const getAssignedFees = (totalMarks) => {
 const TDD_FEES = 600;
 
 const styles = {
-  page:      { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
-  card:      { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
-  cardHeader:{ background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
-  cardBody:  { padding: "14px 16px" },
-  qCard:     { border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden", background: "#fff" },
-  qNum:      { background: "#5b9bd5", color: "#fff", width: 30, height: 30, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginBottom: 8 },
+  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
+  card: { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
+  cardHeader: { background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
+  cardBody: { padding: "14px 16px" },
+  qCard: { border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden", background: "#fff" },
+  qNum: { background: "#5b9bd5", color: "#fff", width: 30, height: 30, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginBottom: 8 },
   qTitleRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#fff", borderBottom: "1px solid #dee2e6" },
-  qTitle:    { fontSize: 14, fontWeight: 600, color: "#222" },
-  marksTag:  { background: "#e74c3c", color: "#fff", padding: "3px 12px", borderRadius: 3, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" },
-  criteriaHdr:{ padding: "8px 12px", fontSize: 13, fontWeight: 500, color: "#2c3e50", background: "#d6eaf8", borderRight: "1px solid #aed6f1", flex: 1, textAlign: "left" },
-  criteriaVal:{ padding: "8px 12px", fontSize: 13, color: "#2c3e50", background: "#fff", borderRight: "1px solid #dee2e6", flex: 1, textAlign: "left" },
-  sysRow:    { background: "#e8f8f0", padding: "8px 14px", fontSize: 13, color: "#196f3d", display: "flex", gap: 40, borderTop: "1px solid #dee2e6" },
-  label:     { fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 4, marginTop: 8 },
-  input:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none" },
+  qTitle: { fontSize: 14, fontWeight: 600, color: "#222" },
+  marksTag: { background: "#e74c3c", color: "#fff", padding: "3px 12px", borderRadius: 3, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" },
+  criteriaHdr: { padding: "8px 12px", fontSize: 13, fontWeight: 500, color: "#2c3e50", background: "#d6eaf8", borderRight: "1px solid #aed6f1", flex: 1, textAlign: "left" },
+  criteriaVal: { padding: "8px 12px", fontSize: 13, color: "#2c3e50", background: "#fff", borderRight: "1px solid #dee2e6", flex: 1, textAlign: "left" },
+  sysRow: { background: "#e8f8f0", padding: "8px 14px", fontSize: 13, color: "#196f3d", display: "flex", gap: 40, borderTop: "1px solid #dee2e6" },
+  label: { fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 4, marginTop: 8 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none" },
   inputGrey: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, background: "#e9ecef", color: "#666" },
-  textArea:  { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
-  btn:       (bg, color="#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
+  textArea: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
+  btn: (bg, color = "#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
 };
 
 export default function ATCGrading({ school, onBack }) {
-  const [schoolData,       setSchoolData]       = useState(null);
-  const [gradingRecordId,  setGradingRecordId]  = useState(null);
-  const [existingQs,       setExistingQs]       = useState([]);
-  const [questionData,     setQuestionData]     = useState(
+  const [schoolData, setSchoolData] = useState(null);
+  const [gradingRecordId, setGradingRecordId] = useState(null);
+  const [existingQs, setExistingQs] = useState([]);
+  const [questionData, setQuestionData] = useState(
     QUESTIONS.map(q => ({ questionNumber: q.no, systemMarks: 0, poMarks: 0, atcMarks: 0, poRemarks: "", atcRemarks: "" }))
   );
   const [poRemarksSummary, setPoRemarksSummary] = useState("");
   const [atcRemarksSummary, setAtcRemarksSummary] = useState("");
   const [proposedStudents, setProposedStudents] = useState("");
-  const [saving,           setSaving]           = useState(false);
-  const [alert,            setAlert]            = useState(null);
-  const [loadingData,      setLoadingData]      = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     if (!school?.id) return;
@@ -107,10 +107,10 @@ export default function ATCGrading({ school, onBack }) {
           return {
             questionNumber: q.no,
             systemMarks: rec?.systemMarks || 0,
-            poMarks:     rec?.poMarks     || 0,
-            atcMarks:    rec?.atcMarks    || 0,
-            poRemarks:   rec?.poRemarks   || "",
-            atcRemarks:  rec?.atcRemarks  || "",
+            poMarks: rec?.poMarks || 0,
+            atcMarks: rec?.atcMarks || 0,
+            poRemarks: rec?.poRemarks || "",
+            atcRemarks: rec?.atcRemarks || "",
           };
         }));
       }
@@ -119,9 +119,9 @@ export default function ATCGrading({ school, onBack }) {
   }, [school?.id]);
 
   // ATC total = sum of atcMarks
-  const totalMarks   = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.atcMarks) || 0), 0), [questionData]);
+  const totalMarks = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.atcMarks) || 0), 0), [questionData]);
   const assignedFees = useMemo(() => getAssignedFees(totalMarks), [totalMarks]);
-  const finalFees    = assignedFees + TDD_FEES;
+  const finalFees = assignedFees + TDD_FEES;
 
   const updateQ = (idx, field, value) => {
     setQuestionData(prev => prev.map((q, i) => i === idx ? { ...q, [field]: value } : q));
@@ -155,7 +155,7 @@ export default function ATCGrading({ school, onBack }) {
         const existing = existingQs.find(eq => eq.questionNumber === toNumeric(q.questionNumber) || eq.questionNumber === q.questionNumber);
         if (existing) {
           await patchGradingQuestion(existing.id, {
-            atcMarks:   q.atcMarks   || 0,
+            atcMarks: q.atcMarks || 0,
             atcRemarks: q.atcRemarks || "",
           });
         }
@@ -323,7 +323,7 @@ export default function ATCGrading({ school, onBack }) {
           {saving ? "Saving..." : "Approve"}
         </button>
         <button onClick={() => handleSubmit("Rejected")} disabled={saving} style={styles.btn("#dc3545")}>Reject</button>
-        <button onClick={() => handleSubmit("SendBack")}  disabled={saving} style={styles.btn("#ffc107", "#333")}>Send Back</button>
+        <button onClick={() => handleSubmit("SendBack")} disabled={saving} style={styles.btn("#ffc107", "#333")}>Send Back</button>
         <button onClick={onBack} style={styles.btn("#6c757d")}>Cancel</button>
       </div>
 

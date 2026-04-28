@@ -9,7 +9,7 @@ import { apiFetch, apiPatch } from "../api/liferay";
 const searchSchools = (schoolName, udise) => {
   const filters = [];
   if (schoolName) filters.push(`contains(schoolName,'${schoolName}')`);
-  if (udise)      filters.push(`udiseCode eq '${udise}'`);
+  if (udise) filters.push(`udiseCode eq '${udise}'`);
   const query = filters.length
     ? `?filter=${encodeURIComponent(filters.join(" and "))}&pageSize=200&sort=schoolName:asc`
     : "?pageSize=200&sort=schoolName:asc";
@@ -21,42 +21,42 @@ const updateRemarks = (id, remarks) =>
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
-  page:      { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:   { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
-  label:     { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
-  input:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
-  btnGreen:  { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnTeal:   { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
-  btnSave:   { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
+  page: { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
+  heading: { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
+  label: { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
+  btnGreen: { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnTeal: { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
+  btnSave: { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
   btnCancel: { background: "#6c757d", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer" },
-  table:     { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
-  th:        { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:        { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "top" },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
+  th: { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
+  td: { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "top" },
   paginWrap: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
   paginLeft: { display: "flex", alignItems: "center", gap: 10 },
-  paginInput:{ width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
-  btnNav:    (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
-  alert:     { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:       { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
-  suc:       { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
-  textarea:  { width: "100%", boxSizing: "border-box", border: "1px solid #17a2b8", borderRadius: 3, padding: "6px 10px", fontSize: 12, color: "#333", background: "#fff", outline: "none", resize: "vertical", minHeight: 60 },
+  paginInput: { width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
+  btnNav: (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
+  alert: { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  suc: { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
+  textarea: { width: "100%", boxSizing: "border-box", border: "1px solid #17a2b8", borderRadius: 3, padding: "6px 10px", fontSize: 12, color: "#333", background: "#fff", outline: "none", resize: "vertical", minHeight: 60 },
 };
 
 const PAGE_SIZE = 10;
 
 // ── Main Component ────────────────────────────────────────────
 export default function UpdateGradingComments() {
-  const [schoolName,  setSchoolName]  = useState("");
-  const [udise,       setUdise]       = useState("");
-  const [schools,     setSchools]     = useState([]);
-  const [loading,     setLoading]     = useState(false);
-  const [searched,    setSearched]    = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [page,        setPage]        = useState(1);
+  const [schoolName, setSchoolName] = useState("");
+  const [udise, setUdise] = useState("");
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [page, setPage] = useState(1);
   // Edit state — key = school.id, value = current remarks string
-  const [editId,      setEditId]      = useState(null);
+  const [editId, setEditId] = useState(null);
   const [editRemarks, setEditRemarks] = useState("");
-  const [saving,      setSaving]      = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Load all on mount
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function UpdateGradingComments() {
     }
   };
 
-  const totalPages  = Math.max(1, Math.ceil(schools.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(schools.length / PAGE_SIZE));
   const pageSchools = schools.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
@@ -217,10 +217,10 @@ export default function UpdateGradingComments() {
             </div>
             <div>Page: {page} of {totalPages}</div>
             <div style={{ display: "flex", gap: 4 }}>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage(1)}            disabled={page === 1}>First</button>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage(1)} disabled={page === 1}>First</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
               <button style={s.btnNav(page < totalPages)} onClick={() => setPage((p) => p + 1)} disabled={page === totalPages}>Next</button>
-              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)}   disabled={page === totalPages}>Last</button>
+              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)} disabled={page === totalPages}>Last</button>
             </div>
           </div>
         </>

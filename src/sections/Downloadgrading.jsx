@@ -14,28 +14,28 @@ const getGradingSchools = () =>
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
-  page:     { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:  { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
-  table:    { width: "100%", borderCollapse: "collapse", fontSize: 13 },
-  th:       { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:       { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
-  btnPDF:   { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
-  paginWrap:{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
-  paginLeft:{ display: "flex", alignItems: "center", gap: 10 },
-  paginInput:{ width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
-  btnNav:   (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
-  badge:    (status) => {
+  page: { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
+  heading: { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13 },
+  th: { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
+  td: { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
+  btnPDF: { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 },
+  paginWrap: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
+  paginLeft: { display: "flex", alignItems: "center", gap: 10 },
+  paginInput: { width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
+  btnNav: (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
+  badge: (status) => {
     const map = {
       "PO recommended for approval": { bg: "#fff3cd", color: "#856404" },
-      "ATC approved":                 { bg: "#d4edda", color: "#155724" },
-      "SL approved":                  { bg: "#cce5ff", color: "#004085" },
-      "Rejected":                     { bg: "#f8d7da", color: "#721c24" },
+      "ATC approved": { bg: "#d4edda", color: "#155724" },
+      "SL approved": { bg: "#cce5ff", color: "#004085" },
+      "Rejected": { bg: "#f8d7da", color: "#721c24" },
     };
     const m = map[status] || { bg: "#e9ecef", color: "#495057" };
     return { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color };
   },
-  alert:    { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:      { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  alert: { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
 };
 
 const PAGE_SIZE = 10;
@@ -81,10 +81,10 @@ function generateGradingPDF(school) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function DownloadGrading() {
-  const [schools,  setSchools]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [alert,    setAlert]    = useState(null);
-  const [page,     setPage]     = useState(1);
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [alert, setAlert] = useState(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     setLoading(true);
@@ -94,7 +94,7 @@ export default function DownloadGrading() {
       .finally(() => setLoading(false));
   }, []);
 
-  const totalPages  = Math.max(1, Math.ceil(schools.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(schools.length / PAGE_SIZE));
   const pageSchools = schools.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
@@ -155,10 +155,10 @@ export default function DownloadGrading() {
             </div>
             <div>Page: {page} of {totalPages}</div>
             <div style={{ display: "flex", gap: 4 }}>
-              <button style={s.btnNav(page > 1)}         onClick={() => setPage(1)}           disabled={page === 1}>First</button>
-              <button style={s.btnNav(page > 1)}         onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage(1)} disabled={page === 1}>First</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
               <button style={s.btnNav(page < totalPages)} onClick={() => setPage((p) => p + 1)} disabled={page === totalPages}>Next</button>
-              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)}   disabled={page === totalPages}>Last</button>
+              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)} disabled={page === totalPages}>Last</button>
             </div>
           </div>
         </>

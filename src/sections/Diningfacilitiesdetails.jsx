@@ -15,19 +15,19 @@ const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
   SeparateDiningHallforBoysandGirls: "",
-  DiningHallAreainSqft:              "",
-  DiningTable:                       "",
-  FoodServedAsPerMenu:               "",
-  DiningHallPhoto:                   null,
-  MenuPhoto:                         null,
+  DiningHallAreainSqft: "",
+  DiningTable: "",
+  FoodServedAsPerMenu: "",
+  DiningHallPhoto: null,
+  MenuPhoto: null,
 };
 
 export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [form,        setForm]        = useState(emptyForm);
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [errors,      setErrors]      = useState({});
-  const [recordId,    setRecordId]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────

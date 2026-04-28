@@ -16,18 +16,18 @@ const TIME_OPTIONS = [
 ];
 
 const emptyForm = {
-  availabilitOfMedicalSickRoom:    "",
+  availabilitOfMedicalSickRoom: "",
   availabilityOfDoctorsInSchoolId: "",
-  numberOfAmbulance:               "",
-  numberOfDoctors:                 "",
-  numberOfNurse:                   "",
+  numberOfAmbulance: "",
+  numberOfDoctors: "",
+  numberOfNurse: "",
 };
 
 export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId }) {
-  const [form,        setForm]        = useState(emptyForm);
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [recordId,    setRecordId]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
