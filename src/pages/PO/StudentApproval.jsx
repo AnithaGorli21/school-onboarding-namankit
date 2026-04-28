@@ -89,8 +89,39 @@ export default function StudentApproval() {
                     sheet.addRow({ sr: i + 1, unique: r.unique, renewal: r.renewal, name: r.name, aadhar: r.aadhar, income: r.income, class: r.class, status: r.status });
                 });
 
-                // apply simple styling to header row
-                sheet.getRow(1).font = { bold: true };
+                // apply styling to header row to match UI
+                const headerRow = sheet.getRow(1);
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'left' };
+                headerRow.eachCell((cell) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2A5E' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFDADFE6' } },
+                        left: { style: 'thin', color: { argb: 'FFDADFE6' } },
+                        bottom: { style: 'thin', color: { argb: 'FFDADFE6' } },
+                        right: { style: 'thin', color: { argb: 'FFDADFE6' } },
+                    };
+                });
+
+                // style data rows: alternating background and borders, alignment
+                (rows || []).forEach((_, idx) => {
+                    const excelRow = sheet.getRow(idx + 2);
+                    const isAlt = idx % 2 === 1; // match UI: odd index -> alt color
+                    excelRow.eachCell((cell) => {
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FFF1F5F8' } },
+                            left: { style: 'thin', color: { argb: 'FFF1F5F8' } },
+                            bottom: { style: 'thin', color: { argb: 'FFF1F5F8' } },
+                            right: { style: 'thin', color: { argb: 'FFF1F5F8' } },
+                        };
+                        if (isAlt) {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
+                        }
+                        // default alignment: center except name column (4th col)
+                        const colIndex = cell.col;
+                        cell.alignment = (colIndex === 4) ? { horizontal: 'left', vertical: 'middle' } : { horizontal: 'center', vertical: 'middle' };
+                    });
+                });
 
                 const buf = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
