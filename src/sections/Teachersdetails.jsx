@@ -5,7 +5,7 @@
 //  On mount: loads existing teacher rows by schoolProfileId
 //  On save:  POST new rows, PATCH existing rows (by liferayId)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3,

@@ -3,7 +3,7 @@
 //  Controller — Bill Report
 //  Fetches bills from billgenerations filtered by transaction
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { apiFetch } from "../api/liferay";
 
 // ── API ───────────────────────────────────────────────────────
@@ -18,37 +18,37 @@ const getBillsByTransaction = (transactionId) =>
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
-  page:       { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:    { fontSize: 18, fontWeight: 600, color: "#222", paddingBottom: 10, borderBottom: "1px solid #ddd", marginBottom: 20 },
-  label:      { display: "block", fontSize: 13, color: "#333", marginBottom: 4, fontWeight: 500 },
-  req:        { color: "#e53935", marginLeft: 2 },
-  select:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
-  btnOrange:  { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnExcel:   { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnPDF:     { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  table:      { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
-  th:         { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:         { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
-  alert:      { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:        { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
-  suc:        { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
-  badge:      (status) => {
+  page: { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
+  heading: { fontSize: 18, fontWeight: 600, color: "#222", paddingBottom: 10, borderBottom: "1px solid #ddd", marginBottom: 20 },
+  label: { display: "block", fontSize: 13, color: "#333", marginBottom: 4, fontWeight: 500 },
+  req: { color: "#e53935", marginLeft: 2 },
+  select: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
+  btnOrange: { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnExcel: { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnPDF: { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
+  th: { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
+  td: { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
+  alert: { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  suc: { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
+  badge: (status) => {
     const map = {
-      "Uploaded":   { bg: "#d4edda", color: "#155724" },
-      "Cancelled":  { bg: "#f8d7da", color: "#721c24" },
-      "Generated":  { bg: "#fff3cd", color: "#856404" },
-      "Draft":      { bg: "#e9ecef", color: "#495057" },
+      "Uploaded": { bg: "#d4edda", color: "#155724" },
+      "Cancelled": { bg: "#f8d7da", color: "#721c24" },
+      "Generated": { bg: "#fff3cd", color: "#856404" },
+      "Draft": { bg: "#e9ecef", color: "#495057" },
     };
     const m = map[status] || { bg: "#e9ecef", color: "#495057" };
     return { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color };
   },
-  paginWrap:  { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
-  paginLeft:  { display: "flex", alignItems: "center", gap: 10 },
+  paginWrap: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
+  paginLeft: { display: "flex", alignItems: "center", gap: 10 },
   paginInput: { width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
-  btnNav:     (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
-  summaryCard:{ background: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 6, padding: "16px 20px", marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px 24px" },
-  summaryItem:{ display: "flex", flexDirection: "column", gap: 4 },
-  summaryLabel:{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 0.5 },
+  btnNav: (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
+  summaryCard: { background: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 6, padding: "16px 20px", marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px 24px" },
+  summaryItem: { display: "flex", flexDirection: "column", gap: 4 },
+  summaryLabel: { fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 0.5 },
   summaryVal: { fontSize: 18, fontWeight: 700, color: "#1a2a5e" },
 };
 
@@ -67,16 +67,16 @@ const fmtAmt = (v) =>
 // ── Excel export ──────────────────────────────────────────────
 function exportToExcel(bills, txnName) {
   const headers = ["Sr No", "PO", "School", "Bill Date", "Total Students", "Total Fees", "Final Total Fees", "Status"];
-  const rows    = bills.map((b, i) => [
+  const rows = bills.map((b, i) => [
     i + 1, b.po, b.schoolId, fmtDate(b.billDate),
     b.totalStudentCount, b.totalFees, b.finalTotalFees,
     b.bill_status || "Generated",
   ]);
-  const csv  = [headers, ...rows].map((r) => r.join(",")).join("\n");
+  const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
   a.download = `bill-report-${txnName || "export"}.csv`;
   a.click();
   URL.revokeObjectURL(url);
@@ -137,14 +137,14 @@ function exportToPDF(bills, txnName, totalAmt) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function BillReport() {
-  const [transactions,  setTransactions]  = useState([]);
-  const [transaction,   setTransaction]   = useState("");
-  const [bills,         setBills]         = useState([]);
-  const [loading,       setLoading]       = useState(false);
-  const [loadingTxn,    setLoadingTxn]    = useState(true);
-  const [searched,      setSearched]      = useState(false);
-  const [alert,         setAlert]         = useState(null);
-  const [page,          setPage]          = useState(1);
+  const [transactions, setTransactions] = useState([]);
+  const [transaction, setTransaction] = useState("");
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingTxn, setLoadingTxn] = useState(true);
+  const [searched, setSearched] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [page, setPage] = useState(1);
 
   // Load transactions on mount
   useEffect(() => {
@@ -174,13 +174,13 @@ export default function BillReport() {
   };
 
   // Summary calculations
-  const grandTotal    = bills.reduce((s, b) => s + (Number(b.finalTotalFees)    || 0), 0);
+  const grandTotal = bills.reduce((s, b) => s + (Number(b.finalTotalFees) || 0), 0);
   const totalStudents = bills.reduce((s, b) => s + (Number(b.totalStudentCount) || 0), 0);
   const uploadedCount = bills.filter((b) => b.bill_status === "Uploaded").length;
 
-  const selectedTxn   = transactions.find((t) => String(t.id) === String(transaction));
-  const totalPages    = Math.max(1, Math.ceil(bills.length / PAGE_SIZE));
-  const pageRows      = bills.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const selectedTxn = transactions.find((t) => String(t.id) === String(transaction));
+  const totalPages = Math.max(1, Math.ceil(bills.length / PAGE_SIZE));
+  const pageRows = bills.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div style={s.page}>
@@ -304,10 +304,10 @@ export default function BillReport() {
             </div>
             <div>Page: {page} of {totalPages}</div>
             <div style={{ display: "flex", gap: 4 }}>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage(1)}            disabled={page === 1}>First</button>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage(1)} disabled={page === 1}>First</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
               <button style={s.btnNav(page < totalPages)} onClick={() => setPage((p) => p + 1)} disabled={page === totalPages}>Next</button>
-              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)}   disabled={page === totalPages}>Last</button>
+              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)} disabled={page === totalPages}>Last</button>
             </div>
           </div>
         </>

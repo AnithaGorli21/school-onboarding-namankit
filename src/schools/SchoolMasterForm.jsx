@@ -522,11 +522,11 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
 
     setSubmitting(true);
 
-    if(true){
+    if (true) {
       handleFinalSubmit();
       return;
     }
-    
+
     try {
       const payload = {
         trusteeName: form.trusteeName,
@@ -575,7 +575,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     try {
       const initialSchoolPayload = buildSchoolPayload(null, form);
       console.log("School Payload", initialSchoolPayload);
-      
+
       const savedSchool = await saveSchoolMasterEntry(initialSchoolPayload);
       console.log("Saved School Entry:", savedSchool);
       const schoolId = Number(savedSchool?.id);
@@ -585,7 +585,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         );
       }
 
-      const userPayload = buildUserPayload(initialSchoolPayload,schoolId);
+      const userPayload = buildUserPayload(initialSchoolPayload, schoolId);
       console.log("User Payload for Liferay account creation:", userPayload);
       let liferayUser;
       let createdNewLogin = false;
@@ -640,7 +640,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         throw roleError;
       }
 
-      const payload = buildSchoolPayload(liferayUser,form);
+      const payload = buildSchoolPayload(liferayUser, form);
       console.log("Final School Payload with Liferay user details:", payload);
       const saved = await updateSchoolEntry(schoolId, payload);
       console.log("Updated School Entry with Liferay user details:", saved);
@@ -728,7 +728,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
   const toOptions = (items) =>
     // items.map((item) => ({ value: item.id, label: item.name }));
 
-   (Array.isArray(items) ? items : []).map((item) => ({
+    (Array.isArray(items) ? items : []).map((item) => ({
       value: item.id,
       label: item.name,
       id: item.id,
@@ -1032,17 +1032,17 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
           {/* ══════════════ STEP 2 : REVIEW ══════════════ */}
           {step === STEP_REVIEW && (
             <>
-            <SchoolMasterReviewStep
-              reviewData={reviewData}
-              isSubmitting={submitting}
-              isDeclarationAccepted={declarationAccepted}
-              onToggleDeclaration={setDeclarationAccepted}
-              onBack={() => setStep(STEP_FORM)}
-              onSubmit={handleSubmit}
-              
-            />
-             {confirmationModal}
-             {failureModal}
+              <SchoolMasterReviewStep
+                reviewData={reviewData}
+                isSubmitting={submitting}
+                isDeclarationAccepted={declarationAccepted}
+                onToggleDeclaration={setDeclarationAccepted}
+                onBack={() => setStep(STEP_FORM)}
+                onSubmit={handleSubmit}
+
+              />
+              {confirmationModal}
+              {failureModal}
             </>
           )}
         </main>

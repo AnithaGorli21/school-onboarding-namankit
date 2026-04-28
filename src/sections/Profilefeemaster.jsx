@@ -5,7 +5,7 @@
 //  On mount: loads existing fee rows by schoolProfileId
 //  On save:  POST new rows, PATCH existing rows
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
 import { getPicklist } from "../api/liferay";
 

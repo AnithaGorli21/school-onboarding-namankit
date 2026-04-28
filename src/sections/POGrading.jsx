@@ -2,24 +2,24 @@
 //  src/sections/POGrading.jsx
 //  School Profile Grading — 28 questions, PO marks, auto totals
 // ============================================================
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
 
 // ── All 28 questions with criteria ───────────────────────────
 const QUESTIONS = [
   {
-    no: 3,   label: "Q.No. 3",  title: "No. of year since establishment of School",
+    no: 3, label: "Q.No. 3", title: "No. of year since establishment of School",
     maxMarks: 3,
     criteria: [{ label: ">=20", marks: 3 }, { label: "15 to 19", marks: 2 }, { label: "13 to 14.99", marks: 1 }, { label: "<13", marks: 0 }],
   },
   {
-    no: 4,   label: "Q.No. 4",  title: "No. of female teachers",
+    no: 4, label: "Q.No. 4", title: "No. of female teachers",
     maxMarks: 3,
     criteria: [{ label: ">=25%", marks: 3 }, { label: "31% to 50%", marks: 1 }, { label: "<=30%", marks: 0 }],
   },
   {
-    no: 5,   label: "Q.No. 5",  title: "Total number Of SSC batches completed",
+    no: 5, label: "Q.No. 5", title: "Total number Of SSC batches completed",
     maxMarks: 5,
     criteria: [{ label: ">=10", marks: 5 }, { label: "7 to 9", marks: 4 }, { label: "5 to 6", marks: 3 }, { label: "3 to 4", marks: 2 }, { label: "<3", marks: 0 }],
   },
@@ -34,17 +34,17 @@ const QUESTIONS = [
     criteria: [{ label: "less than or equal to 50%", marks: 10 }, { label: "equal to 50%", marks: 0 }],
   },
   {
-    no: 7,   label: "Q.No. 7",  title: "avg SSC results of last 3 years",
+    no: 7, label: "Q.No. 7", title: "avg SSC results of last 3 years",
     maxMarks: 9,
     criteria: [{ label: ">=91%", marks: 9 }, { label: "81% to 90%", marks: 6 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }],
   },
   {
-    no: 8,   label: "Q.No. 8",  title: "avg HSC results of last 3 years",
+    no: 8, label: "Q.No. 8", title: "avg HSC results of last 3 years",
     maxMarks: 7,
     criteria: [{ label: ">=91%", marks: 7 }, { label: "81% to 90%", marks: 4 }, { label: "71% to 80%", marks: 2 }, { label: "<=70%", marks: 0 }],
   },
   {
-    no: 9,   label: "Q.No. 9",  title: "No. of students who successfully cleared NTS/NTM/other scholarship exams during last academic year",
+    no: 9, label: "Q.No. 9", title: "No. of students who successfully cleared NTS/NTM/other scholarship exams during last academic year",
     maxMarks: 2,
     criteria: [{ label: ">=10", marks: 2 }, { label: "5 to 9", marks: 1 }, { label: "1 to 4", marks: 0.5 }],
   },
@@ -54,92 +54,92 @@ const QUESTIONS = [
     criteria: [{ label: ">8", marks: 5 }, { label: "7.1 to 8", marks: 4 }, { label: "5.1 to 7", marks: 3 }, { label: "4 to 5", marks: 2 }, { label: "<4", marks: 0 }],
   },
   {
-    no: 11,  label: "Q.No. 11", title: "Does school have properly constructed compound wall and entrance",
+    no: 11, label: "Q.No. 11", title: "Does school have properly constructed compound wall and entrance",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 12,  label: "Q.No. 12", title: "No Of sports facilities available",
+    no: 12, label: "Q.No. 12", title: "No Of sports facilities available",
     maxMarks: 5,
     criteria: [{ label: ">=7", marks: 5 }, { label: "5 to 6", marks: 3 }, { label: "4", marks: 1 }],
   },
   {
-    no: 13,  label: "Q.No. 13", title: "No. of computers in working condition (With Printers,Scanners,Internet,etc)",
+    no: 13, label: "Q.No. 13", title: "No. of computers in working condition (With Printers,Scanners,Internet,etc)",
     maxMarks: 4,
     criteria: [{ label: ">=50", marks: 4 }, { label: "35 to 49", marks: 3 }, { label: "20 to 34", marks: 2 }, { label: "0 to 19", marks: 0 }],
   },
   {
-    no: 14,  label: "Q.No. 14", title: "Total books available in school library",
+    no: 14, label: "Q.No. 14", title: "Total books available in school library",
     maxMarks: 3,
     criteria: [{ label: ">5 Per Student", marks: 3 }, { label: "3 to 4 Per Student", marks: 2 }, { label: "1 to 2 Per Student", marks: 1 }, { label: "< 1 Per Student", marks: 0 }],
   },
   {
-    no: 15,  label: "Q.No. 15", title: "No. Of digital Classroom",
+    no: 15, label: "Q.No. 15", title: "No. Of digital Classroom",
     maxMarks: 3,
     criteria: [{ label: "4", marks: 3 }, { label: "3", marks: 2 }, { label: "2", marks: 1 }],
   },
   {
-    no: 16,  label: "Q.No. 16", title: "Does school have separate lab for Physics,chemistry and biology with lab Assistant",
+    no: 16, label: "Q.No. 16", title: "Does school have separate lab for Physics,chemistry and biology with lab Assistant",
     maxMarks: 3,
     criteria: [{ label: "Yes", marks: 3 }, { label: "No", marks: 0 }],
   },
   {
-    no: 17,  label: "Q.No. 17", title: "Availability of full time doctor and sick room",
+    no: 17, label: "Q.No. 17", title: "Availability of full time doctor and sick room",
     maxMarks: 3,
     criteria: [{ label: "Full Time", marks: 3 }, { label: "Part Time", marks: 1 }, { label: "Not Available", marks: 0 }],
   },
   {
-    no: 18,  label: "Q.No. 18", title: "No. of students Per teacher",
+    no: 18, label: "Q.No. 18", title: "No. of students Per teacher",
     maxMarks: 4,
     criteria: [{ label: "<=30", marks: 4 }, { label: ">30", marks: 2 }],
   },
   {
-    no: 19,  label: "Q.No. 19", title: "No. Of Qualified Sports Teacher count",
+    no: 19, label: "Q.No. 19", title: "No. Of Qualified Sports Teacher count",
     maxMarks: 2,
     criteria: [{ label: ">=2", marks: 2 }, { label: "1", marks: 1 }, { label: "0", marks: 0 }],
   },
   {
-    no: 20,  label: "Q.No. 20", title: "Does school have separate teacher for music/arts/drawing",
+    no: 20, label: "Q.No. 20", title: "Does school have separate teacher for music/arts/drawing",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 21,  label: "Q.No. 21", title: "Availability of washing machine for student use",
+    no: 21, label: "Q.No. 21", title: "Availability of washing machine for student use",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 22,  label: "Q.No. 22", title: "No. of female caretakers for students studying in class 1st to 4th",
+    no: 22, label: "Q.No. 22", title: "No. of female caretakers for students studying in class 1st to 4th",
     maxMarks: 3,
     criteria: [{ label: "1 to 15", marks: 3 }, { label: "16 to 30", marks: 2 }, { label: ">30", marks: 0 }],
   },
   {
-    no: 23,  label: "Q.No. 23", title: "Availability Of incinerator",
+    no: 23, label: "Q.No. 23", title: "Availability Of incinerator",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 24,  label: "Q.No. 24", title: "No of toilets and bathrooms on each floor in Hostel(with ratio 20:1)",
+    no: 24, label: "Q.No. 24", title: "No of toilets and bathrooms on each floor in Hostel(with ratio 20:1)",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 25,  label: "Q.No. 25", title: "Residential teachers: Total student",
+    no: 25, label: "Q.No. 25", title: "Residential teachers: Total student",
     maxMarks: 3,
     criteria: [{ label: "<500", marks: 2 }, { label: "1:200 and more", marks: 1 }],
   },
   {
-    no: 26,  label: "Q.No. 26", title: "Availability Of school website",
+    no: 26, label: "Q.No. 26", title: "Availability Of school website",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 27,  label: "Q.No. 27", title: "No of toilets on each floor in school building(with ratio 20:1)",
+    no: 27, label: "Q.No. 27", title: "No of toilets on each floor in school building(with ratio 20:1)",
     maxMarks: 2,
     criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }],
   },
   {
-    no: 28,  label: "Q.No. 28", title: "School academic performance",
+    no: 28, label: "Q.No. 28", title: "School academic performance",
     maxMarks: 3,
     criteria: [{ label: "Extraordinary", marks: 3 }, { label: "Excellent", marks: 2 }, { label: "Satisfactory", marks: 1 }],
   },
@@ -162,42 +162,42 @@ const TDD_FEES = 425; // preset by department
 
 // ── Styles ────────────────────────────────────────────────────
 const styles = {
-  page:        { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
-  card:        { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
-  cardHeader:  { background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
-  cardBody:    { padding: "14px 16px" },
+  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
+  card: { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
+  cardHeader: { background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
+  cardBody: { padding: "14px 16px" },
   // Question card — white background with border
-  qCard:       { border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden", background: "#fff" },
+  qCard: { border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden", background: "#fff" },
   // Question number — small blue square badge
-  qNum:        { background: "#5b9bd5", color: "#fff", width: 30, height: 30, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginBottom: 8 },
+  qNum: { background: "#5b9bd5", color: "#fff", width: 30, height: 30, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginBottom: 8 },
   // Question title row — white background, black bold text + red marks badge
-  qTitleRow:   { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#fff", borderBottom: "1px solid #dee2e6" },
-  qTitle:      { fontSize: 14, fontWeight: 600, color: "#222" },
-  marksTag:    { background: "#e74c3c", color: "#fff", padding: "3px 12px", borderRadius: 3, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" },
+  qTitleRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#fff", borderBottom: "1px solid #dee2e6" },
+  qTitle: { fontSize: 14, fontWeight: 600, color: "#222" },
+  marksTag: { background: "#e74c3c", color: "#fff", padding: "3px 12px", borderRadius: 3, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" },
   // Criteria table — light blue header, white values
   criteriaHdr: { padding: "8px 12px", fontSize: 13, fontWeight: 500, color: "#2c3e50", background: "#d6eaf8", borderRight: "1px solid #aed6f1", flex: 1, textAlign: "left" },
   criteriaVal: { padding: "8px 12px", fontSize: 13, color: "#2c3e50", background: "#fff", borderRight: "1px solid #dee2e6", flex: 1, textAlign: "left" },
   // System evaluated row — light green
-  sysRow:      { background: "#e8f8f0", padding: "8px 14px", fontSize: 13, color: "#196f3d", display: "flex", gap: 40, borderTop: "1px solid #dee2e6" },
+  sysRow: { background: "#e8f8f0", padding: "8px 14px", fontSize: 13, color: "#196f3d", display: "flex", gap: 40, borderTop: "1px solid #dee2e6" },
   // Input fields
-  label:       { fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 4, marginTop: 8 },
-  input:       { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none" },
-  inputGrey:   { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, background: "#e9ecef", color: "#888" },
-  textArea:    { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
-  btn:         (bg, color="#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
+  label: { fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 4, marginTop: 8 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none" },
+  inputGrey: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, background: "#e9ecef", color: "#888" },
+  textArea: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
+  btn: (bg, color = "#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
 };
 
 export default function POGrading({ school, onBack }) {
-  const [schoolData,       setSchoolData]       = useState(null);
-  const [gradingRecordId,  setGradingRecordId]  = useState(null);
-  const [existingQs,       setExistingQs]       = useState([]);
-  const [questionData,     setQuestionData]     = useState(
+  const [schoolData, setSchoolData] = useState(null);
+  const [gradingRecordId, setGradingRecordId] = useState(null);
+  const [existingQs, setExistingQs] = useState([]);
+  const [questionData, setQuestionData] = useState(
     QUESTIONS.map(q => ({ questionNumber: q.no, systemMarks: 0, poMarks: 0, atcMarks: 0, poRemarks: "", atcRemarks: "" }))
   );
   const [poRemarksSummary, setPoRemarksSummary] = useState("");
-  const [saving,           setSaving]           = useState(false);
-  const [alert,            setAlert]            = useState(null);
-  const [loadingData,      setLoadingData]      = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
 
   // ── Load existing data on mount ───────────────────────────
   useEffect(() => {
@@ -219,10 +219,10 @@ export default function POGrading({ school, onBack }) {
           return {
             questionNumber: q.no,
             systemMarks: rec?.systemMarks || 0,
-            poMarks:     rec?.poMarks     || 0,
-            atcMarks:    rec?.atcMarks    || 0,
-            poRemarks:   rec?.poRemarks   || "",
-            atcRemarks:  rec?.atcRemarks  || "",
+            poMarks: rec?.poMarks || 0,
+            atcMarks: rec?.atcMarks || 0,
+            poRemarks: rec?.poRemarks || "",
+            atcRemarks: rec?.atcRemarks || "",
           };
         }));
       }
@@ -231,9 +231,9 @@ export default function POGrading({ school, onBack }) {
   }, [school?.id]);
 
   // ── Auto-calculate totals ─────────────────────────────────
-  const totalMarks   = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.poMarks) || 0), 0), [questionData]);
+  const totalMarks = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.poMarks) || 0), 0), [questionData]);
   const assignedFees = useMemo(() => getAssignedFees(totalMarks), [totalMarks]);
-  const finalFees    = assignedFees + TDD_FEES;
+  const finalFees = assignedFees + TDD_FEES;
 
   const updateQ = (idx, field, value) => {
     setQuestionData(prev => prev.map((q, i) => i === idx ? { ...q, [field]: value } : q));
@@ -250,11 +250,11 @@ export default function POGrading({ school, onBack }) {
     try {
       await submitGrading({
         schoolProfileId: school.id,
-        questions:       questionData,
+        questions: questionData,
         poRemarksSummary,
         totalMarks,
         assignedFees,
-        tddFees:         TDD_FEES,
+        tddFees: TDD_FEES,
         finalFees,
         approvalStatus,
         gradingRecordId,
@@ -290,8 +290,8 @@ export default function POGrading({ school, onBack }) {
         <div style={{ ...styles.cardBody, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
           {[
             ["Trustee Name", schoolData?.trusteeName],
-            ["School Name",  schoolData?.schoolName],
-            ["Address",      schoolData?.address],
+            ["School Name", schoolData?.schoolName],
+            ["Address", schoolData?.address],
           ].map(([label, val]) => (
             <div key={label}>
               <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>{label}</div>
@@ -397,10 +397,10 @@ export default function POGrading({ school, onBack }) {
       <div style={{ ...styles.card }}>
         <div style={{ ...styles.cardBody, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
           {[
-            ["Total Marks",    totalMarks.toFixed(2)],
-            ["Assigned Fees",  assignedFees > 0 ? `₹${assignedFees.toLocaleString()}` : "Not Eligible"],
-            ["TDD Fees",       `₹${TDD_FEES.toLocaleString()}`],
-            ["Final Fees",     assignedFees > 0 ? `₹${finalFees.toLocaleString()}` : "Not Eligible"],
+            ["Total Marks", totalMarks.toFixed(2)],
+            ["Assigned Fees", assignedFees > 0 ? `₹${assignedFees.toLocaleString()}` : "Not Eligible"],
+            ["TDD Fees", `₹${TDD_FEES.toLocaleString()}`],
+            ["Final Fees", assignedFees > 0 ? `₹${finalFees.toLocaleString()}` : "Not Eligible"],
           ].map(([label, val]) => (
             <div key={label} style={{ background: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 4, padding: "10px 14px" }}>
               <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{label}</div>

@@ -2,7 +2,7 @@
 //  src/sections/Medicalfacilities.jsx
 //  UI only — API logic in src/api/medicalDetails.js
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadMedicalDetails, submitMedicalDetails, mapRecordToForm } from "../api/MedicalDetails";

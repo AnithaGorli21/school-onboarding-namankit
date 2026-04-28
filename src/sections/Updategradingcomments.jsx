@@ -2,7 +2,7 @@
 //  src/sections/UpdateGradingComments.jsx
 //  ATC — Update Grading Comments (Search + inline Edit)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { apiFetch, apiPatch } from "../api/liferay";
 
 // ── API ───────────────────────────────────────────────────────

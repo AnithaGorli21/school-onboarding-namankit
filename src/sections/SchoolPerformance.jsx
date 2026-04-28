@@ -5,7 +5,7 @@
 //  - Students Passed cannot exceed Students Appeared
 //  - "Any Other" standard requires text in Others field
 // ============================================================
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Field, SelectInput, TextInput,
   SectionHeading, Row3, BtnAdd, Alert,

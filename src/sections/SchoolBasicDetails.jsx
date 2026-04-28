@@ -1,7 +1,7 @@
 // ============================================================
 //  src/sections/SchoolBasicDetails.jsx
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import SchoolProfile      from "./SchoolProfile";
 import SchoolIntake       from "./SchoolIntake";
 import SchoolPerformance  from "./SchoolPerformance";

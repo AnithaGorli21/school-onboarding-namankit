@@ -7,7 +7,7 @@
 //  - Rows per page dropdown bottom left
 //  - Pagination bottom right
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getAllSchools } from "../api/liferay";
 
 export default function SchoolListPage({ onEdit }) {

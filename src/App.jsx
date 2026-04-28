@@ -1,321 +1,40 @@
-// // ============================================================
-// //  src/App.jsx
-// //
-// //  Routes:
-// //  /           → School onboarding (list + details)
-// //  /preview    → Print preview page
-// //  /po-grading → PO Approval & Grading
-// // ============================================================
-// import { useState } from "react";
-// import "./styles/global.css";
-// import TabNav                     from "./components/TabNav";
-// import Footer                     from "./sections/Footer";
-// import SchoolListPage             from "./sections/SchoolListPage";
-// import SchoolBasicDetails         from "./sections/SchoolBasicDetails";
-// import LandDetails                from "./sections/LandDetails";
-// import HostelDetails              from "./sections/HostelDetails";
-// import DiningFacilitiesDetails    from "./sections/Diningfacilitiesdetails";
-// import LabDetails                 from "./sections/Labdetails";
-// import LibraryDetails             from "./sections/Librarydetails";
-// import TeachersDetails            from "./sections/Teachersdetails";
-// import ExtraCurriculumActivities  from "./sections/Extracurriculumactivities";
-// import SportsFacilities           from "./sections/Sportsfacilities";
-// import MedicalFacilities          from "./sections/Medicalfacilities";
-// import ProfileFeeMaster           from "./sections/Profilefeemaster";
-// import SchoolBankDetails          from "./sections/Schoolbankdetails";
-// import FinalSubmit                from "./sections/FinalSubmit";
-// import PreviewPage                from "./sections/PreviewPage";
-// import POApprovalList             from "./sections/POApprovalList";
-// import POGrading                  from "./sections/POGrading";
-// import ATCApprovalList            from "./sections/ATCApprovalList";
-// import ATCGrading                 from "./sections/ATCGrading";
-// import BillGeneration from "./sections/Billgeneration";
-// import RestrictEntryMaster       from "./sections/RestrictEntryMaster"; 
 
-// // ── Route: /preview ──────────────────────────────────────────
-// // commenting
-// if (window.location.pathname === "/preview") {
-//   window.__ROUTE__ = "preview";
-// } else if (window.location.pathname === "/po-grading") {
-//   window.__ROUTE__ = "po-grading";
-// } else if (window.location.pathname === "/atc-grading") {
-//   window.__ROUTE__ = "atc-grading";
-//   } else if (window.location.pathname === "/bill-generation") {
-//   window.__ROUTE__ = "bill-generation";
-//   } else if (window.location.pathname === "/restrict-entry") {
-//   window.__ROUTE__ = "restrict-entry";
-// } else {
-//   window.__ROUTE__ = "main";
-// }
-
-// // ── PO Grading App ────────────────────────────────────────────
-// function POGradingApp() {
-//   const [view,           setView]           = useState("list");
-//   const [selectedSchool, setSelectedSchool] = useState(null);
-
-//   const handleGrading = (school) => {
-//     setSelectedSchool(school);
-//     setView("grading");
-//   };
-
-//   const handleViewDetails = (schoolId) => {
-//     window.open(`/?schoolId=${schoolId}`, "_blank");
-//   };
-
-//   return (
-//     <div style={{ minHeight: "100vh", background: "#f0f4f5", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-//       <div style={{ background: "#1a2a5e", padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-//         <span style={{ color: "#fff", fontSize: 18, fontWeight: 600 }}>Namankit School Onboarding — PO Panel</span>
-//         {view === "grading" && (
-//           <button onClick={() => setView("list")}
-//             style={{ background: "#fff", color: "#1a2a5e", border: "none", borderRadius: 4, padding: "7px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-//             ← Back to List
-//           </button>
-//         )}
-//       </div>
-//       <div style={{ flex: 1 }}>
-//         {view === "list"
-//           ? <POApprovalList onGrading={handleGrading} onViewDetails={handleViewDetails} />
-//           : <POGrading school={selectedSchool} onBack={() => setView("list")} />
-//         }
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// // ── ATC Grading App ──────────────────────────────────────────
-// function ATCGradingApp() {
-//   const [view,           setView]           = useState("list");
-//   const [selectedSchool, setSelectedSchool] = useState(null);
-
-//   const handleGrading = (school) => {
-//     setSelectedSchool(school);
-//     setView("grading");
-//   };
-
-//   return (
-//     <div style={{ minHeight: "100vh", background: "#f0f4f5", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-//       <div style={{ background: "#1a2a5e", padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-//         <span style={{ color: "#fff", fontSize: 18, fontWeight: 600 }}>Namankit School Onboarding — ATC Panel</span>
-//         {view === "grading" && (
-//           <button onClick={() => setView("list")}
-//             style={{ background: "#fff", color: "#1a2a5e", border: "none", borderRadius: 4, padding: "7px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-//             ← Back to List
-//           </button>
-//         )}
-//       </div>
-//       <div style={{ flex: 1 }}>
-//         {view === "list"
-//           ? <ATCApprovalList onGrading={handleGrading} onViewDetails={(id) => window.open(`/?schoolId=${id}`, "_blank")} />
-//           : <ATCGrading school={selectedSchool} onBack={() => setView("list")} />
-//         }
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// function BillGenerationApp() {
-//   return (
-//     <div style={{ minHeight: "100vh", background: "#f0f4f5", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-//       <div style={{ background: "#1a2a5e", padding: "12px 24px" }}>
-//         <span style={{ color: "#fff", fontSize: 18, fontWeight: 600 }}>Namankit School Onboarding — ATC Bill Generation</span>
-//       </div>
-//       <div style={{ flex: 1, background: "#fff" }}>
-//         <BillGeneration />
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// // ── Main School Onboarding App ────────────────────────────────
-// function MainApp() {
-//   const [view,            setView]            = useState("list");
-//   const [activeTab,       setActiveTab]       = useState("School Basic Details");
-//   const [schoolProfileId, setSchoolProfileId] = useState(null);
-//   const [isEditMode,      setIsEditMode]      = useState(false);
-
-//   const [masterData, setMasterData] = useState({
-//     schoolBasic: {}, landDetails: {}, hostelDetails: {}, diningDetails: {},
-//     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
-//     sportsDetails: {}, medicalDetails: {}, feeMaster: {}, bankDetails: {},
-//   });
-
-//   const handleSaveSection = (sectionName, data) => {
-//     setMasterData(prev => ({ ...prev, [sectionName]: data }));
-//   };
-
-//   const handleEdit = (schoolId) => {
-//     setSchoolProfileId(schoolId);
-//     setIsEditMode(true);
-//     setActiveTab("School Basic Details");
-//     setView("details");
-//   };
-
-//   const handleNewSchool = () => {
-//     setSchoolProfileId(null);
-//     setIsEditMode(false);
-//     setMasterData({
-//       schoolBasic: {}, landDetails: {}, hostelDetails: {}, diningDetails: {},
-//       labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
-//       sportsDetails: {}, medicalDetails: {}, feeMaster: {}, bankDetails: {},
-//     });
-//     setActiveTab("School Basic Details");
-//     setView("details");
-//   };
-
-//   const handleBackToList = () => {
-//     setView("list");
-//     setSchoolProfileId(null);
-//     setIsEditMode(false);
-//   };
-
-//   const renderTab = () => {
-//     switch (activeTab) {
-//       case "School Basic Details":
-//         return <SchoolBasicDetails
-//                   onTabChange={setActiveTab}
-//                   schoolProfileId={schoolProfileId}
-//                   isEditMode={isEditMode}
-//                   onSave={(data) => {
-//                     handleSaveSection("schoolBasic", data);
-//                     if (data?.schoolId) setSchoolProfileId(data.schoolId);
-//                   }}
-//                 />;
-//       case "Land Details":
-//         return <LandDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("landDetails", data)} />;
-//       case "Hostel Details":
-//         return <HostelDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("hostelDetails", data)} />;
-//       case "Dining Facilities Details":
-//         return <DiningFacilitiesDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("diningDetails", data)} />;
-//       case "Lab Details":
-//         return <LabDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("labDetails", data)} />;
-//       case "Library Details":
-//         return <LibraryDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("libraryDetails", data)} />;
-//       case "Teachers Details":
-//         return <TeachersDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("teacherDetails", data)} />;
-//       case "Extra Curriculum Activities":
-//         return <ExtraCurriculumActivities onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("extraCurriculum", data)} />;
-//       case "Sports Facilities":
-//         return <SportsFacilities onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("sportsDetails", data)} />;
-//       case "Medical Facilities":
-//         return <MedicalFacilities onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("medicalDetails", data)} />;
-//       case "Profile FeeMaster":
-//         return <ProfileFeeMaster onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("feeMaster", data)} />;
-//       case "School Bank Details":
-//         return <SchoolBankDetails onTabChange={setActiveTab} schoolProfileId={schoolProfileId} isEditMode={isEditMode} onSave={(data) => handleSaveSection("bankDetails", data)} />;
-//       case "Final Submit":
-//         return <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} />;
-//       default:
-//         return null;
-//     }
-//   };
-
-//   if (view === "list") {
-//     return (
-//       <div style={{ minHeight: "100vh", background: "#f0f4f5", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-//         <div style={{ background: "#1a2a5e", padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-//           <span style={{ color: "#fff", fontSize: 18, fontWeight: 600 }}>Namankit School Onboarding</span>
-//           <button onClick={handleNewSchool} style={{ background: "#fff", color: "#1a7a8a", border: "none", borderRadius: 4, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-//             + New School
-//           </button>
-//         </div>
-//         <div style={{ flex: 1 }}>
-//           <SchoolListPage onEdit={handleEdit} />
-//         </div>
-//         <Footer />
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
-//       <div style={{ background: "#f0f4f5", padding: "8px 20px", borderBottom: "1px solid #dee2e6", display: "flex", alignItems: "center", gap: 12 }}>
-//         <button onClick={handleBackToList} style={{ background: "none", border: "1px solid #1a7a8a", color: "#1a7a8a", borderRadius: 4, padding: "5px 14px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-//           ← Back to List
-//         </button>
-//         {isEditMode && schoolProfileId && (
-//           <span style={{ fontSize: 13, color: "#888" }}>
-//             Editing School ID: <strong style={{ color: "#1a7a8a" }}>{schoolProfileId}</strong>
-//           </span>
-//         )}
-//       </div>
-//       <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
-//       <div style={{ background: "#f0f4f5", flex: 1 }}>
-//         {renderTab()}
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// // ── Root App — picks route ────────────────────────────────────
-// export default function App() {
-//   const route = window.__ROUTE__;
-//   if (route === "preview")     return <PreviewPage />;
-//   if (route === "po-grading")  return <POGradingApp />;
-//   if (route === "atc-grading") return <ATCGradingApp />;
-//   if (route === "bill-generation") return <BillGenerationApp />;
-//   if (route === "restrict-entry") return <RestrictEntryMaster />;
-//   return <MainApp />;
-// }
-
-// ============================================================
-//  src/App.jsx
-//
-//  Role-based routing (replaces window.__ROUTE__ approach):
-//    Controller_namankit → ControllerApp  (Restrict Entry + future)
-//    PO_namankit         → POApp          (PO Approval + Grading)
-//    ATC_namankit        → ATCApp         (ATC Grading + Bill Generation)
-//    unknown / null      → UnauthorizedApp
-// ============================================================
-// ============================================================
 //  src/App.jsx
 //  Role-based routing + sidebar nav + dev login + logout
 // ============================================================
-// ============================================================
-//  src/App.jsx
-//  Role-based routing + sidebar nav + dev login + logout
-// ============================================================
-// ============================================================
-//  src/App.jsx
-//  Role-based routing + sidebar nav + dev login + logout
-// ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./styles/global.css";
 
 import { getUserRole, setDevRole, logout, ROLES } from "./api/auth";
 
-import TabNav                    from "./components/TabNav";
-import Footer                    from "./sections/Footer";
-import SchoolListPage            from "./sections/SchoolListPage";
-import SchoolBasicDetails        from "./sections/SchoolBasicDetails";
-import LandDetails               from "./sections/LandDetails";
-import HostelDetails             from "./sections/HostelDetails";
-import DiningFacilitiesDetails   from "./sections/Diningfacilitiesdetails";
-import LabDetails                from "./sections/Labdetails";
-import LibraryDetails            from "./sections/Librarydetails";
-import TeachersDetails           from "./sections/Teachersdetails";
+import TabNav from "./components/TabNav";
+import Footer from "./sections/Footer";
+import SchoolListPage from "./sections/SchoolListPage";
+import SchoolBasicDetails from "./sections/SchoolBasicDetails";
+import LandDetails from "./sections/LandDetails";
+import HostelDetails from "./sections/HostelDetails";
+import DiningFacilitiesDetails from "./sections/Diningfacilitiesdetails";
+import LabDetails from "./sections/Labdetails";
+import LibraryDetails from "./sections/Librarydetails";
+import TeachersDetails from "./sections/Teachersdetails";
 import ExtraCurriculumActivities from "./sections/Extracurriculumactivities";
-import SportsFacilities          from "./sections/Sportsfacilities";
-import MedicalFacilities         from "./sections/Medicalfacilities";
-import ProfileFeeMaster          from "./sections/Profilefeemaster";
-import SchoolBankDetails         from "./sections/Schoolbankdetails";
-import FinalSubmit               from "./sections/FinalSubmit";
-import PreviewPage               from "./sections/PreviewPage";
-import POApprovalList            from "./sections/POApprovalList";
-import POGrading                 from "./sections/POGrading";
-import ATCApprovalList           from "./sections/ATCApprovalList";
-import ATCGrading                from "./sections/ATCGrading";
-import BillGeneration            from "./sections/Billgeneration";
-import DownloadUploadCancelBill  from "./sections/DownloadUploadCancelBill";
-import DownloadGrading           from "./sections/DownloadGrading";
-import UpdateGradingComments     from "./sections/UpdateGradingComments";
-import RestrictEntryMaster       from "./sections/RestrictEntryMaster";
-import TransactionMaster         from "./sections/TransactionMaster";
-import BillReport                from "./sections/BillReport";
+import SportsFacilities from "./sections/Sportsfacilities";
+import MedicalFacilities from "./sections/Medicalfacilities";
+import ProfileFeeMaster from "./sections/Profilefeemaster";
+import SchoolBankDetails from "./sections/Schoolbankdetails";
+import FinalSubmit from "./sections/FinalSubmit";
+import PreviewPage from "./sections/PreviewPage";
+import POApprovalList from "./sections/POApprovalList";
+import POGrading from "./sections/POGrading";
+import ATCApprovalList from "./sections/ATCApprovalList";
+import ATCGrading from "./sections/ATCGrading";
+import BillGeneration from "./sections/Billgeneration";
+import DownloadUploadCancelBill from "./sections/DownloadUploadCancelBill";
+import DownloadGrading from "./sections/DownloadGrading";
+import UpdateGradingComments from "./sections/UpdateGradingComments";
+import RestrictEntryMaster from "./sections/RestrictEntryMaster";
+import TransactionMaster from "./sections/TransactionMaster";
+import BillReport from "./sections/BillReport";
 import SchoolMasterForm from "./schools/SchoolMasterForm";
 
 const IS_DEV = window.location.hostname === "localhost";
@@ -423,10 +142,10 @@ function DevLoginApp({ onLogin }) {
   const [selected, setSelected] = useState(ROLES.CONTROLLER);
 
   const roles = [
-    { value: ROLES.CONTROLLER, label: "Controller",  icon: "⚙️", desc: "Restrict Entry, Meetings, Transactions" },
-    { value: ROLES.PO,         label: "PO",          icon: "👤", desc: "Approve Schools, Grading, Students" },
-    { value: ROLES.ATC,        label: "ATC",         icon: "🏛️", desc: "ATC Grading, Bill Generation" },
-    { value: ROLES.SCHOOL,     label: "School",      icon: "🏫", desc: "School Profile, Student Registration" },
+    { value: ROLES.CONTROLLER, label: "Controller", icon: "⚙️", desc: "Restrict Entry, Meetings, Transactions" },
+    { value: ROLES.PO, label: "PO", icon: "👤", desc: "Approve Schools, Grading, Students" },
+    { value: ROLES.ATC, label: "ATC", icon: "🏛️", desc: "ATC Grading, Bill Generation" },
+    { value: ROLES.SCHOOL, label: "School", icon: "🏫", desc: "School Profile, Student Registration" },
   ];
 
   return (
@@ -519,10 +238,10 @@ function UnauthorizedApp() {
 
 // ── Controller App ────────────────────────────────────────────
 const CONTROLLER_NAV = [
-  { key: "restrictEntry",   label: "Restrict Entry Master", icon: "📅" },
-  { key: "transactionMaster", label: "Transaction Master",  icon: "💰" },
-  { key: "billReport",      label: "Bill Report",           icon: "📋" },
-  { key: "meeting",         label: "State Level Meeting",   icon: "🤝" },
+  { key: "restrictEntry", label: "Restrict Entry Master", icon: "📅" },
+  { key: "transactionMaster", label: "Transaction Master", icon: "💰" },
+  { key: "billReport", label: "Bill Report", icon: "📋" },
+  { key: "meeting", label: "State Level Meeting", icon: "🤝" },
 ];
 
 function ControllerApp({ role }) {
@@ -530,10 +249,10 @@ function ControllerApp({ role }) {
 
   const renderScreen = () => {
     switch (screen) {
-      case "restrictEntry":    return <RestrictEntryMaster />;
+      case "restrictEntry": return <RestrictEntryMaster />;
       case "transactionMaster": return <TransactionMaster />;
-      case "billReport":       return <BillReport />;
-      case "meeting":          return <ComingSoon title="State Level Meeting" />;
+      case "billReport": return <BillReport />;
+      case "meeting": return <ComingSoon title="State Level Meeting" />;
       default: return null;
     }
   };
@@ -553,12 +272,12 @@ function ControllerApp({ role }) {
 // ── PO App ────────────────────────────────────────────────────
 const PO_NAV = [
   { key: "approveSchool", label: "Approve School Profile", icon: "🏫" },
-  { key: "poGrading",     label: "PO Grading",             icon: "⭐" },
-  { key: "approveStudent",label: "Approve Students",        icon: "👨‍🎓" },
+  { key: "poGrading", label: "PO Grading", icon: "⭐" },
+  { key: "approveStudent", label: "Approve Students", icon: "👨‍🎓" },
 ];
 
 function POApp({ role }) {
-  const [screen,         setScreen]         = useState("approveSchool");
+  const [screen, setScreen] = useState("approveSchool");
   const [selectedSchool, setSelectedSchool] = useState(null);
 
   const renderScreen = () => {
@@ -593,16 +312,16 @@ function POApp({ role }) {
 // ── ATC App ───────────────────────────────────────────────────
 const ATC_NAV = [
   // Grading
-  { key: "atcGrading",        label: "ATC Grading",              icon: "⭐", group: "Grading" },
-  { key: "downloadGrading",   label: "Download Grading",         icon: "📊", group: "Grading" },
-  { key: "gradingComments",   label: "Update Grading Comments",  icon: "✏️", group: "Grading" },
+  { key: "atcGrading", label: "ATC Grading", icon: "⭐", group: "Grading" },
+  { key: "downloadGrading", label: "Download Grading", icon: "📊", group: "Grading" },
+  { key: "gradingComments", label: "Update Grading Comments", icon: "✏️", group: "Grading" },
   // Transaction Modules
-  { key: "billGeneration",    label: "Bill Generation",          icon: "🧾", group: "Transactions" },
-  { key: "uploadBill",        label: "Download/Upload/Cancel",   icon: "📤", group: "Transactions" },
+  { key: "billGeneration", label: "Bill Generation", icon: "🧾", group: "Transactions" },
+  { key: "uploadBill", label: "Download/Upload/Cancel", icon: "📤", group: "Transactions" },
 ];
 
 function ATCApp({ role }) {
-  const [screen,         setScreen]         = useState("atcGrading");
+  const [screen, setScreen] = useState("atcGrading");
   const [selectedSchool, setSelectedSchool] = useState(null);
 
   const renderScreen = () => {
@@ -614,10 +333,10 @@ function ATCApp({ role }) {
             onViewDetails={(id) => window.open(`/?schoolId=${id}`, "_blank")}
           />
         );
-      case "billGeneration":      return <BillGeneration />;
-      case "uploadBill":          return <DownloadUploadCancelBill />;
-      case "downloadGrading":     return <DownloadGrading />;
-      case "gradingComments":     return <UpdateGradingComments />;
+      case "billGeneration": return <BillGeneration />;
+      case "uploadBill": return <DownloadUploadCancelBill />;
+      case "downloadGrading": return <DownloadGrading />;
+      case "gradingComments": return <UpdateGradingComments />;
       default: return null;
     }
   };
@@ -636,8 +355,8 @@ function ATCApp({ role }) {
 
 // ── School App ────────────────────────────────────────────────
 const SCHOOL_NAV = [
-  { key: "schoolList",    label: "School Profile",          icon: "🏫" },
-  { key: "studentReg",    label: "Student Registration",    icon: "👨‍🎓" },
+  { key: "schoolList", label: "School Profile", icon: "🏫" },
+  { key: "studentReg", label: "Student Registration", icon: "👨‍🎓" },
 ];
 
 function SchoolApp({ role }) {
@@ -647,12 +366,12 @@ function SchoolApp({ role }) {
   }
   if (path === "/preview") return <PreviewPage />;
 
-  const [screen,          setScreen]          = useState("schoolList");
-  const [view,            setView]            = useState("list");
-  const [activeTab,       setActiveTab]       = useState("School Basic Details");
+  const [screen, setScreen] = useState("schoolList");
+  const [view, setView] = useState("list");
+  const [activeTab, setActiveTab] = useState("School Basic Details");
   const [schoolProfileId, setSchoolProfileId] = useState(null);
-  const [isEditMode,      setIsEditMode]      = useState(false);
-  const [masterData,      setMasterData]      = useState({
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [masterData, setMasterData] = useState({
     schoolBasic: {}, landDetails: {}, hostelDetails: {}, diningDetails: {},
     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
     sportsDetails: {}, medicalDetails: {}, feeMaster: {}, bankDetails: {},
@@ -681,18 +400,18 @@ function SchoolApp({ role }) {
     switch (activeTab) {
       case "School Basic Details":
         return <SchoolBasicDetails {...p} onSave={(d) => { handleSaveSection("schoolBasic", d); if (d?.schoolId) setSchoolProfileId(d.schoolId); }} />;
-      case "Land Details":                return <LandDetails              {...p} onSave={(d) => handleSaveSection("landDetails",    d)} />;
-      case "Hostel Details":              return <HostelDetails            {...p} onSave={(d) => handleSaveSection("hostelDetails",  d)} />;
-      case "Dining Facilities Details":   return <DiningFacilitiesDetails  {...p} onSave={(d) => handleSaveSection("diningDetails",  d)} />;
-      case "Lab Details":                 return <LabDetails               {...p} onSave={(d) => handleSaveSection("labDetails",     d)} />;
-      case "Library Details":             return <LibraryDetails           {...p} onSave={(d) => handleSaveSection("libraryDetails", d)} />;
-      case "Teachers Details":            return <TeachersDetails          {...p} onSave={(d) => handleSaveSection("teacherDetails", d)} />;
+      case "Land Details": return <LandDetails              {...p} onSave={(d) => handleSaveSection("landDetails", d)} />;
+      case "Hostel Details": return <HostelDetails            {...p} onSave={(d) => handleSaveSection("hostelDetails", d)} />;
+      case "Dining Facilities Details": return <DiningFacilitiesDetails  {...p} onSave={(d) => handleSaveSection("diningDetails", d)} />;
+      case "Lab Details": return <LabDetails               {...p} onSave={(d) => handleSaveSection("labDetails", d)} />;
+      case "Library Details": return <LibraryDetails           {...p} onSave={(d) => handleSaveSection("libraryDetails", d)} />;
+      case "Teachers Details": return <TeachersDetails          {...p} onSave={(d) => handleSaveSection("teacherDetails", d)} />;
       case "Extra Curriculum Activities": return <ExtraCurriculumActivities {...p} onSave={(d) => handleSaveSection("extraCurriculum", d)} />;
-      case "Sports Facilities":           return <SportsFacilities         {...p} onSave={(d) => handleSaveSection("sportsDetails",  d)} />;
-      case "Medical Facilities":          return <MedicalFacilities        {...p} onSave={(d) => handleSaveSection("medicalDetails", d)} />;
-      case "Profile FeeMaster":           return <ProfileFeeMaster         {...p} onSave={(d) => handleSaveSection("feeMaster",      d)} />;
-      case "School Bank Details":         return <SchoolBankDetails        {...p} onSave={(d) => handleSaveSection("bankDetails",    d)} />;
-      case "Final Submit":                return <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} />;
+      case "Sports Facilities": return <SportsFacilities         {...p} onSave={(d) => handleSaveSection("sportsDetails", d)} />;
+      case "Medical Facilities": return <MedicalFacilities        {...p} onSave={(d) => handleSaveSection("medicalDetails", d)} />;
+      case "Profile FeeMaster": return <ProfileFeeMaster         {...p} onSave={(d) => handleSaveSection("feeMaster", d)} />;
+      case "School Bank Details": return <SchoolBankDetails        {...p} onSave={(d) => handleSaveSection("bankDetails", d)} />;
+      case "Final Submit": return <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} />;
       default: return null;
     }
   };
@@ -760,18 +479,18 @@ function ComingSoon({ title }) {
 // ── Root App ──────────────────────────────────────────────────
 export default function App() {
   const path = window.location.pathname;
-  
+
   // ✅ Only these specific paths show school registration
   if (path === "/school-registration" || path === "/school-master") {
     return <SchoolMasterForm />;
   }
-  const [role,    setRole]    = useState(null);
+  const [role, setRole] = useState(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     getUserRole()
-      .then((r)   => setRole(r))
-      .catch(()   => setRole(null))
+      .then((r) => setRole(r))
+      .catch(() => setRole(null))
       .finally(() => setChecked(true));
   }, []);
 
@@ -784,9 +503,9 @@ export default function App() {
 
   switch (role) {
     case ROLES.CONTROLLER: return <ControllerApp role={role} />;
-    case ROLES.PO:         return <POApp         role={role} />;
-    case ROLES.ATC:        return <ATCApp        role={role} />;
-    case ROLES.SCHOOL:     return <SchoolApp     role={role} />;
-    default:               return <UnauthorizedApp />;
+    case ROLES.PO: return <POApp role={role} />;
+    case ROLES.ATC: return <ATCApp role={role} />;
+    case ROLES.SCHOOL: return <SchoolApp role={role} />;
+    default: return <UnauthorizedApp />;
   }
 }

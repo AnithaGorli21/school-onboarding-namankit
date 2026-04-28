@@ -2,7 +2,7 @@
 //  src/sections/DownloadGrading.jsx
 //  ATC — Download Grading Report (PDF per school)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { apiFetch } from "../api/liferay";
 
 // ── API ───────────────────────────────────────────────────────

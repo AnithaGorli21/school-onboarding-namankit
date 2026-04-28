@@ -2,7 +2,7 @@
 //  src/components/FormFields.jsx
 //  Reusable components — pixel-matched to original UI
 // ============================================================
-import { useState } from "react";
+import React, { useState } from "react";
 
 // ── Base input style — matches original form inputs exactly ──
 const baseInput = {

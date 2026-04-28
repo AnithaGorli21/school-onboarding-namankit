@@ -8,7 +8,7 @@
 //  - Photo upload: mandatory (row 104)
 //  - All existing working code unchanged
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,

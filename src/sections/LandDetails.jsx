@@ -7,7 +7,7 @@
 //  - Area fields: numeric 2 decimal places
 //  - All mandatory fields marked with required prop
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,

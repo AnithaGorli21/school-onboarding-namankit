@@ -1,7 +1,7 @@
 // ============================================================
 // src/sections/UploadSchoolProfile.jsx
 // ============================================================
-import { useState } from "react";
+import React, { useState } from "react";
 import { Field, Row3 } from "../components/FormFields";
 
 export default function UploadSchoolProfile({ form, setForm, errors }) {

@@ -6,7 +6,7 @@
 //  2. Uses saveExtraCurriculumActivities from liferay.js (Authorization header)
 //  3. Payload matches swagger exactly
 // ============================================================
-import { useState } from "react";
+import React, { useState } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { saveExtraCurriculumActivities } from "../api/liferay";

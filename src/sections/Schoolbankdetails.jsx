@@ -5,7 +5,7 @@
 //  On mount: loads existing record by schoolProfileId → pre-fills form
 //  On save:  POST (new) or PATCH (update)
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Field, TextInput, SectionHeading } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadBankDetails, submitBankDetails, mapRecordToForm } from "../api/schoolbank";

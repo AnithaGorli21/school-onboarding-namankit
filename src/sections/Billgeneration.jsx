@@ -2,7 +2,7 @@
 //  BillGeneration.jsx  — ATC Bill Generation Page
 //  Matches screenshots 100%
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {

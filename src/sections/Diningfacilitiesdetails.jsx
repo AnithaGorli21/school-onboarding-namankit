@@ -6,7 +6,7 @@
 //  - Upload Menu: mandatory (row 89)
 //  - All existing working code unchanged
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadDiningDetails, submitDiningDetails, mapRecordToForm } from "../api/DiningDetails";

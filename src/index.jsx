@@ -22,7 +22,7 @@ class WebComponent extends HTMLElement {
     render(
       <React.StrictMode>
         <App />
-      </React.StrictMode>, 
+      </React.StrictMode>,
       this
     );
   }

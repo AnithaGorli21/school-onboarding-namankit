@@ -3,7 +3,7 @@
 //  Cascade: State → District → Taluka → Village → PO Name
 //  Required (*) added on all mandatory fields per Excel spec
 // ============================================================
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,

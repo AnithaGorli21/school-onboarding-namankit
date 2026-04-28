@@ -5,7 +5,7 @@
 //  On mount: loads all 3 objects (sports, cultural, tours)
 //  On save:  POST/PATCH all 3 objects with schoolProfileId
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,

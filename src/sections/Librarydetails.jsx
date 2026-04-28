@@ -2,7 +2,7 @@
 //  src/sections/Librarydetails.jsx
 //  UI only — API logic in src/api/libraryDetails.js
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3,
