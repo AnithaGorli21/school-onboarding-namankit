@@ -236,11 +236,9 @@ export default function StudentRegistration() {
             <Header />
             {/* <PageHeader title="Student Registration" /> */}
             <div style={{ padding: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", marginBottom: '5px', gap: 12 }}>
+                <div style={{ display: "flex", flexDirection: 'column', alignItems: "flex-start", marginBottom: '5px', gap: 12 }}>
                     <div
                         style={{
-                            width: 48,
-                            height: 48,
                             borderRadius: 6,
                             background: "#edf5fb",
                             display: "flex",
@@ -250,22 +248,23 @@ export default function StudentRegistration() {
                             fontSize: 22,
                         }}
                     >
-                        📘
+                        📘<h5 style={{ margin: 0, color: "#1a2a5e", fontWeight: '400' }}>
+                            STUDENT REGISTRATION
+                        </h5>
                     </div>
-                    <h5 style={{ margin: 0, color: "#1a2a5e", fontWeight: '400' }}>
-                        STUDENT REGISTRATION
-                    </h5>
+                    <div style={{ display: 'flex', width: '100%', flexDirection: 'column', justifyContent: 'center', marginTop: -12 }}>
+                        <div style={{ display: 'flex', alignSelf: 'center', height: 1, width: '99%', background: 'gray', marginBottom: 1.5, }}></div>
+                        <div style={{ display: 'flex', alignSelf: 'center', height: 1, width: '99%', background: 'gray' }}></div>
+                    </div>
+
                 </div>
-
-
-
             </div>
 
-            <div style={{ padding: 0 }}>
+            <div style={{ padding: 0, marginTop: 15 }}>
                 <div style={{ maxWidth: "100%", margin: "0 auto", backgroundColor: 'rgb(240, 244, 245)', padding: 10 }}>
                     {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
                     <div
-                        style={{ border: "1px solid #272525", borderRadius: 4, padding: 18, backgroundColor: 'rgb(240, 244, 245)' }}
+                        style={{ border: "1px solid #a7a3a3", borderRadius: 4, padding: 18, backgroundColor: 'rgb(240, 244, 245)' }}
                     >
                         <h5 style={{ margin: 0, color: "#333" }}>Student Details</h5>
 
@@ -1240,7 +1239,7 @@ export default function StudentRegistration() {
                                     paddingTop: 12,
                                 }}
                             >
-                                <h4 style={{ margin: 0 }}>Filled Details</h4>
+                                <h5 style={{ margin: 0 }}>Filled Details</h5>
                             </div>
                         </div>
                     </div>
