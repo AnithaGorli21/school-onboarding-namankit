@@ -13,6 +13,11 @@ export default function ScheduleMeeting() {
     const [form, setForm] = useState(emptyForm);
     const [errors, setErrors] = useState({});
     const [alert, setAlert] = useState(null);
+    const [showSchoolResults, setShowSchoolResults] = useState(false);
+    const [schoolData, setSchoolData] = useState([]);
+    const [showMeetingRemarks, setShowMeetingRemarks] = useState(false);
+    const [selectedSchool, setSelectedSchool] = useState(null);
+    const [meetingRemark, setMeetingRemark] = useState("");
 
     // sample meeting data — replace with API data as needed
     const [meetings] = useState([
@@ -128,11 +133,63 @@ export default function ScheduleMeeting() {
 
             const res = await apiPost("/o/c/grdetails", payload);
             setAlert({ type: "success", message: `GR record saved (id=${res?.id || "-"})` });
+            
+            // After successful save, fetch school data
+            fetchSchoolData();
+            
             setForm(emptyForm);
         } catch (err) {
             console.error(err);
             setAlert({ type: "error", message: err.message || "Failed to save GR details" });
         }
+    };
+
+    // Function to fetch school data (mock implementation)
+    const fetchSchoolData = async () => {
+        // Mock data - replace with actual API call
+        const mockSchoolData = [
+            {
+                id: 1,
+                poName: "Mumbai",
+                schoolName: "SchoolNa",
+                existingStudents: 0,
+                poVerificationStatus: "PO recommended for Approval",
+                atcVerificationStatus: "Approved",
+                systemCalculatedMarks: "49.00",
+                atcMarks: "64.00",
+                poRemarks: "school is good for approval. school has enrollments for current academic year",
+                atcRemarks: "school basic details are available",
+                noOfGeneralStudents: 11,
+                sanctionedAdmissions: 0,
+                committeeDecision: "Pending",
+                committeeRemarks: ""
+            }
+        ];
+        
+        setSchoolData(mockSchoolData);
+        setShowSchoolResults(true);
+    };
+
+    // Handle meeting remarks button click
+    const handleMeetingRemarks = (school) => {
+        setSelectedSchool(school);
+        setMeetingRemark(school.committeeRemarks || "");
+        setShowMeetingRemarks(true);
+    };
+
+    // Handle saving meeting remarks
+    const handleSaveMeetingRemarks = () => {
+        // Update the school data with new remarks
+        setSchoolData(prevData => 
+            prevData.map(school => 
+                school.id === selectedSchool.id 
+                    ? { ...school, committeeRemarks: meetingRemark }
+                    : school
+            )
+        );
+        setShowMeetingRemarks(false);
+        setSelectedSchool(null);
+        setMeetingRemark("");
     };
 
     return (
@@ -268,6 +325,347 @@ export default function ScheduleMeeting() {
                             <h3 style={{ color: "#1aa0b6", marginBottom: 8 }}>School Details</h3>
                             <div style={{ height: 8, borderBottom: "2px solid #f5b07a" }} />
                         </div>
+
+                        {/* School Details Table */}
+                        {showSchoolResults && (
+                            <div style={{ marginTop: 20 }}>
+                                <div style={{ overflowX: "auto" }}>
+                                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                                        <thead>
+                                            <tr style={{ background: "#f8f9fa" }}>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Enter Meeting Decisions/remarks</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View Grading Report</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View School Profile</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO Name</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>School Name</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Existing students</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO verification status</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC verification status</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>System Calculated Marks</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC Marks</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO remarks</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC remarks</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>No of General Students</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Sanctioned admissions(current academic year)</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Committee Decision</th>
+                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Committee Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {schoolData.map((school) => (
+                                                <tr key={school.id}>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                        <button 
+                                                            onClick={() => handleMeetingRemarks(school)}
+                                                            style={{ 
+                                                                background: "#007bff", 
+                                                                color: "#fff", 
+                                                                border: "none", 
+                                                                padding: "4px 8px", 
+                                                                borderRadius: 3, 
+                                                                cursor: "pointer", 
+                                                                fontSize: 12 
+                                                            }}
+                                                        >
+                                                            Meeting Remarks
+                                                        </button>
+                                                    </td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                        <button style={{ background: "#28a745", color: "#fff", border: "none", padding: "4px 8px", borderRadius: 3, cursor: "pointer", fontSize: 12 }}>View</button>
+                                                    </td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                        <button style={{ background: "#28a745", color: "#fff", border: "none", padding: "4px 8px", borderRadius: 3, cursor: "pointer", fontSize: 12 }}>View</button>
+                                                    </td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poName}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.schoolName}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poVerificationStatus}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.atcVerificationStatus}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.systemCalculatedMarks}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.atcMarks}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 200, wordWrap: "break-word" }}>{school.poRemarks}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 200, wordWrap: "break-word" }}>{school.atcRemarks}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.noOfGeneralStudents}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissions}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.committeeDecision}</td>
+                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 150, wordWrap: "break-word" }}>{school.committeeRemarks}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                {/* Pagination */}
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, fontSize: 13 }}>
+                                    <div><strong>Total Records {schoolData.length}</strong></div>
+                                    <div>Page: 1 of 1</div>
+                                    <div style={{ display: "flex", gap: 4 }}>
+                                        <button style={{ padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" }}>First</button>
+                                        <button style={{ padding: "5px 16px", fontSize: 13, background: "#fff", color: "#333", border: "1px solid #ccc", borderRadius: 3, cursor: "not-allowed" }} disabled>Previous</button>
+                                        <button style={{ padding: "5px 16px", fontSize: 13, background: "#fff", color: "#333", border: "1px solid #ccc", borderRadius: 3, cursor: "not-allowed" }} disabled>Next</button>
+                                        <button style={{ padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" }}>Last</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Meeting Remarks Popup */}
+                        {showMeetingRemarks && (
+                            <div style={{ 
+                                position: "fixed", 
+                                top: 0, 
+                                left: 0, 
+                                right: 0, 
+                                bottom: 0, 
+                                background: "rgba(0,0,0,0.5)", 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "center", 
+                                zIndex: 1000 
+                            }}>
+                                <div style={{ 
+                                    background: "#fff", 
+                                    borderRadius: 4, 
+                                    width: 800, 
+                                    boxShadow: "0 4px 24px rgba(0,0,0,0.25)" 
+                                }}>
+                                    {/* Header */}
+                                    <div style={{ 
+                                        background: "#f8d7da", 
+                                        padding: "12px 18px", 
+                                        borderRadius: "4px 4px 0 0", 
+                                        fontSize: 15, 
+                                        fontWeight: 700, 
+                                        color: "#c0392b", 
+                                        borderBottom: "1px solid #f5c6cb" ,
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center"
+                                    }}>
+                                        <div>Meeting Remarks</div>
+                                        <button 
+                                            onClick={() => setShowMeetingRemarks(false)}
+                                            style={{ 
+                                                background: "none", 
+                                                border: "none", 
+                                                fontSize: 20, 
+                                                cursor: "pointer", 
+                                                color: "#c0392b",
+                                                fontWeight: 700
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Body */}
+                                    <div style={{ padding: "22px 18px", fontSize: 14, color: "#333" }}>
+                                        {/* First Row: Two inputs */}
+                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Actual Students Registered <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter actual students registered"
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Actual Students Transferred <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter actual students transferred"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Second Row: One select */}
+                                        <div style={{ marginBottom: 16 }}>
+                                            <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                Final Decision <span style={{ color: "#d9534f" }}>*</span>
+                                            </label>
+                                            <select 
+                                                style={{ 
+                                                    width: "100%", 
+                                                    padding: 8, 
+                                                    borderRadius: 4, 
+                                                    border: "1px solid #ddd", 
+                                                    fontSize: 14
+                                                }}
+                                            >
+                                                <option value="">-- Select --</option>
+                                                <option value="approved">Approved</option>
+                                                <option value="rejected">Rejected</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+                                        
+                                        {/* Third Row: Two inputs */}
+                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Sanctioned admissions (current academic year)<span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter sanctioned number"
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Samayojan <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter samayojan number"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Fourth Row: Two inputs */}
+                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Assigned Marks <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter assigned marks"
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Assigned Fees <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter assigned fees"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Fifth Row: Two inputs */}
+                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    School Proposed Fees <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter school proposed fees"
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                    Final Fees <span style={{ color: "#d9534f" }}>*</span>
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        padding: 8, 
+                                                        borderRadius: 4, 
+                                                        border: "1px solid #ddd", 
+                                                        fontSize: 14
+                                                    }}
+                                                    placeholder="Enter final fees"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Sixth Row: One text input */}
+                                        <div style={{ marginBottom: 16 }}>
+                                            <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+                                                Final Remarks <span style={{ color: "#d9534f" }}>*</span>
+                                            </label>
+                                            <textarea 
+                                                rows={3}
+                                                style={{ 
+                                                    width: "100%", 
+                                                    padding: 8, 
+                                                    borderRadius: 4, 
+                                                    border: "1px solid #ddd", 
+                                                    resize: "vertical",
+                                                    fontSize: 14
+                                                }}
+                                                placeholder="Enter final remarks..."
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Footer */}
+                                    <div style={{ padding: "10px 18px 18px", textAlign: "center", borderTop: "1px solid #eee" }}>
+                                        <button 
+                                            onClick={handleSaveMeetingRemarks}
+                                            style={{ 
+                                                background: "rgb(44, 164, 74)", 
+                                                color: "#fff", 
+                                                border: "none", 
+                                                borderRadius: 4, 
+                                                padding: "8px 36px", 
+                                                fontSize: 14, 
+                                                fontWeight: 600, 
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
