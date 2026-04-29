@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 import PageHeader from "../../components/PageHeader";
 import { submitStudentRegistration } from "../../api/StudentRegistration";
 import { validateStudentRegistration } from "../../utils/validate";
-import { Alert } from "../../components/FormFields";
+import { Alert, SelectInput } from "../../components/FormFields";
 import { getStates, getDistricts, getTalukas, getVillages, getPoNames } from "../../api/liferay";
 
 export default function StudentRegistration() {
@@ -533,9 +533,10 @@ export default function StudentRegistration() {
                                 <div
                                     style={{
                                         marginTop: 14,
-                                        display: "flex",
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
                                         gap: 12,
-                                        alignItems: "center",
+                                        alignItems: "end",
                                     }}
                                 >
                                     <div>
@@ -558,7 +559,7 @@ export default function StudentRegistration() {
                                         )}
                                     </div>
 
-                                    <div style={{ width: 300 }}>
+                                    <div>
                                         <label style={{ fontSize: 13 }}>
                                             Birth Date <span style={{ color: "#e53935" }}>*</span>
                                         </label>
@@ -566,46 +567,37 @@ export default function StudentRegistration() {
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
+                                                color: form.birthDate ? "#000" : "#888",
                                             }}
                                             type="date"
                                             name="birthDate"
                                             value={form.birthDate || ""}
                                             onChange={handleChange}
+                                            onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                                            placeholder="DD-MM-YYYY"
                                         />
                                         {errors.birthDate && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.birthDate}</div>
                                         )}
                                     </div>
 
-                                    <div style={{ width: 220 }}>
+                                    <div>
                                         <label style={{ fontSize: 13 }}>
                                             Current Class <span style={{ color: "#e53935" }}>*</span>
                                         </label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="currentClass"
+                                        <SelectInput
                                             value={form.currentClass || ""}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">-- Select --</option>
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                                                <option key={n} value={n}>{n}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(v) => setForm(s => ({ ...s, currentClass: v }))}
+                                            options={Array.from({ length: 12 }, (_, i) => i + 1)}
+                                            placeholder="-- Select --"
+                                        />
                                         {errors.currentClass && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.currentClass}</div>
                                         )}
                                     </div>
-                                    <div style={{ width: 220 }}>
+                                    <div>
                                         <label style={{ fontSize: 13 }}>
                                             Current Admission Date <span style={{ color: "#e53935" }}>*</span>
                                         </label>
@@ -614,13 +606,15 @@ export default function StudentRegistration() {
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
+                                                color: form.currentAdmissionDate ? "#000" : "#888",
                                             }}
                                             name="currentAdmissionDate"
                                             value={form.currentAdmissionDate || ""}
                                             onChange={handleChange}
+                                            onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                                            placeholder="DD-MM-YYYY"
                                         />
                                         {errors.currentAdmissionDate && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.currentAdmissionDate}</div>
@@ -704,21 +698,16 @@ export default function StudentRegistration() {
                                     </div>
                                 </div>
 
-                                <div style={{
-                                    marginTop: 14, display: 'flex', flexDirection: 'row', justifyContent: 'flex-start',
-                                    alignItems: "baseline"
-                                }}>
-                                    <label style={{ fontSize: 13 }}>
+                                <div style={{ marginTop: 14 }}>
+                                    <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                         Mother's Name <span style={{ color: "#e53935" }}>*</span>
                                     </label>
                                     <input
                                         style={{
-                                            width: "50%",
+                                            width: "100%",
                                             padding: 8,
-                                            marginTop: 6,
                                             border: "1px solid #ddd",
                                             borderRadius: 4,
-                                            marginLeft: 10
                                         }}
                                         name="mothersName"
                                         value={form.mothersName || ""}
@@ -780,70 +769,47 @@ export default function StudentRegistration() {
                                         display: "grid",
                                         gridTemplateColumns: "1fr 1fr 1fr",
                                         gap: 12,
+                                        alignItems: "end",
                                     }}
                                 >
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             District <span style={{ color: "#e53935" }}>*</span>
                                         </label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="district"
+                                        <SelectInput
                                             value={form.district || ""}
-                                            onChange={onDistrictChange}
+                                            onChange={(v) => setForm(p => ({ ...p, district: v, taluka: "", village: "", concernedPO: "" }))}
+                                            options={districts}
+                                            placeholder="-- Select --"
                                             disabled={!form.state}
-
-                                        >
-                                            <option value="" color="blue">-- Select --</option>
-                                            {districts.map((d) => (
-                                                <option key={d.value} value={d.value}>{d.label}</option>
-                                            ))}
-                                        </select>
+                                        />
                                         {errors.district && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.district}</div>
                                         )}
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             Taluka <span style={{ color: "#e53935" }}>*</span>
                                         </label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="taluka"
+                                        <SelectInput
                                             value={form.taluka || ""}
-                                            onChange={onTalukaChange}
+                                            onChange={(v) => setForm(p => ({ ...p, taluka: v, village: "", concernedPO: "" }))}
+                                            options={talukas}
+                                            placeholder="--Select--"
                                             disabled={!form.district}
-                                        >
-                                            <option value="">--Select--</option>
-                                            {talukas.map((t) => (
-                                                <option key={t.value} value={t.value}>{t.label}</option>
-                                            ))}
-                                        </select>
+                                        />
                                         {errors.taluka && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.taluka}</div>
                                         )}
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             Pincode <span style={{ color: "#e53935" }}>*</span>
                                         </label>
                                         <input
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
                                             }}
@@ -863,41 +829,30 @@ export default function StudentRegistration() {
                                         display: "grid",
                                         gridTemplateColumns: "1fr 1fr 1fr",
                                         gap: 12,
+                                        alignItems: "end",
                                     }}
                                 >
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             Village <span style={{ color: "#e53935" }}>*</span>
                                         </label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="village"
+                                        <SelectInput
                                             value={form.village || ""}
-                                            onChange={onVillageChange}
+                                            onChange={(v) => setForm(p => ({ ...p, village: v, concernedPO: "" }))}
+                                            options={villages}
+                                            placeholder="--Select--"
                                             disabled={!form.taluka}
-                                        >
-                                            <option value="">--Select--</option>
-                                            {villages.map((v) => (
-                                                <option key={v.value} value={v.value}>{v.label}</option>
-                                            ))}
-                                        </select>
+                                        />
                                         {errors.village && (
                                             <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.village}</div>
                                         )}
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: 13 }}>Email Id</label>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Email Id</label>
                                         <input
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
                                             }}
@@ -910,12 +865,11 @@ export default function StudentRegistration() {
                                         )}
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: 13 }}>Mobile Number</label>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Mobile Number</label>
                                         <input
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
                                             }}
@@ -933,42 +887,31 @@ export default function StudentRegistration() {
                                     style={{
                                         marginTop: 12,
                                         display: "grid",
-                                        gridTemplateColumns: "1fr 1fr",
+                                        gridTemplateColumns: "1fr 1fr 1fr",
                                         gap: 12,
+                                        alignItems: "end",
                                     }}
                                 >
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             Concerned PO <span style={{ color: "#e53935" }}>*</span>
                                         </label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="concernedPO"
+                                        <SelectInput
                                             value={form.concernedPO || ""}
-                                            onChange={handleChange}
+                                            onChange={(v) => setForm(s => ({ ...s, concernedPO: v }))}
+                                            options={poNames}
+                                            placeholder="-- Select --"
                                             disabled={!form.village}
-                                        >
-                                            <option value="">-- Select --</option>
-                                            {poNames.map((p) => (
-                                                <option key={p.value} value={p.value}>{p.label}</option>
-                                            ))}
-                                        </select>
+                                        />
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: 13 }}>
+                                        <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                             Family Income <span style={{ color: "#e53935" }}>*</span>
                                         </label>
                                         <input
                                             style={{
                                                 width: "100%",
                                                 padding: 8,
-                                                marginTop: 6,
                                                 border: "1px solid #ddd",
                                                 borderRadius: 4,
                                             }}
@@ -977,22 +920,14 @@ export default function StudentRegistration() {
                                             onChange={handleChange}
                                         />
                                     </div>
-                                </div>
-
-                                <div
-                                    style={{
-                                        marginTop: 12,
-                                        display: "flex",
-                                        gap: 20,
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <label>
-                                        <input type="checkbox" name="isDropout" checked={!!form.isDropout} onChange={handleCheckbox} /> Dropout
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" name="isActive" checked={!!form.isActive} onChange={handleCheckbox} /> Active
-                                    </label>
+                                    <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 6 }}>
+                                        <label style={{ marginRight: 16, fontSize: 13 }}>
+                                            <input type="checkbox" name="isDropout" checked={!!form.isDropout} onChange={handleCheckbox} /> Dropout
+                                        </label>
+                                        <label style={{ fontSize: 13 }}>
+                                            <input type="checkbox" name="isActive" checked={!!form.isActive} onChange={handleCheckbox} /> Active
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1021,14 +956,14 @@ export default function StudentRegistration() {
                             </div>
 
                             <div style={{ marginTop: 12 }}>
-                                <label style={{ fontSize: 13 }}>
+                                <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
                                     Aadhaar Number(UID) <span style={{ color: "#e53935" }}>*</span>
                                 </label>
                                 <input
                                     style={{
-                                        width: 300,
+                                        width: "100%",
+                                        maxWidth: 300,
                                         padding: 8,
-                                        marginTop: 6,
                                         border: "1px solid #ddd",
                                         borderRadius: 4,
                                     }}
@@ -1164,53 +1099,31 @@ export default function StudentRegistration() {
                                 >
                                     <div>
                                         <label style={{ fontSize: 13 }}>Admission Date</label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="admissionDate"
+                                        <SelectInput
                                             value={form.admissionDate || ""}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">-- Select --</option>
-                                            {admissionYearOptions.map((y) => (
-                                                <option key={y} value={y}>{y}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(v) => setForm(s => ({ ...s, admissionDate: v }))}
+                                            options={admissionYearOptions}
+                                            placeholder="-- Select --"
+                                        />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: 13 }}>Old Admission Date</label>
-                                        <select
-                                            style={{
-                                                width: "100%",
-                                                padding: 8,
-                                                marginTop: 6,
-                                                border: "1px solid #ddd",
-                                                borderRadius: 4,
-                                            }}
-                                            name="oldAdmissionDate"
+                                        <SelectInput
                                             value={form.oldAdmissionDate || ""}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">-- Select --</option>
-                                            {admissionYearOptions.map((y) => (
-                                                <option key={y} value={y}>{y}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(v) => setForm(s => ({ ...s, oldAdmissionDate: v }))}
+                                            options={admissionYearOptions}
+                                            placeholder="-- Select --"
+                                        />
                                     </div>
-                                    <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: 'flex-start', alignItems: 'flex-end' }}>
+                                    <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-start', alignItems: 'flex-end' }}>
                                         <button
                                             style={{
                                                 background: "#28a745",
                                                 color: "#fff",
                                                 border: "none",
-                                                width: 100,
-                                                height: 30,
+                                                padding: "8px 16px",
                                                 borderRadius: 4,
+                                                minWidth: 100,
                                             }}
                                         >
                                             Search
@@ -1220,9 +1133,9 @@ export default function StudentRegistration() {
                                                 background: "#28a745",
                                                 color: "#fff",
                                                 border: "none",
-                                                width: 100,
-                                                height: 30,
+                                                padding: "8px 16px",
                                                 borderRadius: 4,
+                                                minWidth: 100,
                                             }}
                                         >
                                             Export to Excel

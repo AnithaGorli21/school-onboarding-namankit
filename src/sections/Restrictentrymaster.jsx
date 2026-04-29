@@ -271,57 +271,68 @@ export default function RestrictEntryMaster() {
           ) : (
             <>
               {/* ── Form ── */}
-              <div>
+              <div style={{display:'flex', flexDirection:'column', gap: 16}}>
 
                 {/* General inline error */}
-                {inlineErr && (
+                {/* {inlineErr && (
                   <div style={s.inlineErr}>⚠️ {inlineErr}</div>
-                )}
+                )} */}
 
-                {/* Dropdown — Mandatory */}
-                <label style={s.label}>
-                  Restrict Entry List <span style={s.req}>*</span>
-                </label>
-                <select
-                  style={s.select(showDropdownErr)}
-                  value={selectedType}
-                  onBlur={() => setTouched((p) => ({ ...p, __dropdown: true }))}
-                  onChange={(e) => handleTypeChange(e.target.value)}
-                >
-                  {RESTRICT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-                {showDropdownErr && (
-                  <span style={s.fieldErr}>Please select a value from Restrict Entry List.</span>
-                )}
-
-                {/* Dynamic date fields — each mandatory */}
-                {activeFields.map((f) => (
-                  <div key={f.key}>
+                {/* Form Row: All Input Elements */}
+                <div style={{display:'flex', alignItems: 'flex-start', gap: 16}}>
+                  {/* Dropdown — Mandatory */}
+                  <div>
                     <label style={s.label}>
-                      {f.label} <span style={s.req}>*</span>
+                      Restrict Entry List <span style={s.req}>*</span>
                     </label>
-                    <input
-                      type="date"
-                      style={s.dateInput(!!fieldErrors[f.key])}
-                      value={dates[f.key]}
-                      onChange={(e) => handleDate(f.key, e.target.value)}
-                      onBlur={() => handleBlur(f.key, f.label)}
-                    />
-                    {fieldErrors[f.key] && (
-                      <span style={s.fieldErr}>{fieldErrors[f.key]}</span>
+                    <select
+                      style={{
+                        ...s.select(showDropdownErr),
+                        color: selectedType ? "#333" : "#888"
+                      }}
+                      value={selectedType}
+                      onBlur={() => setTouched((p) => ({ ...p, __dropdown: true }))}
+                      onChange={(e) => handleTypeChange(e.target.value)}
+                    >
+                      {RESTRICT_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                    {showDropdownErr && (
+                      <span style={s.fieldErr}>Please select a value from Restrict Entry List.</span>
                     )}
                   </div>
-                ))}
 
-                <button
-                  style={saving ? s.saveBtnDisabled : s.saveBtn}
-                  onClick={handleSave}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
+                  {/* Dynamic date fields — each mandatory */}
+                  {activeFields.map((f) => (
+                    <div key={f.key}>
+                      <label style={s.label}>
+                        {f.label} <span style={s.req}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        style={s.dateInput(!!fieldErrors[f.key])}
+                        value={dates[f.key]}
+                        onChange={(e) => handleDate(f.key, e.target.value)}
+                        onBlur={() => handleBlur(f.key, f.label)}
+                      />
+                      {fieldErrors[f.key] && (
+                        <span style={s.fieldErr}>{fieldErrors[f.key]}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Save Button Row */}
+                <div style={{display:'flex', justifyContent: 'flex-start'}}>
+                  <button
+                    style={saving || !selectedType ? s.saveBtnDisabled : s.saveBtn}
+                    onClick={handleSave}
+                    disabled={saving || !selectedType}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                </div>
               </div>
 
               {/* ── Table ── */}
