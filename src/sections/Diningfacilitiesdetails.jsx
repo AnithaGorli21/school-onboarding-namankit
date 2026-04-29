@@ -15,19 +15,19 @@ const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
   SeparateDiningHallforBoysandGirls: "",
-  DiningHallAreainSqft:              "",
-  DiningTable:                       "",
-  FoodServedAsPerMenu:               "",
-  DiningHallPhoto:                   null,
-  MenuPhoto:                         null,
+  DiningHallAreainSqft: "",
+  DiningTable: "",
+  FoodServedAsPerMenu: "",
+  DiningHallPhoto: null,
+  MenuPhoto: null,
 };
 
 export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [form,        setForm]        = useState(emptyForm);
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
-  const [errors,      setErrors]      = useState({});
-  const [recordId,    setRecordId]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
@@ -75,9 +75,9 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
     if (!form.DiningTable)
       e.DiningTable = "Dining Table is required.";
 
-    // Row 87 — Food Served As Per Menu: Mandatory
+    // Row 87 — Food Served As per Menu: Mandatory
     if (!form.FoodServedAsPerMenu)
-      e.FoodServedAsPerMenu = "Food Served As Per Menu is required.";
+      e.FoodServedAsPerMenu = "Food Served As per Menu is required.";
 
     // Row 88 — Upload Dining Hall Photo: Mandatory
     if (!form.DiningHallPhoto)
@@ -155,8 +155,8 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
       </Row3>
 
       <Row3>
-        {/* Row 87 — Food Served As Per Menu: Mandatory */}
-        <Field label="Food Served As Per Menu" required error={errors.FoodServedAsPerMenu}>
+        {/* Row 87 — Food Served As per Menu: Mandatory */}
+        <Field label="Food Served As per Menu" required error={errors.FoodServedAsPerMenu}>
           <SelectInput value={form.FoodServedAsPerMenu} onChange={set("FoodServedAsPerMenu")} options={YES_NO} />
         </Field>
       </Row3>

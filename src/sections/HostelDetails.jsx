@@ -3,7 +3,7 @@
 //  Validations added per Excel spec:
 //  - All mandatory fields validated
 //  - Hot water: at least one checkbox required (row 70)
-//  - Area In Sq.Ft: shown only if Separate Hostel Building = Yes (row 68)
+//  - Area in Sq.Ft: shown only if Separate Hostel Building = Yes (row 68)
 //  - Grand Total hostels/capacity: auto-calculated (rows 75-76)
 //  - Total Residential Students: auto-calculated (row 77)
 //  - Expected Bathrooms/Washrooms: auto-calculated (rows 78,80)
@@ -21,41 +21,41 @@ import { loadHostelDetails, submitHostelDetails, mapRecordToForm } from "../api/
 const YES_NO = ["Yes", "No"];
 
 const HOT_WATER_OPTIONS = [
-  { key: "solarWaterheater",   label: "Solar Waterheater" },
-  { key: "gasElectric",        label: "Gas/Electric" },
+  { key: "solarWaterheater", label: "Solar Waterheater" },
+  { key: "gasElectric", label: "Gas/Electric" },
   { key: "traditionalSources", label: "Traditional Sources" },
-  { key: "notAvailable",       label: "Not Available" },
+  { key: "notAvailable", label: "Not Available" },
 ];
 
 const emptyForm = {
-  studentsClass1to4:           "",
-  femaleCaretakers1to4:        "",
-  availabilityIncinerators:    "",
-  washingMachine:              "",
-  separateHostelBuilding:      "",
-  areaInSqFt:                  "",
-  lightFanBedding:             "",
-  hotWater_solarWaterheater:   false,
-  hotWater_gasElectric:        false,
+  studentsClass1to4: "",
+  femaleCaretakers1to4: "",
+  availabilityIncinerators: "",
+  washingMachine: "",
+  separateHostelBuilding: "",
+  areaInSqFt: "",
+  lightFanBedding: "",
+  hotWater_solarWaterheater: false,
+  hotWater_gasElectric: false,
   hotWater_traditionalSources: false,
-  hotWater_notAvailable:       false,
-  totalBoysHostels:            "",
-  capacityBoysHostels:         "",
-  totalGirlsHostels:           "",
-  capacityGirlsHostels:        "",
-  actualBathrooms:             "",
-  actualWashrooms:             "",
+  hotWater_notAvailable: false,
+  totalBoysHostels: "",
+  capacityBoysHostels: "",
+  totalGirlsHostels: "",
+  capacityGirlsHostels: "",
+  actualBathrooms: "",
+  actualWashrooms: "",
 };
 
 export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) {
-  const [form,         setForm]         = useState(emptyForm);
-  const [photoFile,    setPhotoFile]    = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [saving,       setSaving]       = useState(false);
-  const [alert,        setAlert]        = useState(null);
-  const [errors,       setErrors]       = useState({});
-  const [recordId,     setRecordId]     = useState(null);
-  const [loadingData,  setLoadingData]  = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -74,15 +74,15 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
 
   // ── Auto-calculated values ────────────────────────────────
   // Row 75 — Grand Total Number of Hostels
-  const grandTotalHostels  = (Number(form.totalBoysHostels)    || 0) + (Number(form.totalGirlsHostels)    || 0);
+  const grandTotalHostels = (Number(form.totalBoysHostels) || 0) + (Number(form.totalGirlsHostels) || 0);
   // Row 76 — Grand Total Capacity
   const grandTotalCapacity = (Number(form.capacityBoysHostels) || 0) + (Number(form.capacityGirlsHostels) || 0);
   // Row 77 — Total Residential Students = Grand Total Capacity
   const totalResidentialStudents = grandTotalCapacity;
   // Row 78 — Expected Bathrooms (1 per 20 students)
-  const expectedBathrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedBathrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
   // Row 80 — Expected Washrooms (1 per 20 students)
-  const expectedWashrooms  = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
+  const expectedWashrooms = totalResidentialStudents ? Math.ceil(totalResidentialStudents / 20) : 0;
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -135,7 +135,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
     if (!form.separateHostelBuilding)
       e.separateHostelBuilding = "Availability of Separate Hostel Building is required.";
 
-    // Row 68 — Area In Sq.Ft: Not mandatory (shown only if Yes)
+    // Row 68 — Area in Sq.Ft: Not mandatory (shown only if Yes)
 
     // Row 69 — Light Fan Bedding: Mandatory
     if (!form.lightFanBedding)
@@ -239,33 +239,34 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
 
       <SectionHeading title="School Hostel Details" />
 
-      <Row3>
+      <Row2>
         {/* Row 63 — Students class 1-4: Mandatory + Numeric */}
         <Field label="Total Number of Students studying from class 1st to 4th" required error={errors.studentsClass1to4}>
           <TextInput value={form.studentsClass1to4} onChange={set("studentsClass1to4")} type="number" />
         </Field>
         {/* Row 64 — Female Caretakers: Mandatory + Numeric */}
-        <Field label="Total Number of Female caretakers for Students studying in 1st to 4th standard" required error={errors.femaleCaretakers1to4}>
+        <Field style={{ display: "flex", width: '100%' }} label="Total Number of Female caretakers for Students studying in 1st to 4th standard" required error={errors.femaleCaretakers1to4}>
           <TextInput value={form.femaleCaretakers1to4} onChange={set("femaleCaretakers1to4")} type="number" />
         </Field>
         {/* Row 65 — Incinerators: Mandatory */}
-        <Field label="Availability Of incinerators" required error={errors.availabilityIncinerators}>
-          <SelectInput value={form.availabilityIncinerators} onChange={set("availabilityIncinerators")} options={YES_NO} />
-        </Field>
-      </Row3>
+
+      </Row2>
 
       <Row3>
         {/* Row 66 — Washing Machine: Mandatory */}
-        <Field label="Availability Of washing Machine for students use" required error={errors.washingMachine}>
+        <Field label="Availability of incinerators" required error={errors.availabilityIncinerators}>
+          <SelectInput value={form.availabilityIncinerators} onChange={set("availabilityIncinerators")} options={YES_NO} />
+        </Field>
+        <Field label="Availability of washing Machine for students use" required error={errors.washingMachine}>
           <SelectInput value={form.washingMachine} onChange={set("washingMachine")} options={YES_NO} />
         </Field>
         {/* Row 67 — Separate Hostel Building: Mandatory */}
-        <Field label="Availability Of Separate Hostel Building" required error={errors.separateHostelBuilding}>
+        <Field label="Availability of Separate Hostel Building" required error={errors.separateHostelBuilding}>
           <SelectInput value={form.separateHostelBuilding} onChange={onSeparateHostelChange} options={YES_NO} />
         </Field>
-        {/* Row 68 — Area In Sq.Ft: Not mandatory, shown only if Yes */}
+        {/* Row 68 — Area in Sq.Ft: Not mandatory, shown only if Yes */}
         {form.separateHostelBuilding === "Yes" && (
-          <Field label="Area In Sq.Ft" error={errors.areaInSqFt}>
+          <Field label="Area in Sq.Ft" error={errors.areaInSqFt}>
             <TextInput value={form.areaInSqFt} onChange={set("areaInSqFt")} type="number" />
           </Field>
         )}
@@ -273,7 +274,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px 18px", marginBottom: 12 }}>
         {/* Row 69 — Light Fan Bedding: Mandatory */}
-        <Field label="Availability Of Light, Fan & Bedding Facility For Each Student" required error={errors.lightFanBedding}>
+        <Field label="Availability of Light, Fan & Bedding Facility for Each Student" required error={errors.lightFanBedding}>
           <SelectInput value={form.lightFanBedding} onChange={set("lightFanBedding")} options={YES_NO} />
         </Field>
       </div>
@@ -340,7 +341,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
       <div style={subHeading}>Availability of Bathrooms</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px 18px", marginBottom: 12 }}>
         {/* Row 77 — Total Residential Students: Auto-calculated */}
-        <Field label="Total No. Of Residential Students" required>
+        <Field label="Total No. of Residential Students" required>
           <TextInput value={totalResidentialStudents || ""} readOnly />
         </Field>
       </div>

@@ -22,41 +22,41 @@ const searchBills = (transactionId, poId, billNo) => {
   ).then((d) => d.items || []);
 };
 
-const cancelBill   = (id) => apiPatch(`/o/c/billgenerations/${id}`, { bill_status: "Cancelled" });
-const uploadBill   = (id, fileUrl) => apiPatch(`/o/c/billgenerations/${id}`, { bill_status: "Uploaded", uploadedFile: fileUrl });
+const cancelBill = (id) => apiPatch(`/o/c/billgenerations/${id}`, { bill_status: "Cancelled" });
+const uploadBill = (id, fileUrl) => apiPatch(`/o/c/billgenerations/${id}`, { bill_status: "Uploaded", uploadedFile: fileUrl });
 
 // ── Styles (matching BillGeneration exactly) ──────────────────
 const s = {
-  page:      { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:   { fontSize: 18, fontWeight: 600, color: "#222", paddingBottom: 10, borderBottom: "1px solid #ddd", marginBottom: 20 },
-  label:     { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
-  req:       { color: "#e53935", marginLeft: 2 },
-  input:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
-  select:    { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
-  btnGreen:  { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnBlue:   { background: "#007bff", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
-  btnTeal:   { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
+  page: { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
+  heading: { fontSize: 18, fontWeight: 600, color: "#222", paddingBottom: 10, borderBottom: "1px solid #ddd", marginBottom: 20 },
+  label: { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
+  req: { color: "#e53935", marginLeft: 2 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
+  select: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
+  btnGreen: { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnBlue: { background: "#007bff", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
+  btnTeal: { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
   btnOrange: { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
-  btnRed:    { background: "#dc3545", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
+  btnRed: { background: "#dc3545", color: "#fff", border: "none", borderRadius: 3, padding: "5px 12px", fontSize: 12, cursor: "pointer" },
   btnYellow: { background: "#ffc107", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  table:     { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
-  th:        { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:        { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
-  alert:     { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:       { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
-  suc:       { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
-  badge:     (status) => ({
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 20 },
+  th: { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
+  td: { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
+  alert: { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  suc: { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
+  badge: (status) => ({
     padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
     background: status === "Uploaded" ? "#d4edda" : status === "Cancelled" ? "#f8d7da" : "#fff3cd",
-    color:      status === "Uploaded" ? "#155724" : status === "Cancelled" ? "#721c24" : "#856404",
+    color: status === "Uploaded" ? "#155724" : status === "Cancelled" ? "#721c24" : "#856404",
   }),
 };
 
 // ── Modal for Upload ──────────────────────────────────────────
 function UploadModal({ bill, onClose, onUploaded }) {
-  const [file,     setFile]     = useState(null);
-  const [loading,  setLoading]  = useState(false);
-  const [err,      setErr]      = useState("");
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   const handleUpload = async () => {
     if (!file) { setErr("Please select a file."); return; }
@@ -111,21 +111,21 @@ function UploadModal({ bill, onClose, onUploaded }) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function DownloadUploadCancelBill() {
-  const [transactions,  setTransactions]  = useState([]);
-  const [poList,        setPoList]        = useState([]);
-  const [transaction,   setTransaction]   = useState("");
-  const [po,            setPo]            = useState("");
-  const [billNo,        setBillNo]        = useState("");
-  const [bills,         setBills]         = useState([]);
-  const [loading,       setLoading]       = useState(false);
-  const [searched,      setSearched]      = useState(false);
-  const [alert,         setAlert]         = useState(null);
-  const [uploadModal,   setUploadModal]   = useState(null); // bill object
+  const [transactions, setTransactions] = useState([]);
+  const [poList, setPoList] = useState([]);
+  const [transaction, setTransaction] = useState("");
+  const [po, setPo] = useState("");
+  const [billNo, setBillNo] = useState("");
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [uploadModal, setUploadModal] = useState(null); // bill object
 
   // Load dropdowns
   useEffect(() => {
-    getTransactions().then(setTransactions).catch(() => {});
-    getPOList().then(setPoList).catch(() => {});
+    getTransactions().then(setTransactions).catch(() => { });
+    getPOList().then(setPoList).catch(() => { });
   }, []);
 
   const handleSearch = async () => {
@@ -167,14 +167,14 @@ export default function DownloadUploadCancelBill() {
   const handleExportExcel = () => {
     // Simple CSV export
     const rows = [
-      ["Sr No", "Project Office", "Transaction", "Bill No", "School", "Student Count", "Final Amount", "Status"],
+      ["Sr No.", "Project Office", "Transaction", "Bill No.", "School", "Student Count", "Final Amount", "Status"],
       ...bills.map((b, i) => [i + 1, b.po, b.transactionId, b.id, b.schoolId, b.totalStudentCount, b.finalTotalFees, b.bill_status || "Generated"]),
     ];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url; a.download = "bills.csv"; a.click();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "bills.csv"; a.click();
     URL.revokeObjectURL(url);
   };
 

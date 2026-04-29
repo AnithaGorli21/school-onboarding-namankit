@@ -13,11 +13,11 @@ import {
 import { validatePerformanceRow } from "../utils/validate";
 
 const YEAR_OPTIONS = [
-  "2020-2021","2021-2022","2022-2023","2023-2024","2024-2025",
+  "2020-2021", "2021-2022", "2022-2023", "2023-2024", "2024-2025",
 ];
 
 // Excel row 37: DDL Value - HSC, SSC, Scholarship, MTS, NTS, Any Other
-const STANDARD_OPTIONS = ["SSC","HSC","Scholarship","MTS","NTS","Any Other"];
+const STANDARD_OPTIONS = ["SSC", "HSC", "Scholarship", "MTS", "NTS", "Any Other"];
 
 const th = {
   padding: "9px 12px",
@@ -39,7 +39,7 @@ const errStyle = {
 };
 
 export default function SchoolPerformance({ rows, setRows, perfError }) {
-  const [newRow,    setNewRow]    = useState({
+  const [newRow, setNewRow] = useState({
     year: "", standard: "", others: "", studentsAppeared: "", studentsPassed: "",
   });
   const [rowErrors, setRowErrors] = useState({});
@@ -96,7 +96,7 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
             hasError={!!rowErrors.standard}
           />
         </Field>
-        <Field label="No of Students Appeared" required error={rowErrors.studentsAppeared}>
+        <Field label="No. of Students Appeared" required error={rowErrors.studentsAppeared}>
           <TextInput
             value={newRow.studentsAppeared}
             onChange={setR("studentsAppeared")}
@@ -122,7 +122,7 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
 
       <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 24 }}>
         <div style={{ width: "calc(33.33% - 10px)" }}>
-          <Field label="No of Students Passed" required error={rowErrors.studentsPassed}>
+          <Field label="No. of Students Passed" required error={rowErrors.studentsPassed}>
             <TextInput
               value={newRow.studentsPassed}
               onChange={setR("studentsPassed")}
@@ -152,7 +152,7 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr>
-                {["Sr No","Year","Standard","Others","No of Students Appeared","No of Students Passed","Delete"]
+                {["Sr No.", "Year", "Standard", "Others", "No. of Students Appeared", "No. of Students Passed", "Delete"]
                   .map((h) => <th key={h} style={th}>{h}</th>)}
               </tr>
             </thead>

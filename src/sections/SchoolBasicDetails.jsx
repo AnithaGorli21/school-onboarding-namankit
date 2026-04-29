@@ -245,7 +245,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnBack onClick={() => onTabChange?.("Final Submit")} />
+        {/* <BtnBack onClick={() => onTabChange?.("Final Submit")} /> */}
         <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>

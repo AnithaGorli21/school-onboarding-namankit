@@ -9,42 +9,42 @@ import { apiFetch, apiPost, apiPatch } from "../api/liferay";
 // ── API ───────────────────────────────────────────────────────
 const API = "/o/c/transactionmasters";
 
-const getTransactions  = ()      => apiFetch(`${API}?pageSize=200&sort=dateCreated:desc`).then((d) => d.items || []);
-const saveTransaction  = (p)     => apiPost(API, p);
+const getTransactions = () => apiFetch(`${API}?pageSize=200&sort=dateCreated:desc`).then((d) => d.items || []);
+const saveTransaction = (p) => apiPost(API, p);
 const patchTransaction = (id, p) => apiPatch(`${API}/${id}`, p);
 
 // ── Transaction type options ──────────────────────────────────
 const TRANSACTION_TYPES = [
-  { value: "Normal Transaction",                label: "Normal Transaction" },
-  { value: "Transferred Students Transaction",  label: "Transferred Students Transaction" },
-  { value: "Random Bill Transaction",           label: "Random Bill Transaction" },
+  { value: "Normal Transaction", label: "Normal Transaction" },
+  { value: "Transferred Students Transaction", label: "Transferred Students Transaction" },
+  { value: "Random Bill Transaction", label: "Random Bill Transaction" },
 ];
 
 // ── Styles (matching production UI) ──────────────────────────
 const s = {
-  page:       { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:    { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
+  page: { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
+  heading: { fontSize: 18, fontWeight: 600, color: "#00897b", paddingBottom: 8, borderBottom: "2px solid #e8b400", marginBottom: 20, display: "inline-block" },
   subHeading: { fontSize: 15, fontWeight: 600, color: "#00897b", borderBottom: "2px solid #e8b400", paddingBottom: 4, marginBottom: 16, marginTop: 28, display: "inline-block" },
-  label:      { display: "block", fontSize: 13, color: "#333", marginBottom: 4, fontWeight: 500 },
-  req:        { color: "#e53935", marginLeft: 2 },
-  input:      { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
-  inputGrey:  { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#e9ecef", outline: "none" },
-  select:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
-  grid3:      { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px 18px", marginBottom: 14 },
-  grid2:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 18px", marginBottom: 14 },
-  btnGreen:   { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnOrange:  { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnEdit:    { background: "#fff", color: "#333", border: "1px solid #ced4da", borderRadius: 3, padding: "4px 14px", fontSize: 12, cursor: "pointer" },
-  table:      { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 },
-  th:         { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:         { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
-  alert:      { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:        { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
-  suc:        { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
-  paginWrap:  { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
-  paginLeft:  { display: "flex", alignItems: "center", gap: 10 },
+  label: { display: "block", fontSize: 13, color: "#333", marginBottom: 4, fontWeight: 500 },
+  req: { color: "#e53935", marginLeft: 2 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
+  inputGrey: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#e9ecef", outline: "none" },
+  select: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
+  grid3: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px 18px", marginBottom: 14 },
+  grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 18px", marginBottom: 14 },
+  btnGreen: { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnOrange: { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "7px 22px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
+  btnEdit: { background: "#fff", color: "#333", border: "1px solid #ced4da", borderRadius: 3, padding: "4px 14px", fontSize: 12, cursor: "pointer" },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 },
+  th: { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
+  td: { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
+  alert: { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  suc: { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
+  paginWrap: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "12px 0 4px" },
+  paginLeft: { display: "flex", alignItems: "center", gap: 10 },
   paginInput: { width: 80, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, textAlign: "center" },
-  btnNav:     (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
+  btnNav: (active) => ({ padding: "5px 14px", fontSize: 13, background: active ? "#1a3a5c" : "#fff", color: active ? "#fff" : "#333", border: "1px solid " + (active ? "#1a3a5c" : "#cccccc"), borderRadius: 3, cursor: active ? "pointer" : "not-allowed" }),
 };
 
 const PAGE_SIZE = 10;
@@ -52,17 +52,17 @@ const PAGE_SIZE = 10;
 const EMPTY_FORM = {
   transactionType: "Normal Transaction",
   transactionName: "",
-  percent:         "",
+  percent: "",
 };
 
 export default function TransactionMaster() {
-  const [form,         setForm]         = useState(EMPTY_FORM);
-  const [editId,       setEditId]       = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editId, setEditId] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [saving,       setSaving]       = useState(false);
-  const [alert,        setAlert]        = useState(null);
-  const [page,         setPage]         = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [page, setPage] = useState(1);
 
   // ── Load transactions ────────────────────────────────────
   const loadTransactions = () => {
@@ -111,7 +111,7 @@ export default function TransactionMaster() {
     setForm({
       transactionType: txn.transactionType || "Normal Transaction",
       transactionName: txn.transactionName || "",
-      percent:         txn.percent != null ? String(txn.percent) : "",
+      percent: txn.percent != null ? String(txn.percent) : "",
     });
     setAlert(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -172,7 +172,7 @@ export default function TransactionMaster() {
 
   // ── Pagination ────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
-  const pageRows   = transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageRows = transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div style={s.page}>
@@ -242,7 +242,7 @@ export default function TransactionMaster() {
 
         {/* Buttons */}
         <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-          <button style={s.btnGreen}  onClick={handleSave}  disabled={saving}>
+          <button style={s.btnGreen} onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save"}
           </button>
           <button style={s.btnOrange} onClick={handleReset}>Reset</button>
@@ -261,10 +261,10 @@ export default function TransactionMaster() {
           <table style={s.table}>
             <thead>
               <tr>
-                <th style={s.th}>Sr No</th>
+                <th style={s.th}>Sr No.</th>
                 <th style={s.th}>Transaction Name</th>
                 <th style={s.th}>Percent</th>
-                <th style={s.th}>Amount Per Student</th>
+                <th style={s.th}>Amount per Student</th>
                 <th style={s.th}>Transaction Type</th>
                 <th style={s.th}>Edit</th>
               </tr>
@@ -301,10 +301,10 @@ export default function TransactionMaster() {
             </div>
             <div>Page: {page} of {totalPages}</div>
             <div style={{ display: "flex", gap: 4 }}>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage(1)}            disabled={page === 1}>First</button>
-              <button style={s.btnNav(page > 1)}          onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage(1)} disabled={page === 1}>First</button>
+              <button style={s.btnNav(page > 1)} onClick={() => setPage((p) => p - 1)} disabled={page === 1}>Previous</button>
               <button style={s.btnNav(page < totalPages)} onClick={() => setPage((p) => p + 1)} disabled={page === totalPages}>Next</button>
-              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)}   disabled={page === totalPages}>Last</button>
+              <button style={s.btnNav(page < totalPages)} onClick={() => setPage(totalPages)} disabled={page === totalPages}>Last</button>
             </div>
           </div>
         </>

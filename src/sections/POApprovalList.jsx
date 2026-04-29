@@ -96,7 +96,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr>
-              {["Sr No", "UDISE", "Trustee Name", "School Name", "Approval Status", "Details", "Grading"].map(h => (
+              {["Sr No.", "UDISE", "Trustee Name", "School Name", "Approval Status", "Details", "Grading"].map(h => (
                 <th key={h} style={TH}>{h}</th>
               ))}
             </tr>

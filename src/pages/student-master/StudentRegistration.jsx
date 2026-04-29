@@ -798,8 +798,9 @@ export default function StudentRegistration() {
                                             value={form.district || ""}
                                             onChange={onDistrictChange}
                                             disabled={!form.state}
+
                                         >
-                                            <option value="">-- Select --</option>
+                                            <option value="" color="blue">-- Select --</option>
                                             {districts.map((d) => (
                                                 <option key={d.value} value={d.value}>{d.label}</option>
                                             ))}
@@ -987,10 +988,10 @@ export default function StudentRegistration() {
                                     }}
                                 >
                                     <label>
-                                        <input type="checkbox" name="isDropout" checked={!!form.isDropout} onChange={handleCheckbox} /> Is Dropout
+                                        <input type="checkbox" name="isDropout" checked={!!form.isDropout} onChange={handleCheckbox} /> Dropout
                                     </label>
                                     <label>
-                                        <input type="checkbox" name="isActive" checked={!!form.isActive} onChange={handleCheckbox} /> Is Active
+                                        <input type="checkbox" name="isActive" checked={!!form.isActive} onChange={handleCheckbox} /> Active
                                     </label>
                                 </div>
                             </div>
@@ -1005,7 +1006,7 @@ export default function StudentRegistration() {
                         >
                             <h4 style={{ margin: 0 }}>Biometric Details</h4>
                             <div style={{ color: "#e53935", marginTop: 8, fontWeight: 700 }}>
-                                Note : Please validate entered Aadhar No. and finger prints before saving details
+                                Note : Please validate entered Aadhaar No. and finger prints before saving details
                                 Steps for UID verification :-
                             </div>
                             <div
@@ -1021,7 +1022,7 @@ export default function StudentRegistration() {
 
                             <div style={{ marginTop: 12 }}>
                                 <label style={{ fontSize: 13 }}>
-                                    Aadhar Number(UID) <span style={{ color: "#e53935" }}>*</span>
+                                    Aadhaar Number(UID) <span style={{ color: "#e53935" }}>*</span>
                                 </label>
                                 <input
                                     style={{

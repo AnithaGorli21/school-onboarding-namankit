@@ -12,20 +12,20 @@ import {
   getStates, getDistricts, getTalukas, getVillages, getPoNames, getPicklist,
 } from "../api/liferay";
 
-const WEBSITE_OPTIONS        = ["Yes", "No"];
+const WEBSITE_OPTIONS = ["Yes", "No"];
 const SELECTION_YEAR_OPTIONS = [
-  "2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25",
+  "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
 
 export default function SchoolProfile({ form, setForm, errors }) {
-  const [states,    setStates]    = useState([]);
+  const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [talukas,   setTalukas]   = useState([]);
-  const [villages,  setVillages]  = useState([]);
-  const [poNames,   setPoNames]   = useState([]);
+  const [talukas, setTalukas] = useState([]);
+  const [villages, setVillages] = useState([]);
+  const [poNames, setPoNames] = useState([]);
   const [boardOpts, setBoardOpts] = useState([]);
-  const [areaOpts,  setAreaOpts]  = useState([]);
-  const [yearOpts,  setYearOpts]  = useState([]);
+  const [areaOpts, setAreaOpts] = useState([]);
+  const [yearOpts, setYearOpts] = useState([]);
 
   useEffect(() => {
     getStates()
@@ -58,19 +58,19 @@ export default function SchoolProfile({ form, setForm, errors }) {
   // }, [form.village]);
 
   // ✅ Temporary — load all states as PO options
-useEffect(() => {
-  getStates()
-    .then(setPoNames)
-    .catch(() => setPoNames([]));
-}, []);
+  useEffect(() => {
+    getStates()
+      .then(setPoNames)
+      .catch(() => setPoNames([]));
+  }, []);
 
   useEffect(() => {
     getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS")
       .then(setBoardOpts)
       .catch(() => setBoardOpts([
-        { value: "SSC",   label: "SSC Board" },
-        { value: "CBSE",  label: "CBSE Board" },
-        { value: "ICSE",  label: "ICSE Board" },
+        { value: "SSC", label: "SSC Board" },
+        { value: "CBSE", label: "CBSE Board" },
+        { value: "ICSE", label: "ICSE Board" },
         { value: "State", label: "State Board" },
       ]));
   }, []);
@@ -79,8 +79,8 @@ useEffect(() => {
     getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS")
       .then(setAreaOpts)
       .catch(() => setAreaOpts([
-        { value: "Rural",        label: "Rural" },
-        { value: "NagarPalika",  label: "Nagar Palika" },
+        { value: "Rural", label: "Rural" },
+        { value: "NagarPalika", label: "Nagar Palika" },
         { value: "MahaNagarPalika", label: "Maha Nagar Palika" },
       ]));
   }, []);
@@ -98,10 +98,10 @@ useEffect(() => {
 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
-  const onStateChange    = (val) => setForm((p) => ({ ...p, state: val,    district: "", taluka: "", village: "", poName: "" }));
-  const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "",   village: "", poName: "" }));
-  const onTalukaChange   = (val) => setForm((p) => ({ ...p, taluka: val,   village: "",  poName: "" }));
-  const onVillageChange  = (val) => setForm((p) => ({ ...p, village: val,  poName: "" }));
+  const onStateChange = (val) => setForm((p) => ({ ...p, state: val, district: "", taluka: "", village: "", poName: "" }));
+  const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "", village: "", poName: "" }));
+  const onTalukaChange = (val) => setForm((p) => ({ ...p, taluka: val, village: "", poName: "" }));
+  const onVillageChange = (val) => setForm((p) => ({ ...p, village: val, poName: "" }));
 
   return (
     <div>
@@ -126,7 +126,7 @@ useEffect(() => {
       {/* Row 4-5-6: Mobile (Yes*), State (Yes*), District (Yes*) */}
       <Row3>
         {/* Row 4 — Mobile Number: Mandatory */}
-        <Field label="Mobile No" required error={errors.mobileNumber}>
+        <Field label="Mobile No." required error={errors.mobileNumber}>
           <TextInput value={form.mobileNumber} onChange={set("mobileNumber")} type="tel" />
         </Field>
         {/* Row 5 — District: Mandatory (State is prerequisite) */}
@@ -178,7 +178,7 @@ useEffect(() => {
           <SelectInput value={form.schoolSelectionYear} onChange={set("schoolSelectionYear")} options={SELECTION_YEAR_OPTIONS} />
         </Field>
         {/* Row 13 — School Registration Number: Mandatory */}
-        <Field label="School Registration No" required error={errors.schoolRegistrationNumber}>
+        <Field label="School Registration No." required error={errors.schoolRegistrationNumber}>
           <TextInput value={form.schoolRegistrationNumber} onChange={set("schoolRegistrationNumber")} />
         </Field>
         {/* Row 14 — School Board: Mandatory (DDL: CBSE Board, SCC Board, SSC Board) */}
@@ -190,11 +190,11 @@ useEffect(() => {
       {/* Row 15-16-17: SSC Batches (Yes*), Year of Est (Yes*), Website Available (Yes*) */}
       <Row3>
         {/* Row 15 — Total SSC Batches: Mandatory + Numeric */}
-        <Field label="Total Number Of SSC Batches Completed" required error={errors.sscBatchesCompletedCount}>
+        <Field label="Total Number of SSC Batches Completed" required error={errors.sscBatchesCompletedCount}>
           <TextInput value={form.sscBatchesCompletedCount} onChange={set("sscBatchesCompletedCount")} type="number" />
         </Field>
         {/* Row 16 — Year of Establishment: Mandatory (4-digit year) */}
-        <Field label="Year Of Establishment" required error={errors.yearOfEstablishment}>
+        <Field label="Year of Establishment" required error={errors.yearOfEstablishment}>
           <SelectInput value={form.yearOfEstablishment} onChange={set("yearOfEstablishment")} options={yearOpts} />
         </Field>
         {/* Row 17 — School Website Available: Mandatory */}
@@ -220,7 +220,7 @@ useEffect(() => {
           <SelectInput value={form.schoolAreaType} onChange={set("schoolAreaType")} options={areaOpts} />
         </Field>
         {/* Row 20 — Number of Toilets: Mandatory + Numeric */}
-        <Field label="Number of Toilets On Each Floor In School Building" required error={errors.toiletsPerFloorCount}>
+        <Field label="Number of Toilets on Each Floor in the School Building" required error={errors.toiletsPerFloorCount}>
           <TextInput value={form.toiletsPerFloorCount} onChange={set("toiletsPerFloorCount")} type="number" />
         </Field>
       </Row3>

@@ -17,37 +17,37 @@ import {
 
 // ── Config ────────────────────────────────────────────────────
 const RESTRICT_OPTIONS = [
-  { value: "",                    label: "--Select--" },
+  { value: "", label: "--Select--" },
   { value: "studentRegistration", label: "Student Registration" },
-  { value: "studentRenewal",      label: "Student Renewal" },
-  { value: "schoolRegistration",  label: "School Registration" },
+  { value: "studentRenewal", label: "Student Renewal" },
+  { value: "schoolRegistration", label: "School Registration" },
   { value: "profileRegistration", label: "School Profile Registration" },
 ];
 
 const FIELD_CONFIG = {
   studentRegistration: [
-    { key: "billgeneration",      label: "Student Registration Date" },
+    { key: "billgeneration", label: "Student Registration Date" },
   ],
   studentRenewal: [
     { key: "billadmissionsummary", label: "Student Renewal Date" },
   ],
   schoolRegistration: [
     { key: "billstudent", label: "From School Date" },
-    { key: "billarrear",  label: "To School Date" },
+    { key: "billarrear", label: "To School Date" },
   ],
   profileRegistration: [
-    { key: "billdeduction",   label: "Profile Registration From Date" },
+    { key: "billdeduction", label: "Profile Registration From Date" },
     { key: "billpodeduction", label: "Profile Registration To Date" },
   ],
 };
 
 const EMPTY_DATES = {
-  billgeneration:       "",
+  billgeneration: "",
   billadmissionsummary: "",
-  billstudent:          "",
-  billarrear:           "",
-  billdeduction:        "",
-  billpodeduction:      "",
+  billstudent: "",
+  billarrear: "",
+  billdeduction: "",
+  billpodeduction: "",
 };
 
 // ── Validation ────────────────────────────────────────────────
@@ -91,15 +91,15 @@ function validate(selectedType, dates) {
 const s = {
   pageWrap: {
     background: "var(--page-bg, #f0f4f5)",
-    minHeight:  "calc(100vh - 60px)",
+    minHeight: "calc(100vh - 60px)",
     fontFamily: "var(--font-main, 'Roboto', sans-serif)",
-    fontSize:   "13px",
-    color:      "#333",
-    borderTop:  "4px solid #0e8080",
+    fontSize: "13px",
+    color: "#333",
+    borderTop: "4px solid #0e8080",
   },
   card: {
-    background:   "#ffffff",
-    padding:      "22px 24px 28px",
+    background: "#ffffff",
+    padding: "22px 24px 28px",
     borderBottom: "1px solid #e0e0e0",
   },
   heading: {
@@ -107,40 +107,40 @@ const s = {
     marginBottom: 16, paddingBottom: 7,
     borderBottom: "2px solid #e8b400", display: "inline-block",
   },
-  label:    { display: "block", fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 4 },
-  req:      { color: "#e53935", marginLeft: 2 },                    // red asterisk
-  select:   (hasErr) => ({
+  label: { display: "block", fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 4 },
+  req: { color: "#e53935", marginLeft: 2 },                    // red asterisk
+  select: (hasErr) => ({
     display: "block", width: 300, padding: "6px 10px", fontSize: 13,
     border: `1px solid ${hasErr ? "#e53935" : "#cccccc"}`,
     borderRadius: 3, background: "#ffffff", color: "#333",
     cursor: "pointer", outline: "none", marginBottom: hasErr ? 4 : 14, height: 32,
   }),
-  dateInput:(hasErr) => ({
+  dateInput: (hasErr) => ({
     display: "block", width: 300, padding: "5px 10px", fontSize: 13,
     border: `1px solid ${hasErr ? "#e53935" : "#cccccc"}`,
     borderRadius: 3, background: "#ffffff", color: "#333",
     outline: "none", marginBottom: hasErr ? 4 : 14, height: 32, boxSizing: "border-box",
   }),
   fieldErr: { color: "#e53935", fontSize: 12, marginBottom: 10, display: "block" },
-  saveBtn:  { background: "#5cb85c", color: "#ffffff", border: "1px solid #4cae4c", borderRadius: 3, padding: "7px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginTop: 4, marginBottom: 22 },
+  saveBtn: { background: "#5cb85c", color: "#ffffff", border: "1px solid #4cae4c", borderRadius: 3, padding: "7px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginTop: 4, marginBottom: 22 },
   saveBtnDisabled: { background: "#aaa", color: "#fff", border: "1px solid #999", borderRadius: 3, padding: "7px 20px", fontSize: 13, fontWeight: 600, cursor: "not-allowed", marginTop: 4, marginBottom: 22 },
   tableWrap: { overflowX: "auto", marginBottom: 16 },
-  table:    { width: "100%", borderCollapse: "collapse", fontSize: 13 },
-  th:       { padding: "9px 12px", textAlign: "left", fontWeight: 700, color: "#333", background: "#ffffff", border: "1px solid #dddddd", whiteSpace: "nowrap" },
-  td:       { padding: "9px 12px", border: "1px solid #dddddd", color: "#333", background: "#ffffff", whiteSpace: "nowrap" },
-  paginWrap:{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "8px 0 4px" },
-  paginLeft:{ display: "flex", alignItems: "center", gap: 10 },
-  paginInput:{ width: 230, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, background: "#fff", color: "#333" },
-  paginRight:{ display: "flex", gap: 4 },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 13 },
+  th: { padding: "9px 12px", textAlign: "left", fontWeight: 700, color: "#333", background: "#ffffff", border: "1px solid #dddddd", whiteSpace: "nowrap" },
+  td: { padding: "9px 12px", border: "1px solid #dddddd", color: "#333", background: "#ffffff", whiteSpace: "nowrap" },
+  paginWrap: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 13, padding: "8px 0 4px" },
+  paginLeft: { display: "flex", alignItems: "center", gap: 10 },
+  paginInput: { width: 230, padding: "5px 8px", fontSize: 13, border: "1px solid #cccccc", borderRadius: 3, background: "#fff", color: "#333" },
+  paginRight: { display: "flex", gap: 4 },
   btnActive: { padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" },
-  btnDisabled:{ padding: "5px 16px", fontSize: 13, background: "#fff", color: "#333", border: "1px solid #cccccc", borderRadius: 3, cursor: "not-allowed" },
-  overlay:   { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 },
-  modalBox:  { background: "#fff", borderRadius: 4, width: 440, boxShadow: "0 4px 24px rgba(0,0,0,0.25)", overflow: "hidden" },
+  btnDisabled: { padding: "5px 16px", fontSize: 13, background: "#fff", color: "#333", border: "1px solid #cccccc", borderRadius: 3, cursor: "not-allowed" },
+  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 },
+  modalBox: { background: "#fff", borderRadius: 4, width: 440, boxShadow: "0 4px 24px rgba(0,0,0,0.25)", overflow: "hidden" },
   modalHead: { background: "#f8d7da", padding: "12px 18px", fontWeight: 700, fontSize: 15, color: "#c0392b", borderBottom: "1px solid #f5c6cb" },
   modalBody: { padding: "22px 18px", fontSize: 14, color: "#333" },
-  modalFooter:{ padding: "10px 18px 18px", textAlign: "center", borderTop: "1px solid #eee" },
-  modalOkBtn:{ background: "#e74c3c", color: "#fff", border: "none", borderRadius: 4, padding: "8px 36px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  errBox:    { background: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: 4, padding: "12px 16px", fontSize: 13, color: "#721c24", marginBottom: 16 },
+  modalFooter: { padding: "10px 18px 18px", textAlign: "center", borderTop: "1px solid #eee" },
+  modalOkBtn: { background: "#e74c3c", color: "#fff", border: "none", borderRadius: 4, padding: "8px 36px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
+  errBox: { background: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: 4, padding: "12px 16px", fontSize: 13, color: "#721c24", marginBottom: 16 },
   inlineErr: { color: "#c0392b", fontSize: 13, marginBottom: 10, padding: "8px 12px", background: "#fff5f5", border: "1px solid #f5c6cb", borderRadius: 3 },
 };
 
@@ -161,17 +161,17 @@ function InfoModal({ message, onClose }) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function RestrictEntryMaster() {
-  const [recordId,     setRecordId]     = useState(null);
-  const [savedData,    setSavedData]    = useState(null);
+  const [recordId, setRecordId] = useState(null);
+  const [savedData, setSavedData] = useState(null);
   const [selectedType, setSelectedType] = useState("");
-  const [dates,        setDates]        = useState(EMPTY_DATES);
-  const [loading,      setLoading]      = useState(true);
-  const [saving,       setSaving]       = useState(false);
-  const [modalMsg,     setModalMsg]     = useState("");
-  const [inlineErr,    setInlineErr]    = useState("");  // general form error
-  const [fieldErrors,  setFieldErrors]  = useState({});  // per-field errors
-  const [loadErr,      setLoadErr]      = useState("");
-  const [touched,      setTouched]      = useState({});  // track user interaction
+  const [dates, setDates] = useState(EMPTY_DATES);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [modalMsg, setModalMsg] = useState("");
+  const [inlineErr, setInlineErr] = useState("");  // general form error
+  const [fieldErrors, setFieldErrors] = useState({});  // per-field errors
+  const [loadErr, setLoadErr] = useState("");
+  const [touched, setTouched] = useState({});  // track user interaction
 
   // ── Load on mount ──────────────────────────────────────────
   useEffect(() => {
@@ -331,7 +331,7 @@ export default function RestrictEntryMaster() {
                     <table style={s.table}>
                       <thead>
                         <tr>
-                          <th style={s.th}>Sr No</th>
+                          <th style={s.th}>Sr No.</th>
                           <th style={s.th}>Student Registration Date</th>
                           <th style={s.th}>Student Renewal Date</th>
                           <th style={s.th}>From School Date</th>

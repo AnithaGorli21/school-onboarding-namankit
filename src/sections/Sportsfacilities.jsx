@@ -30,34 +30,34 @@ const MAGAZINE_TYPES = [
 
 const themeStyles = {
   container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card:      { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
+  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
   addBtnRow: { display: "flex", justifyContent: "center", marginTop: "10px", marginBottom: "20px" },
 };
 
 const emptyForm = {
-  noOfPhysicalEducationPTTeacherAvailable:  "",
-  numberOfSportsPlayedOnPlayground:         "",
-  detailsOfSportsPlayedOnPlayground:        "",
+  noOfPhysicalEducationPTTeacherAvailable: "",
+  numberOfSportsPlayedOnPlayground: "",
+  detailsOfSportsPlayedOnPlayground: "",
   availOfQualifiedSportsTeacherAsPerStuCnt: "",
-  availabilityOfSeparateAuditorium:         "",
-  auditoriumAreasqFt:                       "",
-  schoolMagazine:                           "",
-  schoolMagazineTypeId:                     "",
+  availabilityOfSeparateAuditorium: "",
+  auditoriumAreasqFt: "",
+  schoolMagazine: "",
+  schoolMagazineTypeId: "",
 };
 
 export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode }) {
-  const [form,         setForm]         = useState(emptyForm);
-  const [saving,       setSaving]       = useState(false);
-  const [alert,        setAlert]        = useState(null);
-  const [recordId,     setRecordId]     = useState(null);
-  const [loadingData,  setLoadingData]  = useState(false);
-  const [yearOpts,     setYearOpts]     = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [yearOpts, setYearOpts] = useState([]);
 
   const [culturalRows, setCulturalRows] = useState([]);
-  const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
+  const [newCultural, setNewCultural] = useState({ yearId: "", programName: "", remarks: "" });
 
-  const [tourRows,     setTourRows]     = useState([]);
-  const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
+  const [tourRows, setTourRows] = useState([]);
+  const [newTour, setNewTour] = useState({ yearId: "", programName: "", place: "", purpose: "" });
 
   // ── Load Year picklist ───────────────────────────────────
   useEffect(() => {
@@ -139,13 +139,13 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
         <Row3>
-          <Field label="Number Of Physical Education (PT) teacher available" required>
+          <Field label="Number of Physical Education (PT) teacher available" required>
             <TextInput value={form.noOfPhysicalEducationPTTeacherAvailable} onChange={set("noOfPhysicalEducationPTTeacherAvailable")} type="number" />
           </Field>
-          <Field label="Number Of sports Played On PlayGround" required>
+          <Field label="Number of sports Played On PlayGround" required>
             <TextInput value={form.numberOfSportsPlayedOnPlayground} onChange={set("numberOfSportsPlayedOnPlayground")} type="number" />
           </Field>
-          <Field label="Details Of sports Played On PlayGround" required>
+          <Field label="Details of sports Played On PlayGround" required>
             <TextInput value={form.detailsOfSportsPlayedOnPlayground} onChange={set("detailsOfSportsPlayedOnPlayground")} placeholder="Basketball, Football..." />
           </Field>
         </Row3>
@@ -156,7 +156,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
           <div /><div />
         </Row3>
         <Row2>
-          <Field label="Availabilty Of Separate Auditorium" required>
+          <Field label="Availabilty of Separate Auditorium" required>
             <SelectInput value={form.availabilityOfSeparateAuditorium} onChange={set("availabilityOfSeparateAuditorium")} options={YES_NO} />
           </Field>
           <Field label="Auditorium Area(sq ft)" required>
@@ -193,7 +193,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 20 }}>
               <thead>
                 <tr>
-                  <th style={TH}>Sr No</th>
+                  <th style={TH}>Sr No.</th>
                   <th style={TH}>Year</th>
                   <th style={TH}>Program Name</th>
                   <th style={TH}>Remarks</th>
@@ -244,7 +244,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th style={TH}>Sr No</th>
+                  <th style={TH}>Sr No.</th>
                   <th style={TH}>Year</th>
                   <th style={TH}>Program Name</th>
                   <th style={TH}>Place</th>
