@@ -313,13 +313,23 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     ),
   });
 
-  // ─── Load PO Names on mount ───────────────────────────────────
+  // ─── Load PO Names when taluka changes ────────────────────────
   React.useEffect(() => {
     let cancelled = false;
+    
+    // Only fetch PO names if we have a taluka ID
+    if (!form.talukaId) {
+      setPONames([]);
+      setLoadingPO(false);
+      return;
+    }
+    
     setLoadingPO(true);
+    console.log('Fetching PO names for taluka ID:', form.talukaId);
 
-    fetchPOByTaluka(useMockData)
+    fetchPOByTaluka(form.talukaId, useMockData)
       .then((data) => {
+        console.log('fetch poBY taluka...', data)
         if (!cancelled) setPONames(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -333,7 +343,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     return () => {
       cancelled = true;
     };
-  }, [useMockData]);
+  }, [form.talukaId, useMockData]);
 
   // ─── Resolve PO Name label for review ────────────────────────
   React.useEffect(() => {
