@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Footer from "./Footer";
 import Header from "../components/Header";
 import { apiPost, getGRDetails } from "../api/liferay";
@@ -54,6 +54,7 @@ export default function ScheduleMeeting() {
                 commiteeMeetingDate: gr.commiteeMeetingDate || "",
                 aTCName: gr.aTCName || "",
                 briefDescription: gr.briefDescription || "",
+                gRDate: gr.gRDate || "", // Preserve original gRDate for view
                 // Store file data
                 uploadGRFile: gr.uploadGRFile || null,
                 uploadMOMFile: gr.uploadMOMFile || null
@@ -91,7 +92,9 @@ export default function ScheduleMeeting() {
     };
 
     const goToPage = (p) => setPage(Math.min(Math.max(1, p), totalPages));
-
+    useEffect(()=>{
+        fetchSchoolData()
+    },[]);
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         if (files) setForm(prev => ({ ...prev, [name]: files[0] }));
@@ -102,18 +105,24 @@ export default function ScheduleMeeting() {
     const handleNewMeeting = () => {
         setForm(emptyForm);
         setView("details");
+    setSelectedMeeting(null)
     };
 
     const handleView = (meeting) => {
+        console.log('Viewing meeting:', meeting);
+        
         // Format dates for date input (YYYY-MM-DD)
         const formatDateForInput = (dateString) => {
+            console.log('Formatting date:', dateString);
             if (!dateString) return "";
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            return date.toISOString().split('T')[0];
+            const formatted = date.toISOString().split('T')[0];
+            console.log('Formatted date:', formatted);
+            return formatted;
         };
         
-        setForm({
+        const formData = {
             committeeDate: formatDateForInput(meeting.commiteeMeetingDate),
             grDate: formatDateForInput(meeting.gRDate),
             atcName: meeting.aTCName || "",
@@ -121,7 +130,10 @@ export default function ScheduleMeeting() {
             grFile: null,
             momFile: null,
             description: meeting.briefDescription || "",
-        });
+        };
+        
+        console.log('Setting form data:', formData);
+        setForm(formData);
         
         // Store the original meeting data for file access
         setSelectedMeeting(meeting);
@@ -135,6 +147,7 @@ export default function ScheduleMeeting() {
         setUploadedFiles({ grFile: null, momFile: null });
         setErrors({});
         setAlert(null);
+        setSelectedMeeting(null);
     };
 
     const handleSearch = async (e) => {
@@ -275,34 +288,28 @@ export default function ScheduleMeeting() {
 
     // Function to view existing files from API
     const viewExistingFile = (fileUrl) => {
-        if (!fileUrl) {
-            alert('File URL not available');
-            return;
-        }
-        
-        // Ensure the URL is complete
-        let pdfUrl = fileUrl;
-        if (pdfUrl.startsWith('/')) {
-            pdfUrl = window.location.origin + pdfUrl;
-        }
-        
-        console.log('Opening existing file URL:', pdfUrl);
-        
-        // Open in new tab
-        try {
-            const newWindow = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-            if (!newWindow) {
-                alert('Popup blocked! Please allow popups for this site to view the PDF.');
-            }
-        } catch (error) {
-            console.error('Error opening file:', error);
-            alert('Failed to open file. Please try again.');
-        }
-    };
+  if (!fileUrl) {
+    alert('File URL not available');
+    return;
+  }
+
+  let pdfUrl = fileUrl;
+  if (pdfUrl.startsWith('/')) {
+    pdfUrl = window.location.origin + pdfUrl;
+  }
+
+  const link = document.createElement('a');
+  link.href = pdfUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
     const viewPDFFile = (fileType, schoolId) => {
         const school = schoolData.find(s => s.id === schoolId);
         if (!school) {
-            alert('School data not found');
+            window.alert('School data not found');
             return;
         }
         
@@ -310,7 +317,7 @@ export default function ScheduleMeeting() {
         console.log('Attempting to view file:', fileType, fileUrl);
         
         if (!fileUrl) {
-            alert(`No ${fileType === 'gr' ? 'GR' : 'MOM'} file available for this school`);
+            window.alert(`No ${fileType === 'gr' ? 'GR' : 'MOM'} file available for this school`);
             return;
         }
         
@@ -326,11 +333,11 @@ export default function ScheduleMeeting() {
         try {
             const newWindow = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
             if (!newWindow) {
-                alert('Popup blocked! Please allow popups for this site to view the PDF.');
+                window.alert('Popup blocked! Please allow popups for this site to view the PDF.');
             }
         } catch (error) {
             console.error('Error opening PDF:', error);
-            alert('Failed to open PDF. Please try again.');
+            window.alert('Failed to open PDF. Please try again.');
         }
     };
 
@@ -445,20 +452,32 @@ export default function ScheduleMeeting() {
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 18 }}>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Committee Meeting Date <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="committeeDate" type="date" value={form.committeeDate} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                    <input name="committeeDate" type="date" value={form.committeeDate} onChange={handleChange} 
+                                    style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} 
+                                    disabled ={selectedMeeting ? true : false}
+                                    />
                                     {errors.committeeDate && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.committeeDate}</div>}
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>GR Date <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="grDate" type="date" value={form.grDate} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                    <input name="grDate" type="date" value={form.grDate} 
+                                    onChange={handleChange} 
+                                    style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} 
+                                    disabled ={selectedMeeting ? true : false}
+                                    />
                                     {errors.grDate && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.grDate}</div>}
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>ATC Name <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <select name="atcName" value={form.atcName} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #bcd" }}>
+                                    <select name="atcName" value={form.atcName} onChange={handleChange}
+                                    
+                                    style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #bcd" }}
+                                    disabled ={selectedMeeting ? true : false}
+                                    >
                                         <option value="">---Select---</option>
                                         <option>Thane</option>
                                         <option>Amravati</option>
+
                                     </select>
                                     {errors.atcName && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.atcName}</div>}
                                 </div>
@@ -466,7 +485,9 @@ export default function ScheduleMeeting() {
 
                             <div style={{ marginBottom: 18, maxWidth: 420 }}>
                                 <label style={{ display: "block", marginBottom: 6 }}>School Type <span style={{ color: "#d9534f" }}>*</span></label>
-                                <select name="schoolType" value={form.schoolType} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }}>
+                                <select 
+                                disabled ={selectedMeeting ? true : false}
+                                name="schoolType" value={form.schoolType} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }}>
                                     <option value="">---Select---</option>
                                     <option>NEW</option>
                                     <option>OLD</option>
@@ -477,18 +498,19 @@ export default function ScheduleMeeting() {
                             <div style={{ display: "flex", gap: 30, marginBottom: 18 }}>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Upload GR File <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="grFile" type="file" onChange={handleChange} />
+                                    <input 
+                                    disabled ={selectedMeeting ? true : false}
+                                    name="grFile" type="file" onChange={handleChange} />
                                     {errors.grFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.grFile}</div>}
                                 </div>
                                 
                                 {/* Show existing files when viewing a meeting */}
                                 {selectedMeeting && selectedMeeting.uploadGRFile && (
                                     <div style={{ marginTop: 10 }}>
-                                        <label style={{ display: "block", marginBottom: 6 }}>Existing GR File:</label>
                                         <button
                                             onClick={() => viewExistingFile(selectedMeeting.uploadGRFile.link?.href)}
                                             style={{
-                                                background: "#28a745",
+                                                background: "#5bc0de",
                                                 color: "#fff",
                                                 border: "none",
                                                 padding: "6px 12px",
@@ -497,24 +519,25 @@ export default function ScheduleMeeting() {
                                                 fontSize: 12
                                             }}
                                         >
-                                            View {selectedMeeting.uploadGRFile.name}
+                                            View GR File
                                         </button>
                                     </div>
                                 )}
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Upload MOM File <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="momFile" type="file" onChange={handleChange} />
+                                    <input 
+                                    disabled ={selectedMeeting ? true : false}
+                                    name="momFile" type="file" onChange={handleChange} />
                                     {errors.momFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.momFile}</div>}
                                 </div>
                                 
                                 {/* Show existing MOM file when viewing a meeting */}
                                 {selectedMeeting && selectedMeeting.uploadMOMFile && (
                                     <div style={{ marginTop: 10 }}>
-                                        <label style={{ display: "block", marginBottom: 6 }}>Existing MOM File:</label>
                                         <button
                                             onClick={() => viewExistingFile(selectedMeeting.uploadMOMFile.link?.href)}
                                             style={{
-                                                background: "#28a745",
+                                                background: "#5bc0de",
                                                 color: "#fff",
                                                 border: "none",
                                                 padding: "6px 12px",
@@ -523,7 +546,7 @@ export default function ScheduleMeeting() {
                                                 fontSize: 12
                                             }}
                                         >
-                                            View {selectedMeeting.uploadMOMFile.name}
+                                            View MOM File
                                         </button>
                                     </div>
                                 )}
@@ -531,16 +554,18 @@ export default function ScheduleMeeting() {
 
                             <div style={{ marginBottom: 18 }}>
                                 <label style={{ display: "block", marginBottom: 6 }}>Brief Description <span style={{ color: "#d9534f" }}>*</span></label>
-                                <textarea name="description" value={form.description} onChange={handleChange} rows={5} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
+                                <textarea 
+                                disabled={selectedMeeting}
+                                name="description" value={form.description} onChange={handleChange} rows={5} style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} />
                                 {errors.description && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.description}</div>}
                             </div>
 
                             <div style={{ display: "flex", gap: 12 }}>
                                 <button 
                                     type="submit" 
-                                    disabled={showSchoolResults}
+                                    disabled={showSchoolResults || selectedMeeting}
                                     style={{ 
-                                        background: showSchoolResults ? "#ccc" : "#2ca44a", 
+                                        background: showSchoolResults || selectedMeeting ? "#ccc" : "#2ca44a", 
                                         color: "#fff", 
                                         border: "none", 
                                         padding: "10px 18px", 
@@ -565,7 +590,7 @@ export default function ScheduleMeeting() {
                         </div>
 
                         {/* School Details Table */}
-                        {showSchoolResults && (
+                        {showSchoolResults && selectedMeeting && (
                             <div style={{ marginTop: 20 }}>
                                 <div style={{ overflowX: "auto" }}>
                                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -590,7 +615,7 @@ export default function ScheduleMeeting() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {schoolData.map((school) => (
+                                            {schoolData.filter(school => selectedMeeting && school.id === selectedMeeting.id).map((school) => (
                                                 <tr key={school.id}>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
                                                         <button 
@@ -640,7 +665,7 @@ export default function ScheduleMeeting() {
                                                             View
                                                         </button>
                                                     </td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poName}</td>
+                                                    <td style={{maxWidth:"50px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poName}</td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.schoolName}</td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poVerificationStatus}</td>
