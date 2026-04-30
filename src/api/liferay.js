@@ -233,6 +233,13 @@ export const getBillGenerations = () =>
   );
 export const getBillById = (id) => apiFetch(`/o/c/billgenerations/${id}`);
 
+// GR Details
+export const getGRDetails = () =>
+  apiFetch("/o/c/grdetails?pageSize=200&sort=dateCreated:desc").then(
+    (d) => d.items || [],
+  );
+export const getGRDetailById = (id) => apiFetch(`/o/c/grdetails/${id}`);
+
 // Bill child records
 export const saveBillAdmissionSummary = (p) =>
   apiPost("/o/c/billadmissionsummary", p);

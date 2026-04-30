@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Footer from "./Footer";
 import Header from "../components/Header";
-import { apiPost } from "../api/liferay";
+import { apiPost, getGRDetails } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
 import { Alert } from "../components/FormFields";
 import { validateGRDetails } from "../utils/validate";
@@ -18,13 +18,12 @@ export default function ScheduleMeeting() {
     const [showMeetingRemarks, setShowMeetingRemarks] = useState(false);
     const [selectedSchool, setSelectedSchool] = useState(null);
     const [meetingRemark, setMeetingRemark] = useState("");
+    const [uploadedFiles, setUploadedFiles] = useState({ grFile: null, momFile: null });
+    const [selectedMeeting, setSelectedMeeting] = useState(null);
 
     // sample meeting data — replace with API data as needed
-    const [meetings] = useState([
-        { id: 1, grDate: "2026-03-20", meetingDate: "2026-03-20", atc: "Thane", description: "After Approval of school from both ATC and Po Decision will be taken whether school is approved, cancelled or rejected", schoolType: "NEW" },
-        { id: 2, grDate: "2025-03-04", meetingDate: "2025-03-05", atc: "Amravati", description: "vvv", schoolType: "OLD" },
-        { id: 3, grDate: "2025-01-21", meetingDate: "2025-01-21", atc: "Thane", description: "Test 21.01.2025", schoolType: "OLD" },
-    ]);
+    const [meetings, setMeetings] = useState([]);
+    const [loadingMeetings, setLoadingMeetings] = useState(false);
 
     const formatDate = (iso) => {
         if (!iso) return "";
@@ -35,6 +34,49 @@ export default function ScheduleMeeting() {
             return iso;
         }
     };
+
+    // Load meetings data from API
+    const loadMeetings = async () => {
+        setLoadingMeetings(true);
+        try {
+            const grDetails = await getGRDetails();
+            console.log('Meetings data from API:', grDetails);
+            
+            // Transform GR details to meetings format
+            const transformedMeetings = grDetails.map((gr, index) => ({
+                id: gr.id || index + 1,
+                grDate: gr.gRDate || "",
+                meetingDate: gr.commiteeMeetingDate || "",
+                atc: gr.aTCName || "",
+                description: gr.briefDescription || "",
+                schoolType: gr.schoolType || "",
+                // Store original data for view functionality
+                commiteeMeetingDate: gr.commiteeMeetingDate || "",
+                aTCName: gr.aTCName || "",
+                briefDescription: gr.briefDescription || "",
+                // Store file data
+                uploadGRFile: gr.uploadGRFile || null,
+                uploadMOMFile: gr.uploadMOMFile || null
+            }));
+            
+            setMeetings(transformedMeetings);
+        } catch (error) {
+            console.error('Error loading meetings:', error);
+            // Fallback to mock data if API fails
+            setMeetings([
+                { id: 1, grDate: "2026-03-20", meetingDate: "2026-03-20", atc: "Thane", description: "After Approval of school from both ATC and Po Decision will be taken whether school is approved, cancelled or rejected", schoolType: "NEW" },
+                { id: 2, grDate: "2025-03-04", meetingDate: "2025-03-05", atc: "Amravati", description: "vvv", schoolType: "OLD" },
+                { id: 3, grDate: "2025-01-21", meetingDate: "2025-01-21", atc: "Thane", description: "Test 21.01.2025", schoolType: "OLD" },
+            ]);
+        } finally {
+            setLoadingMeetings(false);
+        }
+    };
+
+    // Load meetings on component mount
+    React.useEffect(() => {
+        loadMeetings();
+    }, []);
 
     // pagination state
     const [page, setPage] = useState(1);
@@ -63,24 +105,47 @@ export default function ScheduleMeeting() {
     };
 
     const handleView = (meeting) => {
+        // Format dates for date input (YYYY-MM-DD)
+        const formatDateForInput = (dateString) => {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            return date.toISOString().split('T')[0];
+        };
+        
         setForm({
-            committeeDate: meeting.meetingDate || "",
-            grDate: meeting.grDate || "",
-            atcName: meeting.atc || "",
+            committeeDate: formatDateForInput(meeting.commiteeMeetingDate),
+            grDate: formatDateForInput(meeting.gRDate),
+            atcName: meeting.aTCName || "",
             schoolType: meeting.schoolType || "",
             grFile: null,
             momFile: null,
-            description: meeting.description || "",
+            description: meeting.briefDescription || "",
         });
+        
+        // Store the original meeting data for file access
+        setSelectedMeeting(meeting);
         setView("details");
     };
 
     const handleReset = () => {
         setForm(emptyForm);
+        setShowSchoolResults(false);
+        setSchoolData([]);
+        setUploadedFiles({ grFile: null, momFile: null });
+        setErrors({});
+        setAlert(null);
     };
 
     const handleSearch = async (e) => {
         e.preventDefault();
+        
+        // Show confirmation alert
+        const confirmMessage = "Are you sure you want to search schools? This will fetch school data based on your criteria.";
+        if (!window.confirm(confirmMessage)) {
+            return; // User cancelled
+        }
+        
         const errs = validateGRDetails(form);
         setErrors(errs);
 
@@ -115,7 +180,7 @@ export default function ScheduleMeeting() {
                     ? {
                         id: uploadedGR.documentId,
                         name: uploadedGR.title,
-                        fileURL: uploadedGR.downloadURL,
+                        fileURL: uploadedGR.contentUrl,
                         fileBase64: "",
                         folder: { externalReferenceCode: "", siteId: 0 },
                     }
@@ -124,7 +189,7 @@ export default function ScheduleMeeting() {
                     ? {
                         id: uploadedMOM.documentId,
                         name: uploadedMOM.title,
-                        fileURL: uploadedMOM.downloadURL,
+                        fileURL: uploadedMOM.contentUrl,
                         fileBase64: "",
                         folder: { externalReferenceCode: "", siteId: 0 },
                     }
@@ -133,6 +198,12 @@ export default function ScheduleMeeting() {
 
             const res = await apiPost("/o/c/grdetails", payload);
             setAlert({ type: "success", message: `GR record saved (id=${res?.id || "-"})` });
+            
+            // Store uploaded file URLs for later viewing
+            setUploadedFiles({
+                grFile: uploadedGR,
+                momFile: uploadedMOM
+            });
             
             // After successful save, fetch school data
             fetchSchoolData();
@@ -144,30 +215,123 @@ export default function ScheduleMeeting() {
         }
     };
 
-    // Function to fetch school data (mock implementation)
+    // Function to fetch school data using getGRDetails API
     const fetchSchoolData = async () => {
-        // Mock data - replace with actual API call
-        const mockSchoolData = [
-            {
-                id: 1,
-                poName: "Mumbai",
-                schoolName: "SchoolNa",
-                existingStudents: 0,
-                poVerificationStatus: "PO recommended for Approval",
-                atcVerificationStatus: "Approved",
-                systemCalculatedMarks: "49.00",
-                atcMarks: "64.00",
-                poRemarks: "school is good for approval. school has enrollments for current academic year",
-                atcRemarks: "school basic details are available",
-                noOfGeneralStudents: 11,
-                sanctionedAdmissions: 0,
-                committeeDecision: "Pending",
-                committeeRemarks: ""
-            }
-        ];
+        try {
+            const grDetails = await getGRDetails();
+            console.log('GR Details from API:', grDetails);
+            
+            // Transform GR details data to match the table structure
+            const transformedData = grDetails.map((gr, index) => ({
+                id: gr.id || index + 1,
+                poName: gr.poName || "N/A",
+                schoolName: gr.schoolName || "N/A",
+                existingStudents: gr.existingStudents || 0,
+                poVerificationStatus: gr.poVerificationStatus || "Pending",
+                atcVerificationStatus: gr.atcVerificationStatus || "Pending",
+                systemCalculatedMarks: gr.systemCalculatedMarks || "0.00",
+                atcMarks: gr.atcMarks || "0.00",
+                poRemarks: gr.poRemarks || "",
+                atcRemarks: gr.atcRemarks || "",
+                noOfGeneralStudents: gr.noOfGeneralStudents || 0,
+                sanctionedAdmissions: gr.sanctionedAdmissions || 0,
+                committeeDecision: gr.committeeDecision || "Pending",
+                committeeRemarks: gr.committeeRemarks || "",
+                // Store file URLs for PDF viewing
+                grFileUrl: gr.uploadGRFile?.fileURL || null,
+                momFileUrl: gr.uploadMOMFile?.fileURL || null,
+            }));
+            
+            setSchoolData(transformedData);
+            setShowSchoolResults(true);
+        } catch (error) {
+            console.error('Error fetching GR details:', error);
+            setAlert({ type: "error", message: "Failed to fetch school data. Please try again." });
+            
+            // Fallback to mock data if API fails
+            const mockSchoolData = [
+                {
+                    id: 1,
+                    poName: "Mumbai",
+                    schoolName: "SchoolNa",
+                    existingStudents: 0,
+                    poVerificationStatus: "PO recommended for Approval",
+                    atcVerificationStatus: "Approved",
+                    systemCalculatedMarks: "49.00",
+                    atcMarks: "64.00",
+                    poRemarks: "school is good for approval. school has enrollments for current academic year",
+                    atcRemarks: "school basic details are available",
+                    noOfGeneralStudents: 11,
+                    sanctionedAdmissions: 0,
+                    committeeDecision: "Pending",
+                    committeeRemarks: ""
+                }
+            ];
+            
+            setSchoolData(mockSchoolData);
+            setShowSchoolResults(true);
+        }
+    };
+
+    // Function to view existing files from API
+    const viewExistingFile = (fileUrl) => {
+        if (!fileUrl) {
+            alert('File URL not available');
+            return;
+        }
         
-        setSchoolData(mockSchoolData);
-        setShowSchoolResults(true);
+        // Ensure the URL is complete
+        let pdfUrl = fileUrl;
+        if (pdfUrl.startsWith('/')) {
+            pdfUrl = window.location.origin + pdfUrl;
+        }
+        
+        console.log('Opening existing file URL:', pdfUrl);
+        
+        // Open in new tab
+        try {
+            const newWindow = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+            if (!newWindow) {
+                alert('Popup blocked! Please allow popups for this site to view the PDF.');
+            }
+        } catch (error) {
+            console.error('Error opening file:', error);
+            alert('Failed to open file. Please try again.');
+        }
+    };
+    const viewPDFFile = (fileType, schoolId) => {
+        const school = schoolData.find(s => s.id === schoolId);
+        if (!school) {
+            alert('School data not found');
+            return;
+        }
+        
+        const fileUrl = fileType === 'gr' ? school.grFileUrl : school.momFileUrl;
+        console.log('Attempting to view file:', fileType, fileUrl);
+        
+        if (!fileUrl) {
+            alert(`No ${fileType === 'gr' ? 'GR' : 'MOM'} file available for this school`);
+            return;
+        }
+        
+        // Ensure the URL is complete
+        let pdfUrl = fileUrl;
+        if (pdfUrl.startsWith('/')) {
+            pdfUrl = window.location.origin + pdfUrl;
+        }
+        
+        console.log('Opening PDF URL:', pdfUrl);
+        
+        // Open in new tab
+        try {
+            const newWindow = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+            if (!newWindow) {
+                alert('Popup blocked! Please allow popups for this site to view the PDF.');
+            }
+        } catch (error) {
+            console.error('Error opening PDF:', error);
+            alert('Failed to open PDF. Please try again.');
+        }
     };
 
     // Handle meeting remarks button click
@@ -216,19 +380,33 @@ export default function ScheduleMeeting() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {visibleMeetings.map((m, idx) => (
-                                        <tr key={m.id} style={{ background: idx % 2 === 0 ? "#fff" : "#fbfbfb", borderBottom: "1px solid #eef2f3" }}>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{formatDate(m.grDate)}</td>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{formatDate(m.meetingDate)}</td>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.atc}</td>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.description}</td>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.schoolType}</td>
-                                            <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>
-                                                <button onClick={() => handleView(m)} style={{ background: "#17a2b8", color: "#fff", border: "none", padding: "11px 16px", fontSize: 13, borderRadius: 6, cursor: "pointer" }}>View</button>
-
+                                    {loadingMeetings ? (
+                                        <tr>
+                                            <td colSpan="6" style={{ padding: "20px", textAlign: "center", fontSize: 14, color: "#666" }}>
+                                                Loading meetings data...
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : visibleMeetings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" style={{ padding: "20px", textAlign: "center", fontSize: 14, color: "#666" }}>
+                                                No meetings found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        visibleMeetings.map((m, idx) => (
+                                            <tr key={m.id} style={{ background: idx % 2 === 0 ? "#fff" : "#fbfbfb", borderBottom: "1px solid #eef2f3" }}>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{formatDate(m.grDate)}</td>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{formatDate(m.meetingDate)}</td>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.atc}</td>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.description}</td>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>{m.schoolType}</td>
+                                                <td style={{ padding: "11px 16px", fontSize: 13, border: "1px solid #dee2e6" }}>
+                                                    <button onClick={() => handleView(m)} style={{ background: "#17a2b8", color: "#fff", border: "none", padding: "11px 16px", fontSize: 13, borderRadius: 6, cursor: "pointer" }}>View</button>
+
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -302,11 +480,53 @@ export default function ScheduleMeeting() {
                                     <input name="grFile" type="file" onChange={handleChange} />
                                     {errors.grFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.grFile}</div>}
                                 </div>
+                                
+                                {/* Show existing files when viewing a meeting */}
+                                {selectedMeeting && selectedMeeting.uploadGRFile && (
+                                    <div style={{ marginTop: 10 }}>
+                                        <label style={{ display: "block", marginBottom: 6 }}>Existing GR File:</label>
+                                        <button
+                                            onClick={() => viewExistingFile(selectedMeeting.uploadGRFile.link?.href)}
+                                            style={{
+                                                background: "#28a745",
+                                                color: "#fff",
+                                                border: "none",
+                                                padding: "6px 12px",
+                                                borderRadius: 4,
+                                                cursor: "pointer",
+                                                fontSize: 12
+                                            }}
+                                        >
+                                            View {selectedMeeting.uploadGRFile.name}
+                                        </button>
+                                    </div>
+                                )}
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Upload MOM File <span style={{ color: "#d9534f" }}>*</span></label>
                                     <input name="momFile" type="file" onChange={handleChange} />
                                     {errors.momFile && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.momFile}</div>}
                                 </div>
+                                
+                                {/* Show existing MOM file when viewing a meeting */}
+                                {selectedMeeting && selectedMeeting.uploadMOMFile && (
+                                    <div style={{ marginTop: 10 }}>
+                                        <label style={{ display: "block", marginBottom: 6 }}>Existing MOM File:</label>
+                                        <button
+                                            onClick={() => viewExistingFile(selectedMeeting.uploadMOMFile.link?.href)}
+                                            style={{
+                                                background: "#28a745",
+                                                color: "#fff",
+                                                border: "none",
+                                                padding: "6px 12px",
+                                                borderRadius: 4,
+                                                cursor: "pointer",
+                                                fontSize: 12
+                                            }}
+                                        >
+                                            View {selectedMeeting.uploadMOMFile.name}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ marginBottom: 18 }}>
@@ -316,11 +536,29 @@ export default function ScheduleMeeting() {
                             </div>
 
                             <div style={{ display: "flex", gap: 12 }}>
-                                <button type="submit" style={{ background: "#2ca44a", color: "#fff", border: "none", padding: "10px 18px", borderRadius: 4, cursor: "pointer" }}>Search Schools</button>
-                                <button type="button" onClick={handleReset} style={{ background: "#57b1c9", color: "#fff", border: "none", padding: "10px 14px", borderRadius: 4, cursor: "pointer" }}>Reset/New</button>
+                                <button 
+                                    type="submit" 
+                                    disabled={showSchoolResults}
+                                    style={{ 
+                                        background: showSchoolResults ? "#ccc" : "#2ca44a", 
+                                        color: "#fff", 
+                                        border: "none", 
+                                        padding: "10px 18px", 
+                                        borderRadius: 4, 
+                                        cursor: showSchoolResults ? "not-allowed" : "pointer" 
+                                    }}
+                                >
+                                    {showSchoolResults ? "Searched" : "Search Schools"}
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onClick={handleReset} 
+                                    style={{ background: "#57b1c9", color: "#fff", border: "none", padding: "10px 14px", borderRadius: 4, cursor: "pointer" }}
+                                >
+                                    Reset/New
+                                </button>
                             </div>
                         </form>
-
                         <div style={{ marginTop: 28 }}>
                             <h3 style={{ color: "#1aa0b6", marginBottom: 8 }}>School Details</h3>
                             <div style={{ height: 8, borderBottom: "2px solid #f5b07a" }} />
@@ -334,7 +572,7 @@ export default function ScheduleMeeting() {
                                         <thead>
                                             <tr style={{ background: "#f8f9fa" }}>
                                                 <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Enter Meeting Decisions/remarks</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View Grading Report</th>
+                                                <th style={{width:'100px', padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View Grading Report</th>
                                                 <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View School Profile</th>
                                                 <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO Name</th>
                                                 <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>School Name</th>
@@ -371,10 +609,36 @@ export default function ScheduleMeeting() {
                                                         </button>
                                                     </td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
-                                                        <button style={{ background: "#28a745", color: "#fff", border: "none", padding: "4px 8px", borderRadius: 3, cursor: "pointer", fontSize: 12 }}>View</button>
+                                                        <button 
+                                                            onClick={() => viewPDFFile('gr', school.id)}
+                                                            style={{ 
+                                                                background: "#28a745", 
+                                                                color: "#fff", 
+                                                                border: "none", 
+                                                                padding: "4px 8px", 
+                                                                borderRadius: 3, 
+                                                                cursor: "pointer", 
+                                                                fontSize: 12 
+                                                            }}
+                                                        >
+                                                            View
+                                                        </button>
                                                     </td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
-                                                        <button style={{ background: "#28a745", color: "#fff", border: "none", padding: "4px 8px", borderRadius: 3, cursor: "pointer", fontSize: 12 }}>View</button>
+                                                        <button 
+                                                            onClick={() => viewPDFFile('mom', school.id)}
+                                                            style={{ 
+                                                                background: "#28a745", 
+                                                                color: "#fff", 
+                                                                border: "none", 
+                                                                padding: "4px 8px", 
+                                                                borderRadius: 3, 
+                                                                cursor: "pointer", 
+                                                                fontSize: 12 
+                                                            }}
+                                                        >
+                                                            View
+                                                        </button>
                                                     </td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poName}</td>
                                                     <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.schoolName}</td>
