@@ -1,6 +1,5 @@
 import { MOCK_STATES, simulateMockAPI } from "../schools/mockData";
 // import { getAccessToken } from "./auth";
-
 const useMockData = false; // Set to true to use mock data instead of real API calls
 export async function getDepartment() {
   try {
@@ -13,11 +12,9 @@ export async function getDepartment() {
       },
       credentials: "include",
     });
-
     if (!response.ok) {
       throw new Error(`Object definition API failed: ${response.status}`);
     }
-
     const data = await response.json();
     const items = data.items || [];
     return items.filter((item) => item?.status?.code === 0);
@@ -26,76 +23,57 @@ export async function getDepartment() {
     return [];
   }
 }
-
-
 const buildHeaders = () => ({
   Accept: "application/json",
   "Content-Type": "application/json",
   Authorization: "Basic " + btoa("prabhudasu:root"),
   // "x-csrf-token": window.Liferay?.authToken || ""
-
 });
-
 const buildCreds = () => "include";
-
 export async function getStates() {
   try {
     let allItems = [];
     let page = 1;
     let pageSize;
-
     if (useMockData) {
       return simulateMockAPI(MOCK_STATES);
     }
-
     while (true) {
       let url = `/o/c/states?page=${page}`;
-
       if (pageSize) {
         url += `&pageSize=${pageSize}`;
       }
-
       const response = await fetch(url, {
         method: "GET",
         headers: buildHeaders(),
         credentials: buildCreds(),
       });
-
       if (!response.ok) {
         throw new Error(`Failed to fetch states: ${response.status}`);
       }
-
       const data = await response.json();
-
       // Set pageSize dynamically from API response
       if (!pageSize) {
         pageSize = data.pageSize || 20;
       }
-
       const items = data.items || [];
-
       // Optional: filter like colleges (if needed)
       allItems = allItems.concat(items);
-
       // Stop when last page reached
       if (page >= data.lastPage) break;
-
       page++;
     }
-
     return allItems;
   } catch (error) {
     console.error("Error fetching states:", error);
     return [];
   }
 }
-
 // Fetch districts by stateId
 export async function fetchDistrictsByState(stateId) {
   let allDistricts = [];
   let page = 1;
   let hasMore = true;
-
   try {
     while (hasMore) {
       const response = await fetch(
@@ -105,25 +83,20 @@ export async function fetchDistrictsByState(stateId) {
           credentials: buildCreds(),
         },
       );
-
       if (!response.ok) {
         throw new Error(`Failed at page ${page}`);
       }
-
       const data = await response.json();
       allDistricts = [...allDistricts, ...(data.items || [])];
-
       hasMore = data.items && data.items.length > 0;
       page++;
     }
-
     return allDistricts;
   } catch (error) {
     console.error("Error fetching districts:", error);
     return [];
   }
 }
-
 // Fetch talukas by districtId
 export async function fetchTalukasByDistrict(districtId) {
   try {
@@ -134,11 +107,9 @@ export async function fetchTalukasByDistrict(districtId) {
         credentials: buildCreds(),
       },
     );
-
     if (!response.ok) {
       throw new Error(`Failed to fetch talukas: ${response.status}`);
     }
-
     const data = await response.json();
     return data.items || [];
   } catch (error) {
@@ -146,7 +117,6 @@ export async function fetchTalukasByDistrict(districtId) {
     return [];
   }
 }
-
 // Fetch districts by stateId
 export async function fetchVillagesByTaluka(stateId) {
   try {
@@ -157,11 +127,9 @@ export async function fetchVillagesByTaluka(stateId) {
         credentials: buildCreds(),
       },
     );
-
     if (!response.ok) {
       throw new Error(`Failed to fetch districts: ${response.status}`);
     }
-
     const data = await response.json();
     return data.items || [];
   } catch (error) {
@@ -170,24 +138,59 @@ export async function fetchVillagesByTaluka(stateId) {
   }
 }
 
-export async function fetchPOByTaluka(stateId) {
+// ── REPLACED: fetchPOByTaluka → fetchATCMasters + fetchPOByATC ──────────
+
+// Fetch all ATC Masters
+export async function fetchATCMasters() {
   try {
     const response = await fetch(
-      `/o/c/villages?filter=r_taluka_c_talukaId eq '${stateId}'`,
+      `/o/c/atcmasters/?pageSize=100&sort=atcName:asc`,
       {
         headers: buildHeaders(),
         credentials: buildCreds(),
       },
     );
-
     if (!response.ok) {
-      throw new Error(`Failed to fetch districts: ${response.status}`);
+      throw new Error(`Failed to fetch ATC masters: ${response.status}`);
     }
-
     const data = await response.json();
-    return data.items || [];
+    return (data.items || []).map((item) => ({
+      value: item.id,
+      label: item.atcName,
+      labelLl: item.atcNameLl,
+    }));
   } catch (error) {
-    console.error("Error fetching districts:", error);
+    console.error("Error fetching ATC masters:", error);
+    return [];
+  }
+}
+
+// Fetch PO Names — all if no atcId, filtered if atcId provided
+export async function fetchPOByATC(atcId) {
+  try {
+    const url = atcId
+      ? `/o/c/pomasters/?filter=atcId eq ${atcId}&pageSize=200&sort=poName:asc`
+      : `/o/c/pomasters/?pageSize=200&sort=poName:asc`;
+    const response = await fetch(
+      url,
+      {
+        headers: buildHeaders(),
+        credentials: buildCreds(),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch PO masters: ${response.status}`);
+    }
+    const data = await response.json();
+    return (data.items || []).map((item) => ({
+      value: item.id,
+      label: item.poName,
+      labelLl: item.poNameLl,
+      poId: item.poId,
+      atcId: item.atcId,
+    }));
+  } catch (error) {
+    console.error("Error fetching PO masters:", error);
     return [];
   }
 }
@@ -196,15 +199,12 @@ export async function getColleges() {
   try {
     const response = await fetch(`/o/c/colleges`, {
       method: "GET",
-
       headers: buildHeaders(),
       credentials: buildCreds(),
     });
-
     if (!response.ok) {
       throw new Error(`Object definition API failed: ${response.status}`);
     }
-
     const data = await response.json();
     return data.items || [];
   } catch (error) {
@@ -223,11 +223,9 @@ export async function getUniversity() {
       },
       credentials: "include",
     });
-
     if (!response.ok) {
       throw new Error(`Object definition API failed: ${response.status}`);
     }
-
     const data = await response.json();
     return data.items || [];
   } catch (error) {
@@ -235,7 +233,6 @@ export async function getUniversity() {
     return [];
   }
 }
-
 export async function getPicklistByERC(erc) {
   try {
     const response = await fetch(
@@ -248,11 +245,9 @@ export async function getPicklistByERC(erc) {
         credentials: "include",
       },
     );
-
     if (!response.ok) {
       throw new Error(`Failed to fetch picklist: ${response.status}`);
     }
-
     const data = await response.json();
     return data.items || [];
   } catch (error) {
@@ -260,7 +255,6 @@ export async function getPicklistByERC(erc) {
     return [];
   }
 }
-
 export async function creatingEntry(payload) {
   try {
     const token = await getAccessToken();
@@ -276,12 +270,10 @@ export async function creatingEntry(payload) {
       credentials: "include",
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to create entry");
     }
-
     const data = await response.json();
     return data; // API response (e.g., created entry, application number)
   } catch (e) {
@@ -289,7 +281,6 @@ export async function creatingEntry(payload) {
     throw e;
   }
 }
-
 // ── Update function (PUT) ──────────────────────────────────────────────
 export async function updateEntry(id, payload) {
   try {
@@ -305,12 +296,10 @@ export async function updateEntry(id, payload) {
       credentials: "include",
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to update entry");
     }
-
     const data = await response.json();
     return data;
   } catch (e) {
@@ -318,7 +307,6 @@ export async function updateEntry(id, payload) {
     throw e;
   }
 }
-
 export async function checkEmailExists(email) {
   const res = await fetch(
     `/o/headless-admin-user/v1.0/user-accounts?filter=emailAddress eq '${email}'`,
@@ -337,20 +325,15 @@ export async function checkEmailExists(email) {
       },
     },
   );
-
   if (!res.ok) {
     throw new Error("Failed to fetch users");
   }
-
   const data = await res.json();
-
   return data.totalCount > 0;
 }
-
 export async function checkAisheCode(aisheCode) {
   try {
     const formattedCode = aisheCode.trim().toUpperCase();
-
     const res = await fetch(
       `/o/c/colleges/?filter=${encodeURIComponent(
         `aisheCode eq '${formattedCode}'`,
@@ -369,11 +352,9 @@ export async function checkAisheCode(aisheCode) {
         credentials: "include",
       },
     );
-
     if (!res.ok) {
       throw new Error("Failed to fetch colleges");
     }
-
     const data = await res.json();
     console.log("AISHE Code Check Response:", data);
     const items = data.items || [];
@@ -383,7 +364,6 @@ export async function checkAisheCode(aisheCode) {
     return false; // fallback
   }
 }
-
 export async function getCollegeByAisheCode(aisheCode) {
   try {
     const res = await fetch(
@@ -400,11 +380,9 @@ export async function getCollegeByAisheCode(aisheCode) {
         credentials: "include",
       },
     );
-
     if (!res.ok) {
       throw new Error("Failed to fetch colleges");
     }
-
     const data = await res.json();
     const items = data.items || [];
     return items.find((item) => item?.status?.code === 0) || null;
@@ -413,7 +391,6 @@ export async function getCollegeByAisheCode(aisheCode) {
     return null;
   }
 }
-
 export async function createAisheEntry(payload) {
   try {
     const response = await fetch(`/o/c/aishes`, {
@@ -426,36 +403,30 @@ export async function createAisheEntry(payload) {
       credentials: "include",
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
         errorText || `Failed to create AISHE entry: ${response.status}`,
       );
     }
-
     return await response.json();
   } catch (error) {
     console.error("Error creating AISHE entry:", error);
     throw error;
   }
 }
-
 export async function getAllColleges() {
   try {
     let allItems = [];
     let page = 1;
     let pageSize;
-
     while (true) {
       let url = `/o/c/colleges?page=${page}&filter=${encodeURIComponent(
         "mahaApplicationId ne ''",
       )}`;
-
       if (pageSize) {
         url += `&pageSize=${pageSize}`;
       }
-
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -465,59 +436,43 @@ export async function getAllColleges() {
         },
         credentials: "include",
       });
-
       if (!response.ok) {
         throw new Error(`Failed to fetch colleges: ${response.status}`);
       }
-
       const data = await response.json();
-
       if (!pageSize) {
         pageSize = data.pageSize || 20;
       }
-
       const items = data.items || [];
       allItems = allItems.concat(
         items.filter((item) => item?.status?.code === 0),
       );
-
       if (page >= data.lastPage) break;
-
       page++;
     }
-
     return allItems;
   } catch (error) {
     console.error("API Error:", error);
     return [];
   }
 }
-
 // export async function getCollegesData(stateId, districtId, name) {
 //   try {
-
 //     let filters = [];
-
 //     if (districtId) {
 //       filters.push(`districtId eq '${districtId}'`);
 //     }
-
 //     if (stateId) {
 //       filters.push(`stateId eq ${Number(stateId)}`);
 //     }
-
 //     if (name && name.trim() !== "") {
 //       filters.push(`name eq '${name.trim()}'`);
 //     }
-
 //     const filterQuery = filters.join(" and ");
-
 //     const url = filterQuery
 //       ? `/o/c/colleges/?filter=${encodeURIComponent(filterQuery)}`
 //       : `/o/c/colleges`;
-
 //     console.log("Final URL:", url); // 🔎 Debug
-
 //     const response = await fetch(url, {
 //       method: "GET",
 //       headers: {
@@ -527,50 +482,39 @@ export async function getAllColleges() {
 //       },
 //       credentials: "include",
 //     });
-
 //     if (!response.ok) {
 //       const err = await response.json();
 //       console.error("API Error:", err);
 //       throw new Error("API failed");
 //     }
-
 //     const data = await response.json();
 //     return data.items || [];
-
 //   } catch (error) {
 //     console.error("Error fetching colleges:", error);
 //     return [];
 //   }
 // }
-
 export async function getCollegesData(stateId, districtId, name) {
   try {
     let filters = [];
-
     // District (string field)
     if (districtId) {
       filters.push(`districtId eq '${districtId}'`);
     }
-
     // State (number field)
     if (stateId) {
       filters.push(`stateId eq ${Number(stateId)}`);
     }
-
     // Name (partial search using contains)
     if (name && name.trim() !== "") {
       const cleanName = name.trim().replace(/'/g, "''"); // escape single quotes
       filters.push(`contains(name,'${cleanName}')`);
     }
-
     const filterQuery = filters.join(" and ");
-
     const url = filterQuery
       ? `/o/c/colleges/?filter=${encodeURIComponent(filterQuery)}`
       : `/o/c/colleges`;
-
     console.log("Final URL:", url);
-
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -580,13 +524,11 @@ export async function getCollegesData(stateId, districtId, name) {
       },
       credentials: "include",
     });
-
     if (!response.ok) {
       const err = await response.json();
       console.error("API Error:", err);
       throw new Error("API failed");
     }
-
     const data = await response.json();
     const items = data.items || [];
     return items.filter(
@@ -597,4 +539,3 @@ export async function getCollegesData(stateId, districtId, name) {
     return [];
   }
 }
-

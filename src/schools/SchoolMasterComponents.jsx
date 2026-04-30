@@ -130,8 +130,8 @@ export function TDDSelect({
       </option>
       {!loading &&
         options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.name || ''}
+          <option key={opt.id || opt.value} value={opt.id || opt.value}>
+            {opt.name || opt.label || ''}
           </option>
         ))}
       {children}

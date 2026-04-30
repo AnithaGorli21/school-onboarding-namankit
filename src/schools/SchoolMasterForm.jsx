@@ -1,7 +1,5 @@
-
-
 import React, { useState, useCallback } from "react";
-
+ 
 // Styles
 import {
   CSS_VARIABLES,
@@ -9,22 +7,22 @@ import {
   layoutStyles,
   pageStyles,
 } from "./SchoolMasterStyles";
-
+ 
 // API
 import { getPONames, saveSchool } from "./schoolMasterAPI";
-
+ 
 // API
 import {
   getStates,
   fetchDistrictsByState,
   fetchTalukasByDistrict,
   fetchVillagesByTaluka,
-  fetchPOByTaluka,
+  fetchPOByATC,
 } from "../api/fetch-masters";
-
+ 
 // Location cascade hook
 import { useLocationCascade } from "../utils/LocationUtility";
-
+ 
 // Components
 import {
   FormField,
@@ -38,7 +36,7 @@ import {
   MockDataBadge,
   Divider,
 } from "./SchoolMasterComponents";
-
+ 
 import SchoolMasterReviewStep from "./SchoolMasterReviewStep";
 import { buildSchoolPayload } from "./validations";
 import {
@@ -51,12 +49,12 @@ import {
   updateSchoolEntry,
 } from "../api/save-school";
 import { buildUserPayload } from "../utils/userUtility";
-
+ 
 // ─── Constants ───────────────────────────────────────────────
-
+ 
 const STEP_FORM = "form";
 const STEP_REVIEW = "review";
-
+ 
 const INITIAL_FORM = {
   trusteeName: "",
   schoolName: "",
@@ -90,15 +88,15 @@ const INITIAL_FORM = {
   higherSecondaryUDISE: "",
   captchaAnswer: "",
 };
-
+ 
 function generateCaptcha() {
   const a = Math.floor(Math.random() * 9) + 1;
   const b = Math.floor(Math.random() * 9) + 1;
   return { question: `${a} + ${b} = ?`, answer: String(a + b) };
 }
-
+ 
 // ─── Validation ──────────────────────────────────────────────
-
+ 
 function validateField(field, value) {
   switch (field) {
     case "schoolName":
@@ -114,9 +112,9 @@ function validateField(field, value) {
     case "village":
       return value ? "" : "Please select a Village.";
     case "poNameId":
-      // return value ? "" : "Please select a PO Name.";
-      return value ? "" : "";
-
+      return value ? "" : "Please select a PO Name.";
+      // return value ? "" : "";
+ 
     case "mobileSchool":
       if (!value.trim()) return "School mobile number is required.";
       if (!/^[6-9]\d{9}$/.test(value))
@@ -148,10 +146,10 @@ function validateField(field, value) {
       return "";
   }
 }
-
+ 
 function validateAll(form, captchaAnswer) {
   const errors = {};
-
+ 
   const fields = [
     "schoolName",
     "address",
@@ -169,22 +167,22 @@ function validateAll(form, captchaAnswer) {
     "higherSecondaryUDISE",
     "pincode",
   ];
-
+ 
   fields.forEach((field) => {
     const err = validateField(field, form[field] ?? "");
     if (err) errors[field] = err;
   });
-
+ 
   // Captcha
   if (!form.captchaAnswer.trim()) {
     errors.captchaAnswer = "Please answer the captcha.";
   } else if (form.captchaAnswer.trim() !== captchaAnswer) {
     errors.captchaAnswer = "Incorrect answer. Please try again.";
   }
-
+ 
   return errors;
 }
-
+ 
 const initialSchoolData = {
   udiseCode: "",
   schoolCode: "",
@@ -233,49 +231,49 @@ const initialSchoolData = {
   liferayUserId: "",
   screenName: "",
 };
-
+ 
 // ─── Main Component ───────────────────────────────────────────
-
+ 
 export default function SchoolMasterForm({ useMockData = false, onBack }) {
   const [failureMessage, setFailureMessage] = useState("");
-
+ 
   const [schoolData, setSchoolData] = useState(initialSchoolData);
   const [isFetching, setIsFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fetchMessage, setFetchMessage] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showFailureModal, setShowFailureModal] = useState(false);
-
+ 
   // ── Step control
   const [step, setStep] = useState(STEP_FORM);
-
+ 
   // ── Form state (single source of truth — location fields live here too)
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [captcha, setCaptcha] = useState(generateCaptcha);
-
+ 
   // ── PO Names (not part of location cascade)
   const [poNames, setPONames] = useState([]);
   const [loadingPO, setLoadingPO] = useState(false);
   const [poNameLabel, setPONameLabel] = useState("");
-
+ 
   // ── Submission + declaration
   const [submitting, setSubmitting] = useState(false);
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
-
+ 
   // ── Toast
   const [toast, setToast] = useState({
     visible: false,
     message: "",
     type: "success",
   });
-
+ 
   // ─── Toast helper ─────────────────────────────────────────────
   const showToast = useCallback((message, type = "success") => {
     setToast({ visible: true, message, type });
     setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3500);
   }, []);
-
+ 
   // ─── Location cascade hook ────────────────────────────────────
   //
   // Replaces all cascade useEffects that were previously in this file.
@@ -312,24 +310,15 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       [useMockData],
     ),
   });
-
-  // ─── Load PO Names when taluka changes ────────────────────────
+ 
+  // ─── Load ALL PO Names from master API on mount ───────────────
   React.useEffect(() => {
     let cancelled = false;
-    
-    // Only fetch PO names if we have a taluka ID
-    if (!form.talukaId) {
-      setPONames([]);
-      setLoadingPO(false);
-      return;
-    }
-    
     setLoadingPO(true);
-    console.log('Fetching PO names for taluka ID:', form.talukaId);
-
-    fetchPOByTaluka(form.talukaId, useMockData)
+ 
+    fetchPOByATC()
       .then((data) => {
-        console.log('fetch poBY taluka...', data)
+        console.log('fetch PO masters...', data);
         if (!cancelled) setPONames(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -339,12 +328,12 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       .finally(() => {
         if (!cancelled) setLoadingPO(false);
       });
-
+ 
     return () => {
       cancelled = true;
     };
-  }, [form.talukaId, useMockData]);
-
+  }, []);
+ 
   // ─── Resolve PO Name label for review ────────────────────────
   React.useEffect(() => {
     if (!form.poNameId) {
@@ -356,14 +345,14 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     );
     setPONameLabel(found ? found.label : "");
   }, [form.poNameId, poNames]);
-
+ 
   // ─── Generic field change (non-location fields) ───────────────
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
     setErrors((err) => ({ ...err, [name]: validateField(name, value) }));
   }, []);
-
+ 
   // ─── Location dropdown onChange wrappers ──────────────────────
   //
   // TDDSelect fires a standard DOM event (e.target.value = the option's value).
@@ -378,7 +367,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     },
     [states, handleLocationSelect],
   );
-
+ 
   const onDistrictChange = useCallback(
     (e) => {
       const selected = districts.find(
@@ -388,7 +377,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     },
     [districts, handleLocationSelect],
   );
-
+ 
   const onTalukaChange = useCallback(
     (e) => {
       const selected = talukas.find(
@@ -398,7 +387,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     },
     [talukas, handleLocationSelect],
   );
-
+ 
   const onVillageChange = useCallback(
     (e) => {
       const selected = villages.find(
@@ -408,20 +397,20 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     },
     [villages, handleLocationSelect],
   );
-
+ 
   // ─── Captcha ──────────────────────────────────────────────────
   const refreshCaptcha = useCallback(() => {
     setCaptcha(generateCaptcha());
     setForm((f) => ({ ...f, captchaAnswer: "" }));
     setErrors((e) => ({ ...e, captchaAnswer: "" }));
   }, []);
-
+ 
   // ─── Back ─────────────────────────────────────────────────────
   const handleBack = useCallback(() => {
     if (typeof onBack === "function") onBack();
     else window.history.back();
   }, [onBack]);
-
+ 
   // ─── Reset ────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
     setForm(INITIAL_FORM);
@@ -433,7 +422,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     // Cascade hook resets its own dropdown lists automatically
     // because form.state / district / taluka are all cleared via INITIAL_FORM
   }, [refreshCaptcha]);
-
+ 
   // ─── Proceed to Review ────────────────────────────────────────
   function handleReview() {
     const validationErrors = validateAll(form, captcha.answer);
@@ -450,24 +439,24 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     setStep(STEP_REVIEW);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
-
+ 
+ 
   const handleConfirmationModalClose = () => {
     setShowConfirmationModal(false);
     handleReset();
   };
-
+ 
   const handleFailureModalClose = () => {
     setShowFailureModal(false);
     setFailureMessage("");
     setShowConfirmationModal(false);
     handleReset();
   };
-
+ 
   const handleBackToForm = () => {
     setStep(1);
   };
-
+ 
   const confirmationModal = showConfirmationModal ? (
     <>
       <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-modal="true">
@@ -496,7 +485,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       <div className="modal-backdrop fade show" />
     </>
   ) : null;
-
+ 
   const failureModal = showFailureModal ? (
     <>
       <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-modal="true">
@@ -525,18 +514,18 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       <div className="modal-backdrop fade show" />
     </>
   ) : null;
-
+ 
   // ─── Final Submit from Review ─────────────────────────────────
   async function handleSubmit() {
-
-
+ 
+ 
     setSubmitting(true);
-
+ 
     if(true){
       handleFinalSubmit();
       return;
     }
-    
+   
     try {
       const payload = {
         trusteeName: form.trusteeName,
@@ -565,7 +554,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         secondaryUDISECode: form.secondaryUDISE,
         higherSecondaryUDISECode: form.higherSecondaryUDISE,
       };
-
+ 
       await saveSchool(payload, useMockData);
       showToast("School registered successfully!", "success");
       handleReset();
@@ -577,15 +566,15 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       setSubmitting(false);
     }
   }
-
+ 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     // setErrors((prev) => ({ ...prev, submit: "" }));
-
+ 
     try {
       const initialSchoolPayload = buildSchoolPayload(null, form);
       console.log("School Payload", initialSchoolPayload);
-      
+     
       const savedSchool = await saveSchoolMasterEntry(initialSchoolPayload);
       console.log("Saved School Entry:", savedSchool);
       const schoolId = Number(savedSchool?.id);
@@ -594,12 +583,12 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
           "School saved successfully but no school ID was returned",
         );
       }
-
+ 
       const userPayload = buildUserPayload(initialSchoolPayload,schoolId);
       console.log("User Payload for Liferay account creation:", userPayload);
       let liferayUser;
       let createdNewLogin = false;
-
+ 
       try {
         liferayUser = await createSchoolLiferayUserAccount(userPayload);
         console.log("Created Liferay User Account:", liferayUser);
@@ -612,25 +601,25 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
           if (!existingUser?.id) {
             throw createError;
           }
-
+ 
           liferayUser = existingUser;
         } else {
           throw createError;
         }
       }
-
+ 
       try {
         const preSchoolRole = await fetchSchoolRoleByName("Pre School");
-
+ 
         if (!preSchoolRole?.id) {
           throw new Error("Pre School role was not found");
         }
-
+ 
         const roleAssigned = await assignSchoolRoleToUserAccount(
           liferayUser.id,
           preSchoolRole.id,
         );
-
+ 
         if (!roleAssigned) {
           throw new Error(
             "Failed to assign Pre School role to the created user",
@@ -649,7 +638,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         }
         throw roleError;
       }
-
+ 
       const payload = buildSchoolPayload(liferayUser,form);
       console.log("Final School Payload with Liferay user details:", payload);
       const saved = await updateSchoolEntry(schoolId, payload);
@@ -659,13 +648,13 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         liferayUserId: String(liferayUser?.id || "").trim(),
         screenName: String(liferayUser?.alternateName || "").trim(),
       }));
-
+ 
       setFetchMessage("");
       setShowConfirmationModal(true);
-
-
+ 
+ 
       showToast("School registered successfully!", "success");
-
+ 
       if (typeof onFetchSuccess === "function") {
         // onFetchSuccess(saved);
       }
@@ -674,7 +663,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       console.error("Final submission error:", error);
       const message =
         error?.message || "Something went wrong while submitting.";
-
+ 
       if (String(error?.status || "") === "409") {
         setErrors((prev) => ({
           ...prev,
@@ -695,20 +684,20 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
         setErrors((prev) => ({ ...prev, submit: message }));
         // showToast(message);
       }
-
+ 
       setFailureMessage(message);
       setShowFailureModal(true);
-
-
+ 
+ 
       // handleReset();
       // setStep(STEP_FORM);
-
+ 
     } finally {
       setSubmitting(false);
       setIsSubmitting(false);
     }
   };
-
+ 
   // ─── Build review data (human-readable) ──────────────────────
   // Location names are already stored as human-readable strings
   // in form.stateName / districtName / talukaName / villageName
@@ -731,13 +720,13 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     secondaryUDISE: form.secondaryUDISE,
     higherSecondaryUDISE: form.higherSecondaryUDISE,
   };
-
+ 
   // ─── Normalise dropdown options for TDDSelect ─────────────────
   // TDDSelect expects { value, label } — locationUtils gives { id, name }
   // so we map here at the boundary.
   const toOptions = (items) =>
     // items.map((item) => ({ value: item.id, label: item.name }));
-
+ 
    (Array.isArray(items) ? items : []).map((item) => ({
       value: item.id,
       label: item.name,
@@ -749,10 +738,10 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
   return (
     <>
       <style>{CSS_VARIABLES + KEYFRAMES}</style>
-
+ 
       <div className="tdd-portlet" style={pageStyles.wrapper}>
         {/* <PageHeader /> */}
-
+ 
         <main style={layoutStyles.main}>
           {/* ══════════════ STEP 1 : FORM ══════════════ */}
           {step === STEP_FORM && (
@@ -762,7 +751,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                 <span>School Master</span>
                 {useMockData && <MockDataBadge />}
               </div>
-
+ 
               <div style={layoutStyles.formBody}>
                 {/* ── Basic Information */}
                 <SectionLabel>Basic Information</SectionLabel>
@@ -776,7 +765,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.trusteeName}
                     />
                   </FormField>
-
+ 
                   <FormField
                     label="School Name"
                     required
@@ -790,7 +779,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.schoolName}
                     />
                   </FormField>
-
+ 
                   <FormField label="Address" required error={errors.address}>
                     <TDDInput
                       name="address"
@@ -801,12 +790,12 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 <Divider />
-
+ 
                 {/* ── Location */}
                 <SectionLabel>Location</SectionLabel>
-
+ 
                 <div className="tdd-grid-3" style={layoutStyles.grid3}>
                   {/* State — value is the id, onChange resolves full option */}
                   <FormField label="State" required error={errors.state}>
@@ -820,7 +809,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       loadingText="Loading states..."
                     />
                   </FormField>
-
+ 
                   {/* District */}
                   <FormField label="District" required error={errors.district}>
                     <TDDSelect
@@ -837,7 +826,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       loadingText="Loading districts..."
                     />
                   </FormField>
-
+ 
                   {/* Taluka */}
                   <FormField label="Taluka" required error={errors.taluka}>
                     <TDDSelect
@@ -857,7 +846,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 <div className="tdd-grid-3" style={layoutStyles.grid3}>
                   {/* Village */}
                   <FormField label="Village" required error={errors.village}>
@@ -875,7 +864,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       loadingText="Loading villages..."
                     />
                   </FormField>
-
+ 
                   <FormField label="Pincode" error={errors.pincode}>
                     <TDDInput
                       name="pincode"
@@ -886,7 +875,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.pincode}
                     />
                   </FormField>
-
+ 
                   <FormField label="PO Name" required error={errors.poNameId}>
                     <TDDSelect
                       name="poNameId"
@@ -899,7 +888,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 <div className="tdd-grid-3" style={layoutStyles.grid3}>
                   <FormField
                     label="Mobile No (School)"
@@ -916,9 +905,9 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 <Divider />
-
+ 
                 {/* ── Contact Details */}
                 <SectionLabel>Contact Details</SectionLabel>
                 <div className="tdd-grid-3" style={layoutStyles.grid3}>
@@ -935,7 +924,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.mobileTrustee}
                     />
                   </FormField>
-
+ 
                   <FormField
                     label="Mobile Number (Principal)"
                     error={errors.mobilePrincipal}
@@ -949,7 +938,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.mobilePrincipal}
                     />
                   </FormField>
-
+ 
                   <FormField label="Email ID" required error={errors.emailId}>
                     <TDDInput
                       name="emailId"
@@ -961,9 +950,9 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 <Divider />
-
+ 
                 {/* ── UDISE Codes */}
                 <SectionLabel>UDISE Codes</SectionLabel>
                 <div className="tdd-grid-3" style={layoutStyles.grid3}>
@@ -982,7 +971,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.primaryUDISE}
                     />
                   </FormField>
-
+ 
                   <FormField
                     label="Secondary UDISE Code"
                     error={errors.secondaryUDISE}
@@ -996,7 +985,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                       hasError={!!errors.secondaryUDISE}
                     />
                   </FormField>
-
+ 
                   <FormField
                     label="Higher Secondary UDISE Code"
                     error={errors.higherSecondaryUDISE}
@@ -1011,7 +1000,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                     />
                   </FormField>
                 </div>
-
+ 
                 {/* ── Captcha */}
                 <CaptchaWidget
                   question={captcha.question}
@@ -1021,24 +1010,24 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                   error={errors.captchaAnswer}
                 />
               </div>
-
+ 
               {/* ── Action Buttons */}
               <div className="tdd-action-row" style={layoutStyles.actionRow}>
                 <TDDButton variant="save" onClick={handleReview}>
                   Preview &amp; Review
                 </TDDButton>
-
+ 
                 <TDDButton variant="reset" onClick={handleReset}>
                   Reset
                 </TDDButton>
-
+ 
                 <TDDButton variant="back" onClick={handleBack}>
                   Back
                 </TDDButton>
               </div>
             </div>
           )}
-
+ 
           {/* ══════════════ STEP 2 : REVIEW ══════════════ */}
           {step === STEP_REVIEW && (
             <>
@@ -1049,7 +1038,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
               onToggleDeclaration={setDeclarationAccepted}
               onBack={() => setStep(STEP_FORM)}
               onSubmit={handleSubmit}
-              
+             
             />
              {confirmationModal}
              {failureModal}
@@ -1057,7 +1046,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
           )}
         </main>
       </div>
-
+ 
       <Toast
         visible={toast.visible}
         message={toast.message}
@@ -1066,3 +1055,4 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     </>
   );
 }
+ 
