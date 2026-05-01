@@ -33,7 +33,7 @@ const errStyle = {
 
 const toNum = (v) => parseInt(v || 0, 10);
 
-export default function SchoolIntake({ intake, setIntake, errors = {} }) {
+export default function SchoolIntake({ intake, setIntake, errors = {}, isDisabled = false }) {
   const set = (key) => (val) =>
     setIntake((prev) => ({ ...prev, [key]: val }));
 
@@ -75,6 +75,7 @@ export default function SchoolIntake({ intake, setIntake, errors = {} }) {
         onChange={set(fieldKey)}
         type="number"
         hasError={!!errors[fieldKey]}
+        disabled={isDisabled}
       />
       {errors[fieldKey] && (
         <span style={errStyle}>{errors[fieldKey]}</span>

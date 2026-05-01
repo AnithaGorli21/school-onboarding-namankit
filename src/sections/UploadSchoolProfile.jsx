@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Field, Row3 } from "../components/FormFields";
 
-export default function UploadSchoolProfile({ form, setForm, errors }) {
+export default function UploadSchoolProfile({ form, setForm, errors, isDisabled = false }) {
   const [photoPreview, setPhotoPreview] = useState(null);
 
   const handlePhotoChange = (e) => {
@@ -50,7 +50,14 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
               type="file"
               accept="image/*"
               onChange={handlePhotoChange}
-              style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }}
+              disabled={isDisabled}
+              style={{ 
+                fontSize: 13, 
+                fontFamily: "var(--font-main)", 
+                padding: "4px 0",
+                opacity: isDisabled ? 0.6 : 1,
+                cursor: isDisabled ? "not-allowed" : "pointer"
+              }}
             />
           </Field>
         </div>

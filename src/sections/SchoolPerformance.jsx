@@ -38,7 +38,7 @@ const errStyle = {
   color: "#c0392b", fontSize: 12, marginTop: 4, display: "block",
 };
 
-export default function SchoolPerformance({ rows, setRows, perfError }) {
+export default function SchoolPerformance({ rows, setRows, perfError, isDisabled = false }) {
   const [newRow, setNewRow] = useState({
     year: "", standard: "", others: "", studentsAppeared: "", studentsPassed: "",
   });
@@ -131,7 +131,7 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
             />
           </Field>
         </div>
-        <BtnAdd onClick={handleAdd}>Add</BtnAdd>
+        <BtnAdd onClick={handleAdd} disabled={isDisabled}>Add</BtnAdd>
       </div>
 
       {/* ── Minimum 3 indicator ── */}
@@ -168,10 +168,12 @@ export default function SchoolPerformance({ rows, setRows, perfError }) {
                   <td style={td}>
                     <button
                       onClick={() => handleDelete(row.id)}
+                      disabled={isDisabled}
                       style={{
                         background: "none", border: "none",
-                        color: "#c0392b", cursor: "pointer",
-                        fontWeight: 500, fontSize: 13, padding: 0,
+                        color: isDisabled ? "#999" : "#c0392b", 
+                        cursor: isDisabled ? "not-allowed" : "pointer",
+                        fontSize: 12,
                       }}
                     >
                       Delete
