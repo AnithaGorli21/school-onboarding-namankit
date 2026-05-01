@@ -47,7 +47,7 @@ const emptyForm = {
   actualWashrooms: "",
 };
 
-export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function HostelDetails({ onTabChange, onSave, schoolProfileId ,isDisabled}) {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -230,6 +230,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId }) 
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
+      isDisabled={isDisabled}
     >
       {loadingData && (
         <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>

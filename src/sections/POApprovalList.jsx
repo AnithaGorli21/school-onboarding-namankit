@@ -151,7 +151,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                     </button>
                   </td>
                   <td style={TD}>
-                    {(!school.approvalStatus || school.approvalStatus === "PO Approval Pending" || school.approvalStatus === "SendBack") ? (
+                    {(!school.approvalStatus || school.approvalStatus === "PO Approval Pending" || school.approvalStatus === "SendBack" || school.approvalStatus === "School Profile Request") ? (
                       <button onClick={() => onGrading(school)}
                         style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
                         Grading

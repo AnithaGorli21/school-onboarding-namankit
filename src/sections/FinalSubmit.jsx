@@ -9,6 +9,7 @@ import {
   getDiningFacilities, getLabDetails, getLibraryDetails,
   getTeacherDetails, getExtraCurriculum, getSportsFacilities,
   getMedicalFacilities, getProfileFeeMaster, getSchoolBankDetails,
+  patchSchoolBasicDetails,
 } from "../api/liferay";
 
 export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
@@ -65,6 +66,11 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
     }
     setLoading(true);
     try {
+      // Update approvalStatus to "School Profile Request"
+      await patchSchoolBasicDetails(schoolProfileId, {
+        approvalStatus: "School Profile Request"
+      });
+
       // All APIs called with schoolProfileId — fetches THIS school's data only
       const [
         schoolBasic, landDetails, hostelDetails, diningDetails,

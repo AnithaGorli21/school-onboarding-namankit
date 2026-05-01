@@ -22,7 +22,7 @@ const emptyForm = {
   MenuPhoto: null,
 };
 
-export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolProfileId ,isDisabled}) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -122,6 +122,7 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
+      isDisabled={isDisabled}
     >
       {loadingData && (
         <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>

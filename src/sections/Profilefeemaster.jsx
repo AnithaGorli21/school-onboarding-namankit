@@ -60,7 +60,7 @@ function useInjectStyles() {
   }, []);
 }
 
-export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId }) {
+export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,isDisabled }) {
   useInjectStyles();
 
   const [feesPerStudentST, setFeesPerStudentST] = useState(0);
@@ -267,7 +267,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId 
       )}
 
       <div className="pfm-actions">
-        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
+        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving…" : "Save"}
         </button>
         <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>

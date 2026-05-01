@@ -34,7 +34,7 @@ const emptyForm = {
   digitalClassroomCount: "",
 };
 
-export default function LabDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisabled }) {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -304,7 +304,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId }) {
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving}>
+        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

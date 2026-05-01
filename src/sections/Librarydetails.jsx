@@ -29,7 +29,7 @@ const emptyForm = {
   noOfBooks: "",
 };
 
-export default function LibraryDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, isDisabled }) {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -143,7 +143,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId })
 
       <div style={themeStyles.buttonRow}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving}>
+        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

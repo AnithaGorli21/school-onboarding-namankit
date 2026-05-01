@@ -40,7 +40,7 @@ const emptyRow = {
   teacherDetailStatus: "",
 };
 
-export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,isDisabled }) {
   const [rows, setRows] = useState([]);
   const [newRow, setNewRow] = useState(emptyRow);
   const [page, setPage] = useState(1);
@@ -269,7 +269,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId }
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={() => { setRows([]); setNewRow(emptyRow); setAlert(null); }} />
-        <BtnSave onClick={handleSave} disabled={saving}>
+        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

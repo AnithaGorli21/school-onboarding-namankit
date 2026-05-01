@@ -4,7 +4,7 @@
 // ============================================================
 import { Alert, BtnSave, BtnReset } from "./FormFields";
 
-export default function SectionWrapper({ alert, onCloseAlert, onSave, onReset, saving, children }) {
+export default function SectionWrapper({ alert, onCloseAlert, onSave, onReset, saving, isDisabled, children }) {
   return (
     <div style={{ padding: "16px 20px 32px" }}>
       {alert && (
@@ -20,7 +20,7 @@ export default function SectionWrapper({ alert, onCloseAlert, onSave, onReset, s
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={onReset} />
-        <BtnSave onClick={onSave} disabled={saving}>
+        <BtnSave onClick={onSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

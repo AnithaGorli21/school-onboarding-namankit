@@ -20,7 +20,7 @@ const emptyForm = {
   otherCurriculumActivity: "",
 };
 
-export default function ExtraCurriculumActivities({ onTabChange }) {
+export default function ExtraCurriculumActivities({ onTabChange, onSave ,isDisabled}) {
   const [form,   setForm]   = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [alert,  setAlert]  = useState(null);
@@ -43,6 +43,9 @@ export default function ExtraCurriculumActivities({ onTabChange }) {
       await saveExtraCurriculumActivities(payload);
 
       setAlert({ type: "success", message: "Extra Curriculum Activities saved successfully!" });
+      
+      // Notify parent component with the saved data
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
@@ -59,6 +62,7 @@ export default function ExtraCurriculumActivities({ onTabChange }) {
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
+      isDisabled={isDisabled}
     >
       <SectionHeading title="Cultural Activities" />
       <Row3>

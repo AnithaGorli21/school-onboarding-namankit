@@ -45,7 +45,7 @@ const emptyForm = {
   schoolMagazineTypeId: "",
 };
 
-export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode }) {
+export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode ,isDisabled}) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -273,7 +273,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving}>
+        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

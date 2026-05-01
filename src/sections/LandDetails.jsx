@@ -72,7 +72,7 @@ const emptyClassRow = {
   classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDisabled }) {
   const [land, setLand] = useState(emptyLand);
   const [classRow, setClassRow] = useState(emptyClassRow);
   const [classRows, setClassRows] = useState([]);
@@ -469,7 +469,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId }) {
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving}>
+        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

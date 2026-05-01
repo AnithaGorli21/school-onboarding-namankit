@@ -52,7 +52,7 @@ const emptyForm = {
   uploadCancelledChequeImage: null,
 };
 
-export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, schoolProfileId }) {
   useInjectStyles();
 
   const [form,            setForm]            = useState(emptyForm);
@@ -138,6 +138,7 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
+      isDisabled={isDisabled}
     >
       {loadingData && (
         <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>

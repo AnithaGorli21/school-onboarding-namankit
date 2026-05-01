@@ -432,12 +432,12 @@ export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=f
       case "Dining Facilities Details":   return <DiningFacilitiesDetails  {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("diningDetails",  d)} />;
       case "Lab Details":                 return <LabDetails               {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("labDetails",     d)} />;
       case "Library Details":             return <LibraryDetails           {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("libraryDetails", d)} />;
-      case "Teachers Details":            return <TeachersDetails          {...p} onSave={(d) => handleSaveSection("teacherDetails", d)} />;
-      case "Extra Curriculum Activities": return <ExtraCurriculumActivities {...p} onSave={(d) => handleSaveSection("extraCurriculum", d)} />;
-      case "Sports Facilities":           return <SportsFacilities         {...p} onSave={(d) => handleSaveSection("sportsDetails",  d)} />;
-      case "Medical Facilities":          return <MedicalFacilities        {...p} onSave={(d) => handleSaveSection("medicalDetails", d)} />;
-      case "Profile FeeMaster":           return <ProfileFeeMaster         {...p} onSave={(d) => handleSaveSection("feeMaster",      d)} />;
-      case "School Bank Details":         return <SchoolBankDetails        {...p} onSave={(d) => handleSaveSection("bankDetails",    d)} />;
+      case "Teachers Details":            return <TeachersDetails          {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("teacherDetails", d)} />;
+      case "Extra Curriculum Activities": return <ExtraCurriculumActivities {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("extraCurriculum", d)} />;
+      case "Sports Facilities":           return <SportsFacilities         {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("sportsDetails",  d)} />;
+      case "Medical Facilities":          return <MedicalFacilities        {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("medicalDetails", d)} />;
+      case "Profile FeeMaster":           return <ProfileFeeMaster         {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("feeMaster",      d)} />;
+      case "School Bank Details":         return <SchoolBankDetails        {...p} isDisabled={isDisabled}  onSave={(d) => handleSaveSection("bankDetails",    d)} />;
       case "Final Submit":                return  <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} />;
       default: return null;
     }
