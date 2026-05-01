@@ -26,6 +26,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [showSchoolProfile, setShowSchoolProfile] = useState(false);
+  const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
 
   const handleSearch = () => {
     setLoading(true);
@@ -69,7 +70,14 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
    <div style={{display: "flex", flexDirection: "column"}}>
     {
       showSchoolProfile ? (
-        <SchoolApp list="data" isDisabled={true} hideHeader={true} hideSidebar={true} setShowSchoolProfile={setShowSchoolProfile}/>
+        <SchoolApp 
+          list="data" 
+          isDisabled={true} 
+          hideHeader={true} 
+          hideSidebar={true} 
+          setShowSchoolProfile={setShowSchoolProfile}
+          selectedSchoolForProfile={selectedSchoolForProfile}
+        />
       ) : (
          <div style={{ padding: "24px 32px" }}>
       <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
@@ -134,7 +142,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                   <td style={TD}>{badge(school.approvalStatus)}</td>
                   <td style={TD}>
                     <button onClick={() => {
-                      //onViewDetails?.(school.id)
+                      setSelectedSchoolForProfile(school);
                       setShowSchoolProfile(true)
                       console.log("View Details clicked for school:", school.id);
                     }}

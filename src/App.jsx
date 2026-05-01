@@ -378,7 +378,7 @@ const SCHOOL_NAV = [
   { key: "studentReg", label: "Student Registration", icon: "👨‍🎓" },
 ];
  
-export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=false, setShowSchoolProfile=()=>{}, isDisabled=false }) {
+export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=false, setShowSchoolProfile=()=>{}, isDisabled=false, selectedSchoolForProfile=null }) {
   console.log("isDisabled", isDisabled);
   const path = window.location.pathname;
   if (path === "/preview") return <PreviewPage />;
@@ -393,15 +393,25 @@ export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=f
     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
     sportsDetails: {}, medicalDetails: {}, feeMaster: {}, bankDetails: {},
   });
- 
+
   const handleSaveSection = (key, data) =>
     setMasterData((prev) => ({ ...prev, [key]: data }));
- 
+
+  // Handle selected school from POApprovalList for prepopulation
+  useEffect(() => {
+    if (selectedSchoolForProfile && selectedSchoolForProfile.id) {
+      setSchoolProfileId(selectedSchoolForProfile.id);
+      setIsEditMode(true);
+      setActiveTab("School Basic Details");
+      setView("details");
+    }
+  }, [selectedSchoolForProfile]);
+
   const handleEdit = (schoolId) => {
     setSchoolProfileId(schoolId); setIsEditMode(true);
     setActiveTab("School Basic Details"); setView("details");
   };
- 
+
   const handleNewSchool = () => {
     setSchoolProfileId(null); setIsEditMode(false);
     setMasterData({
