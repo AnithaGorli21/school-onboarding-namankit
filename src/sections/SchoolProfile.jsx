@@ -17,7 +17,7 @@ const SELECTION_YEAR_OPTIONS = [
   "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
 
-export default function SchoolProfile({ form, setForm, errors }) {
+export default function SchoolProfile({ form, setForm, errors, isDisabled=false }) {
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [talukas, setTalukas] = useState([]);
@@ -111,7 +111,10 @@ export default function SchoolProfile({ form, setForm, errors }) {
       <Row3>
         {/* Row 1 — Trustee Name: NOT mandatory per Excel */}
         <Field label="Trustee Name" error={errors.trusteeName}>
-          <TextInput value={form.trusteeName} onChange={set("trusteeName")} />
+          <TextInput
+          disabled={isDisabled}
+          style={{ cursor: isDisabled ? "not-allowed" : "auto" }}
+           value={form.trusteeName} onChange={set("trusteeName")} />
         </Field>
         {/* Row 2 — School Name: Mandatory */}
         <Field label="School Name" required error={errors.schoolName}>

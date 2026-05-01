@@ -30,13 +30,28 @@ export const updateApprovalStatus = (schoolProfileId, status) =>
 
 // ── Get all schools with approvalStatus for PO list ───────────
 export const getAllSchoolsForPO = (schoolType) => {
-  // schoolType filter applied client-side since field may not exist in Liferay yet
-  // Once schoolType field is added to namankitschoolprofiles, switch to server-side filter
+  console.log("schoolType", schoolType);
   return apiFetch("/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc")
     .then(d => {
       const items = d.items || [];
+      const currentYear = new Date().getFullYear();
+
       if (!schoolType) return items;
-      return items.filter(s => (s.schoolType || "").toUpperCase() === schoolType.toUpperCase());
+
+      return items.filter(s => {
+        const year = Number(s.yearOfEstablishment);
+
+        // ✅ Check valid 4-digit year
+        if (!year || year.toString().length !== 4) return false;
+
+        if (schoolType === 'NEW' && year === currentYear && s.approvalStatus !=='' && s.approvalStatus !=='PO Recommended for Approval') {
+          // ✅ Only current year (e.g., 2026)
+          return {...s}
+        } else if(schoolType === 'OLD' && year < currentYear && s.approvalStatus !=='' && s.approvalStatus !=='PO Recommended for Approval'){
+          // ✅ Less than current year
+          return {...s}
+        }
+      });
     });
 };
 

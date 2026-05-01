@@ -5,6 +5,7 @@ import { apiPost, getGRDetails } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
 import { Alert } from "../components/FormFields";
 import { validateGRDetails } from "../utils/validate";
+import { today } from "../utils/dates";
 
 export default function ScheduleMeeting() {
     const emptyForm = { committeeDate: "", grDate: "", atcName: "", schoolType: "", grFile: null, momFile: null, description: "" };
@@ -452,7 +453,10 @@ export default function ScheduleMeeting() {
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 18 }}>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>Committee Meeting Date <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="committeeDate" type="date" value={form.committeeDate} onChange={handleChange} 
+                                    <input 
+                                    name="committeeDate" type="date" 
+                                    min={today}
+                                    value={form.committeeDate} onChange={handleChange} 
                                     style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} 
                                     disabled ={selectedMeeting ? true : false}
                                     />
@@ -460,7 +464,9 @@ export default function ScheduleMeeting() {
                                 </div>
                                 <div>
                                     <label style={{ display: "block", marginBottom: 6 }}>GR Date <span style={{ color: "#d9534f" }}>*</span></label>
-                                    <input name="grDate" type="date" value={form.grDate} 
+                                    <input name="grDate" 
+                                    min={today}
+                                    type="date" value={form.grDate} 
                                     onChange={handleChange} 
                                     style={{ width: "100%", padding: 10, borderRadius: 4, border: "1px solid #ddd" }} 
                                     disabled ={selectedMeeting ? true : false}
@@ -563,9 +569,9 @@ export default function ScheduleMeeting() {
                             <div style={{ display: "flex", gap: 12 }}>
                                 <button 
                                     type="submit" 
-                                    disabled={showSchoolResults || selectedMeeting}
+                                    disabled={selectedMeeting}
                                     style={{ 
-                                        background: showSchoolResults || selectedMeeting ? "#ccc" : "#2ca44a", 
+                                        background: selectedMeeting ? "#ccc" : "#2ca44a", 
                                         color: "#fff", 
                                         border: "none", 
                                         padding: "10px 18px", 
@@ -573,7 +579,7 @@ export default function ScheduleMeeting() {
                                         cursor: showSchoolResults ? "not-allowed" : "pointer" 
                                     }}
                                 >
-                                    {showSchoolResults ? "Searched" : "Search Schools"}
+                                    Search Schools
                                 </button>
                                 <button 
                                     type="button" 
@@ -596,28 +602,28 @@ export default function ScheduleMeeting() {
                                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                         <thead>
                                             <tr style={{ background: "#f8f9fa" }}>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Enter Meeting Decisions/remarks</th>
-                                                <th style={{width:'100px', padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View Grading Report</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>View School Profile</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO Name</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>School Name</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Existing students</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO verification status</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC verification status</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>System Calculated Marks</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC Marks</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>PO remarks</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>ATC remarks</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>No of General Students</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Sanctioned admissions(current academic year)</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Committee Decision</th>
-                                                <th style={{ padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>Committee Remarks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>Enter Meeting Decisions/remarks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>View Grading Report</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>View School Profile</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>PO Name</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>School Name</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>Existing students</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>PO verification status</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>ATC verification status</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>System Calculated Marks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>ATC Marks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>PO remarks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>ATC remarks</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>No of General Students</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>Sanctioned admissions(current academic year)</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>Committee Decision</th>
+                                                <th style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", textAlign: "left", border: "1px solid #ddd", fontWeight: 600, fontSize: 12 }}>Committee Remarks</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {schoolData.filter(school => selectedMeeting && school.id === selectedMeeting.id).map((school) => (
                                                 <tr key={school.id}>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
                                                         <button 
                                                             onClick={() => handleMeetingRemarks(school)}
                                                             style={{ 
@@ -633,7 +639,7 @@ export default function ScheduleMeeting() {
                                                             Meeting Remarks
                                                         </button>
                                                     </td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
                                                         <button 
                                                             onClick={() => viewPDFFile('gr', school.id)}
                                                             style={{ 
@@ -649,7 +655,7 @@ export default function ScheduleMeeting() {
                                                             View
                                                         </button>
                                                     </td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>
                                                         <button 
                                                             onClick={() => viewPDFFile('mom', school.id)}
                                                             style={{ 
@@ -665,19 +671,19 @@ export default function ScheduleMeeting() {
                                                             View
                                                         </button>
                                                     </td>
-                                                    <td style={{maxWidth:"50px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poName}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.schoolName}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.poVerificationStatus}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.atcVerificationStatus}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.systemCalculatedMarks}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.atcMarks}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 200, wordWrap: "break-word" }}>{school.poRemarks}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 200, wordWrap: "break-word" }}>{school.atcRemarks}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.noOfGeneralStudents}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissions}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top" }}>{school.committeeDecision}</td>
-                                                    <td style={{ padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", maxWidth: 150, wordWrap: "break-word" }}>{school.committeeRemarks}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poName}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.schoolName}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poVerificationStatus}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcVerificationStatus}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.systemCalculatedMarks}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.atcMarks}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poRemarks}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcRemarks}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.noOfGeneralStudents}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissions}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeDecision}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeRemarks}</td>
                                                 </tr>
                                             ))}
                                         </tbody>

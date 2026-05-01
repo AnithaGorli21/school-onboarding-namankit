@@ -358,6 +358,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
               <div style={{ marginBottom: 10 }}>
                 <label style={styles.label}>Marks Obtained(ATC Evaluation) *</label>
                 <input
+                disabled
                   type="number" step="0.01" min="0" max={q.maxMarks}
                   value={questionData[idx]?.poMarks ?? ""}
                   onChange={e => {
@@ -389,7 +390,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
                       updateQ(idx, "poMarks", 0);
                     }
                   }}
-                  style={{ ...styles.input, maxWidth: 400 }}
+                  style={{ ...styles.input, maxWidth: 400,cursor: "not-allowed",background: "#e9ecef", }}
                 />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

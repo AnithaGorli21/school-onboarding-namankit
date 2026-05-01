@@ -17,7 +17,7 @@ export const TABS = [
   "Final Submit",
 ];
 
-export default function TabNav({ activeTab, onTabChange }) {
+export default function TabNav({ activeTab, onTabChange, isDisabled=false }) {
   return (
     <div style={{
       background: "#ffffff",
@@ -29,6 +29,10 @@ export default function TabNav({ activeTab, onTabChange }) {
     }}>
       {TABS.map((tab) => {
         const isActive = activeTab === tab;
+        console.log("tab", tab);
+        if(tab === "Final Submit" && isDisabled) {
+          return null;
+        }
         return (
           <button
             key={tab}

@@ -4,6 +4,7 @@
 // ============================================================
 import { useEffect, useState } from "react";
 import { getAllSchoolsForPO } from "../api/poGrading";
+import { SchoolApp } from "../App";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
@@ -24,11 +25,17 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [showSchoolProfile, setShowSchoolProfile] = useState(false);
 
   const handleSearch = () => {
     setLoading(true);
+    if(!schoolType){
+      setError("Please select school type");
+      setLoading(false);
+      return;
+    }
     setError(null);
-    getAllSchoolsForPO("")
+    getAllSchoolsForPO(schoolType)
       .then(setSchools)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
@@ -59,25 +66,34 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
   };
 
   return (
-    <div style={{ padding: "24px 32px" }}>
+   <div style={{display: "flex", flexDirection: "column"}}>
+    {
+      showSchoolProfile ? (
+        <SchoolApp list="data" isDisabled={true} hideHeader={true} hideSidebar={true} setShowSchoolProfile={setShowSchoolProfile}/>
+      ) : (
+         <div style={{ padding: "24px 32px" }}>
       <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
 
       {/* Filter row */}
       <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
 
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 6 }}>School Type</label>
-          <select value={schoolType} onChange={e => setSchoolType(e.target.value)}
-            style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, minWidth: 160, cursor: "pointer" }}>
-            <option value="">---Select---</option>
-            <option value="NEW">NEW</option>
-            <option value="OLD">OLD</option>
-          </select>
-        </div>
+        <div style={{display:'flex'}}>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 6 }}>School Type</label>
+            <select value={schoolType} onChange={e => setSchoolType(e.target.value)}
+              style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, minWidth: 160, cursor: "pointer" }}>
+              <option value="">---Select---</option>
+              <option value="NEW">NEW</option>
+              <option value="OLD">OLD</option>
+            </select>
+          </div>
         <button onClick={handleSearch}
-          style={{ background: "#28a745", color: "#fff", border: "none", borderRadius: 4, padding: "8px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+          style={{maxHeight: "34px",alignSelf: "flex-end",marginLeft:5, background: "#28a745", color: "#fff", border: "none", borderRadius: 4, padding: "8px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
           Search
         </button>
+          {/* {error && <p style={{ color: "red", fontSize: 12, marginTop: 4 }}>{error}</p>} */}
+
+        </div>
         <div style={{ marginLeft: "auto" }}>
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name, UDISE..."
@@ -117,7 +133,11 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                   <td style={{ ...TD, fontWeight: 500 }}>{school.schoolName || "—"}</td>
                   <td style={TD}>{badge(school.approvalStatus)}</td>
                   <td style={TD}>
-                    <button onClick={() => onViewDetails?.(school.id)}
+                    <button onClick={() => {
+                      //onViewDetails?.(school.id)
+                      setShowSchoolProfile(true)
+                      console.log("View Details clicked for school:", school.id);
+                    }}
                       style={{ background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
                       View Details
                     </button>
@@ -159,6 +179,9 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
         </div>
       )}
     </div>
+      )
+    }
+   </div>
   );
 }
 

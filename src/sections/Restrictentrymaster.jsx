@@ -253,7 +253,7 @@ export default function RestrictEntryMaster() {
 
   const activeFields = FIELD_CONFIG[selectedType] || [];
   const showDropdownErr = touched.__dropdown && !selectedType;
-
+  const today = new Date().toISOString().split('T')[0];
   return (
     <>
       {modalMsg && <InfoModal message={modalMsg} onClose={() => setModalMsg("")} />}
@@ -311,6 +311,7 @@ export default function RestrictEntryMaster() {
                       </label>
                       <input
                         type="date"
+                        min={today}
                         style={s.dateInput(!!fieldErrors[f.key])}
                         value={dates[f.key]}
                         onChange={(e) => handleDate(f.key, e.target.value)}

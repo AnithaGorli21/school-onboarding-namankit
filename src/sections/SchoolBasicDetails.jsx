@@ -53,7 +53,7 @@ const emptyIntake = {
   other_girls_nonresidential: "",
 };
 
-export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId }) {
+export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId, isDisabled=false }) {
   const [profile, setProfile] = useState(emptyProfile);
   const [intake, setIntake] = useState(emptyIntake);
   const [perfRows, setPerfRows] = useState([]);
@@ -219,6 +219,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           form={profile}
           setForm={setProfile}
           errors={errors}
+          isDisabled={isDisabled}
         />
 
         {/* School Intake table with errors */}
