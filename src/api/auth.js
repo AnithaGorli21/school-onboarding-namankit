@@ -7,7 +7,8 @@ export const ROLES = {
   CONTROLLER: "Controller_namankit",
   PO:         "PO_namankit",
   ATC:        "ATC_namankit",
-  SCHOOL:     "School_namankit",
+  SCHOOL: "Pre School",
+  // SCHOOL:     "School_namankit",
 };
 
 // Dev user IDs — only used on localhost

@@ -1,5 +1,5 @@
 {
-  "name": "school-registration",
+  "name": "@liferay/school-registration",
   "version": "1.0.0",
   "private": true,
   "proxy": "https://mahadbt2-qa-dashboard.quantela.com",

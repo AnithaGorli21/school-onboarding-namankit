@@ -78,6 +78,7 @@
   higherSecondaryUDISECode: String(form.higherSecondaryUDISE || "").trim(),
   udiseCode: String(form.primaryUDISE || "").trim(),
 
+  // Liferay User — screenName stays String, liferayUserId must be Number
   screenName: String(liferayUser?.alternateName || "").trim(),
-  liferayUserId: String(liferayUser?.id || "").trim(),
+  liferayUserId: liferayUser?.id ? Number(liferayUser.id) : 0,
 });

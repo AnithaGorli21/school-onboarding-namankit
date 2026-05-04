@@ -17,10 +17,10 @@
  *   MockDataBadge   – Visible badge when mock mode is active
  * ─────────────────────────────────────────────────────────────
  */
-
+ 
 import React from 'react';
 import { formStyles, buttonStyles, feedbackStyles, headerStyles, layoutStyles } from './SchoolMasterStyles';
-
+ 
 // ─────────────────────────────────────────────
 // FormField
 // ─────────────────────────────────────────────
@@ -52,7 +52,7 @@ export function FormField({ label, required, error, children }) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // TDDInput
 // ─────────────────────────────────────────────
@@ -84,7 +84,7 @@ export const TDDInput = React.forwardRef(function TDDInput(
     />
   );
 });
-
+ 
 // ─────────────────────────────────────────────
 // TDDSelect
 // ─────────────────────────────────────────────
@@ -138,7 +138,7 @@ export function TDDSelect({
     </select>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // TDDButton
 // ─────────────────────────────────────────────
@@ -164,7 +164,7 @@ export function TDDButton({
     <button
       // className="tdd-btn"
       className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-
+ 
       type="button"
       // style={{ ...variantStyle, ...(style || {}) }}
       disabled={loading || disabled}
@@ -181,7 +181,7 @@ export function TDDButton({
     </button>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // Spinner
 // ─────────────────────────────────────────────
@@ -202,7 +202,7 @@ export function Spinner({ size = 13, color = 'rgba(255,255,255,0.85)' }) {
     />
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // Toast
 // ─────────────────────────────────────────────
@@ -233,7 +233,7 @@ export function Toast({ message, type = 'success', visible }) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // SectionLabel
 // ─────────────────────────────────────────────
@@ -247,7 +247,7 @@ export function SectionLabel({ children }) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // CaptchaWidget
 // ─────────────────────────────────────────────
@@ -268,7 +268,7 @@ export function CaptchaWidget({ question, value, onChange, onRefresh, error }) {
         Captcha :&nbsp;
         <span style={formStyles.captchaQuestion}>{question}</span>
       </span>
-
+ 
       <button
         type="button"
         style={formStyles.refreshBtn}
@@ -278,7 +278,7 @@ export function CaptchaWidget({ question, value, onChange, onRefresh, error }) {
       >
         🔄
       </button>
-
+ 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <TDDInput
           name="captchaAnswer"
@@ -300,7 +300,7 @@ export function CaptchaWidget({ question, value, onChange, onRefresh, error }) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // PageHeader
 // ─────────────────────────────────────────────
@@ -329,7 +329,7 @@ export function PageHeader() {
           </p>
         </div>
       </div>
-
+ 
       {/* Right Government Seal */}
       <div
         style={headerStyles.rightEmblem}
@@ -341,7 +341,7 @@ export function PageHeader() {
     </header>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // MockDataBadge
 // ─────────────────────────────────────────────
@@ -356,7 +356,7 @@ export function MockDataBadge() {
     </span>
   );
 }
-
+ 
 // ─────────────────────────────────────────────
 // Divider
 // ─────────────────────────────────────────────
@@ -366,3 +366,6 @@ export function MockDataBadge() {
 export function Divider() {
   return <div style={layoutStyles.divider} />;
 }
+ 
+ 
+ 

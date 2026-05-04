@@ -330,4 +330,31 @@ export async function fetchSchoolRoleByName(roleName) {
 }
 
 
+// ─── Check if UDISE code already exists ──────────────────────
+export async function checkUDISEExists(udiseCode) {
+  if (!udiseCode || !udiseCode.trim()) return false;
+  const code = udiseCode.trim();
+  try {
+    const filters = [
+      `primaryUDISECode eq '${code}'`,
+      `secondaryUDISECode eq '${code}'`,
+      `higherSecondaryUDISECode eq '${code}'`,
+    ];
+    const results = await Promise.all(
+      filters.map((filter) =>
+        fetch(
+          `/o/c/namankitschoolprofiles/?filter=${encodeURIComponent(filter)}&pageSize=1`,
+          { headers: buildHeaders(), credentials: "include" }
+        ).then((res) => res.json())
+      )
+    );
+    for (const data of results) {
+      if ((data.items || []).length > 0) return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("UDISE check failed:", error);
+    return false;
+  }
+}
 

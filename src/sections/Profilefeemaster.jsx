@@ -10,9 +10,7 @@ import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profile
 import { getPicklist } from "../api/liferay";
 
 // FEE_TYPE_OPTS loaded from Liferay picklist
-
 const emptyInput = { feesItemId: "", itemFeesTDD: "", itemFeesGeneral: "" };
-
 const STYLE_ID = "pfm-styles";
 const CSS = `
   .pfm-heading { font-size:20px;font-weight:600;color:#222;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e0e0e0; }
@@ -46,6 +44,7 @@ const CSS = `
   .pfm-alert { padding:10px 14px;border-radius:4px;font-size:13px;margin-bottom:14px; }
   .pfm-alert.success { background:#d4edda;color:#155724;border:1px solid #c3e6cb; }
   .pfm-alert.error   { background:#f8d7da;color:#721c24;border:1px solid #f5c6cb; }
+  .pfm-missing-info { background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px 14px;font-size:13px;color:#856404;margin-bottom:14px; }
   @media(max-width:768px){ .pfm-row2,.pfm-row3{ grid-template-columns:1fr; } }
 `;
 
@@ -60,7 +59,7 @@ function useInjectStyles() {
   }, []);
 }
 
-export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,isDisabled }) {
+export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId, isDisabled }) {
   useInjectStyles();
 
   const [feesPerStudentST, setFeesPerStudentST] = useState(0);
@@ -114,11 +113,34 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
   const setI = (k) => (v) => setInput((p) => ({ ...p, [k]: v }));
 
+  // ── Get missing fee items ─────────────────────────────────
+  const getMissingFees = () => {
+    const addedFeeIds = rows.map((r) => String(r.feesItemId));
+    return feeTypeOpts.filter((o) => !addedFeeIds.includes(String(o.value)));
+  };
+
+  // ── Add row — prevent duplicate ───────────────────────────
   const handleAdd = () => {
     if (!input.feesItemId || !input.itemFeesTDD || !input.itemFeesGeneral) {
       setInputErr("Please fill all fields before adding.");
       return;
     }
+
+    // Check fee values > 0
+    if (Number(input.itemFeesTDD) <= 0 || Number(input.itemFeesGeneral) <= 0) {
+      setInputErr("Fee values must be greater than 0.");
+      return;
+    }
+
+    // Check duplicate fee item
+    const alreadyAdded = rows.some(
+      (r) => String(r.feesItemId) === String(input.feesItemId)
+    );
+    if (alreadyAdded) {
+      setInputErr("This fee item is already added. Please select a different fee item.");
+      return;
+    }
+
     setInputErr("");
     setRows((p) => [...p, { ...input, id: Date.now(), liferayId: null }]);
     setInput(emptyInput);
@@ -137,11 +159,24 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
     setReceiptPreview(file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
   };
 
+  // ── Save — validate all fee items added ───────────────────
   const handleSave = async () => {
+    // Check all fee items from picklist are added
+    const missingFees = getMissingFees();
+    if (missingFees.length > 0) {
+      const missingNames = missingFees.map((f) => f.label).join(", ");
+      setAlert({
+        type: "error",
+        message: `Please add all fee items before saving. Missing: ${missingNames}`,
+      });
+      return;
+    }
+
     if (rows.length === 0) {
       setAlert({ type: "error", message: "Please add at least one fee entry." });
       return;
     }
+
     setSaving(true);
     setAlert(null);
     try {
@@ -166,7 +201,15 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
     setAlert(null);
   };
 
-  const getFeeLabel = (id) => feeTypeOpts.find((o) => o.value === id || o.value === String(id))?.label || id;
+  const getFeeLabel = (id) =>
+    feeTypeOpts.find((o) => o.value === id || o.value === String(id))?.label || id;
+
+  // ── Get remaining (not yet added) fee options ─────────────
+  const remainingFeeOpts = feeTypeOpts.filter(
+    (o) => !rows.some((r) => String(r.feesItemId) === String(o.value))
+  );
+
+  const missingFees = getMissingFees();
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4 }}>
@@ -185,6 +228,13 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
         </div>
       )}
 
+      {/* Show missing fees info */}
+      {rows.length > 0 && missingFees.length > 0 && (
+        <div className="pfm-missing-info">
+          ⚠️ <strong>Pending fee items:</strong> {missingFees.map((f) => f.label).join(", ")}
+        </div>
+      )}
+
       <div className="pfm-row2">
         <div>
           <label className="pfm-label">Fees per Student ST <span className="req">*</span></label>
@@ -197,23 +247,41 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
       </div>
 
       {inputErr && <div className="pfm-err">{inputErr}</div>}
+
       <div className="pfm-row3">
         <div>
           <label className="pfm-label">Fees Item <span className="req">*</span></label>
-          <select className="pfm-select" value={input.feesItemId} onChange={(e) => setI("feesItemId")(e.target.value)}>
+          <select
+            className="pfm-select"
+            value={input.feesItemId}
+            onChange={(e) => setI("feesItemId")(e.target.value)}
+          >
             <option value="">Select</option>
-            {feeTypeOpts.map((o) => (
+            {/* Only show remaining (not yet added) fee options */}
+            {remainingFeeOpts.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>
         <div>
           <label className="pfm-label">Item Fees TDD <span className="req">*</span></label>
-          <input className="pfm-input" value={input.itemFeesTDD} onChange={(e) => setI("itemFeesTDD")(e.target.value)} type="number" min="0" />
+          <input
+            className="pfm-input"
+            value={input.itemFeesTDD}
+            onChange={(e) => setI("itemFeesTDD")(e.target.value)}
+            type="number"
+            min="0"
+          />
         </div>
         <div>
           <label className="pfm-label">Item Fees General <span className="req">*</span></label>
-          <input className="pfm-input" value={input.itemFeesGeneral} onChange={(e) => setI("itemFeesGeneral")(e.target.value)} type="number" min="0" />
+          <input
+            className="pfm-input"
+            value={input.itemFeesGeneral}
+            onChange={(e) => setI("itemFeesGeneral")(e.target.value)}
+            type="number"
+            min="0"
+          />
         </div>
       </div>
 
@@ -231,7 +299,8 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
           </div>
         </div>
         <button
-          type="button" className="pfm-view-btn"
+          type="button"
+          className="pfm-view-btn"
           onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
           disabled={!receiptFile}
         >
@@ -244,6 +313,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
           <table className="pfm-table">
             <thead>
               <tr>
+                <th>Sr No</th>
                 <th>Item Name</th>
                 <th>Item Fees ST (TDD)</th>
                 <th>Item Fees General</th>
@@ -251,8 +321,9 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.map((r, idx) => (
                 <tr key={r.id}>
+                  <td>{idx + 1}</td>
                   <td>{getFeeLabel(r.feesItemId)}</td>
                   <td>{r.itemFeesTDD}</td>
                   <td>{r.itemFeesGeneral}</td>
