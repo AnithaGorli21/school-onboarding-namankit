@@ -15,6 +15,7 @@ import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
 import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/teacherDetails";
 import { getPicklist, getQualifications } from "../api/liferay";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 // QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
@@ -40,7 +41,7 @@ const emptyRow = {
   teacherDetailStatus: "",
 };
 
-export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,isDisabled }) {
+export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,isDisabled, onLoadingChange }) {
   const [rows, setRows] = useState([]);
   const [newRow, setNewRow] = useState(emptyRow);
   const [page, setPage] = useState(1);
@@ -51,6 +52,11 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
   const [qualificationOpts, setQualificationOpts] = useState([]);
   const [mediumOpts, setMediumOpts] = useState([]);
   const [subjectOpts, setSubjectOpts] = useState([]);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   // ── Load existing rows on mount ───────────────────────────
   useEffect(() => {
@@ -137,12 +143,8 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div style={themeStyles.container}>
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
+    <div style={{ ...themeStyles.container, position: "relative" }}>
+      {loadingData && <LoadingOverlay />}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>

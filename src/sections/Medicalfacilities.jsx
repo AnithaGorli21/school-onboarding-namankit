@@ -23,12 +23,17 @@ const emptyForm = {
   numberOfNurse:                   "",
 };
 
-export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId ,isDisabled}) {
+export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId ,isDisabled, onLoadingChange}) {
   const [form,        setForm]        = useState(emptyForm);
   const [saving,      setSaving]      = useState(false);
   const [alert,       setAlert]       = useState(null);
   const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
@@ -72,13 +77,8 @@ export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId
       onReset={handleReset}
       saving={saving}
       isDisabled={isDisabled}
+      loading={loadingData}
     >
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
-
       <SectionHeading title="Medical Facilities" />
       <Row3>
         <Field label="Availability of Medical/Sick Room" required>

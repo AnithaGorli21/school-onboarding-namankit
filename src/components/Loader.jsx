@@ -1,11 +1,9 @@
-import React from 'react'
-
 function Loader({ color = "#28a745" }) {
-    return (
-        <div class="spinner-border text-success" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    )
+  return (
+    <div className="spinner-border" role="status" style={{ color }}>
+      <span className="visually-hidden"></span>
+    </div>
+  );
 }
 
-export default Loader
+export default Loader;

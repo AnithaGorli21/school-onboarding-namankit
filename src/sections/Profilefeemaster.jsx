@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
 import { getPicklist } from "../api/liferay";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 // FEE_TYPE_OPTS loaded from Liferay picklist
 const emptyInput = { feesItemId: "", itemFeesTDD: "", itemFeesGeneral: "" };
@@ -59,7 +60,7 @@ function useInjectStyles() {
   }, []);
 }
 
-export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId, isDisabled }) {
+export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
   useInjectStyles();
 
   const [feesPerStudentST, setFeesPerStudentST] = useState(0);
@@ -73,6 +74,11 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
   const [feeTypeOpts, setFeeTypeOpts] = useState([]);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   // ── Load Fee Type picklist ───────────────────────────────
   useEffect(() => {
@@ -212,14 +218,9 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
   const missingFees = getMissingFees();
 
   return (
-    <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4 }}>
+    <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4, position: "relative" }}>
+      {loadingData && <LoadingOverlay />}
       <div className="pfm-heading">Profile FeeMaster</div>
-
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
 
       {alert && (
         <div className={`pfm-alert ${alert.type}`}>

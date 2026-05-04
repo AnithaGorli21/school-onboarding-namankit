@@ -15,6 +15,7 @@ import {
 } from "../components/FormFields";
 import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/landdetails";
 import { getPicklist } from "../api/liferay";
+import Loader from "../components/Loader";
 
 const YES_NO = ["Yes", "No"];
 
@@ -72,7 +73,7 @@ const emptyClassRow = {
   classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDisabled }) {
+export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
   const [land, setLand] = useState(emptyLand);
   const [classRow, setClassRow] = useState(emptyClassRow);
   const [classRows, setClassRows] = useState([]);
@@ -89,6 +90,11 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
   const [standardOpts, setStandardOpts] = useState([]);
   const [ownershipOpts, setOwnershipOpts] = useState([]);
   const [sportQualityOpts, setSportQualityOpts] = useState([]);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -292,10 +298,10 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
   };
 
   return (
-    <div style={{ padding: "16px 20px 32px" }}>
+    <div style={{ padding: "16px 20px 32px", position: "relative" }}>
       {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
         </div>
       )}
 

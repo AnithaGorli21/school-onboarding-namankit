@@ -28,6 +28,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
   const [pageSize, setPageSize] = useState(5);
   const [showSchoolProfile, setShowSchoolProfile] = useState(false);
   const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
+  const [schoolProfileLoading, setSchoolProfileLoading] = useState(false);
 
   const handleSearch = () => {
     setLoading(true);
@@ -71,14 +72,22 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
     <div style={{ display: "flex", flexDirection: "column" }}>
       {
         showSchoolProfile ? (
-          <SchoolApp
-            list="data"
-            isDisabled={true}
-            hideHeader={true}
-            hideSidebar={true}
-            setShowSchoolProfile={setShowSchoolProfile}
-            selectedSchoolForProfile={selectedSchoolForProfile}
-          />
+          <div style={{ position: "relative", minHeight: 320 }}>
+            {schoolProfileLoading && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 2000, background: "rgba(255, 255, 255, 0.78)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Loader />
+              </div>
+            )}
+            <SchoolApp
+              list="data"
+              isDisabled={true}
+              hideHeader={true}
+              hideSidebar={true}
+              setShowSchoolProfile={setShowSchoolProfile}
+              selectedSchoolForProfile={selectedSchoolForProfile}
+              onSchoolBasicDetailsLoadingChange={setSchoolProfileLoading}
+            />
+          </div>
         ) : (
           <div style={{ padding: "24px 32px" }}>
             <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
@@ -147,6 +156,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                         <td style={TD}>
                           <button onClick={() => {
                             setSelectedSchoolForProfile(school);
+                            setSchoolProfileLoading(true);
                             setShowSchoolProfile(true)
                             console.log("View Details clicked for school:", school.id);
                           }}

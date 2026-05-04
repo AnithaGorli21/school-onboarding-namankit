@@ -6,7 +6,7 @@
 //  2. Uses saveExtraCurriculumActivities from liferay.js (Authorization header)
 //  3. Payload matches swagger exactly
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { saveExtraCurriculumActivities } from "../api/liferay";
@@ -20,10 +20,14 @@ const emptyForm = {
   otherCurriculumActivity: "",
 };
 
-export default function ExtraCurriculumActivities({ onTabChange, onSave ,isDisabled}) {
+export default function ExtraCurriculumActivities({ onTabChange, onSave ,isDisabled, onLoadingChange}) {
   const [form,   setForm]   = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [alert,  setAlert]  = useState(null);
+
+  useEffect(() => {
+    onLoadingChange?.(false);
+  }, [onLoadingChange]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 

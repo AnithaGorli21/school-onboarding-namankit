@@ -47,7 +47,7 @@ const emptyForm = {
   actualWashrooms: "",
 };
 
-export default function HostelDetails({ onTabChange, onSave, schoolProfileId ,isDisabled}) {
+export default function HostelDetails({ onTabChange, onSave, schoolProfileId ,isDisabled, onLoadingChange}) {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -56,6 +56,11 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId ,is
   const [errors, setErrors] = useState({});
   const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -231,13 +236,8 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId ,is
       onReset={handleReset}
       saving={saving}
       isDisabled={isDisabled}
+      loading={loadingData}
     >
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
-
       <SectionHeading title="School Hostel Details" />
 
       <Row2>

@@ -9,6 +9,7 @@ import {
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { loadLibraryDetails, submitLibraryDetails, mapRecordToForm } from "../api/LibraryDetails";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const YES_NO = ["Yes", "No"];
 
@@ -29,7 +30,7 @@ const emptyForm = {
   noOfBooks: "",
 };
 
-export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, isDisabled }) {
+export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
   const [form, setForm] = useState(emptyForm);
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -37,6 +38,11 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
   const [errors, setErrors] = useState({});
   const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
@@ -103,12 +109,8 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
   };
 
   return (
-    <div style={themeStyles.container}>
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
+    <div style={{ ...themeStyles.container, position: "relative" }}>
+      {loadingData && <LoadingOverlay />}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>

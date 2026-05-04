@@ -18,6 +18,7 @@ import {
   mapRecordToForm, mapCulturalToRows, mapToursToRows,
 } from "../api/sportsDetails";
 import { getPicklist } from "../api/liferay";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const YES_NO = ["Yes", "No"];
 const MAGAZINE_TYPES = [
@@ -45,7 +46,7 @@ const emptyForm = {
   schoolMagazineTypeId: "",
 };
 
-export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode ,isDisabled}) {
+export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode ,isDisabled, onLoadingChange}) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -58,6 +59,11 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
 
   const [tourRows, setTourRows] = useState([]);
   const [newTour, setNewTour] = useState({ yearId: "", programName: "", place: "", purpose: "" });
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+    return () => onLoadingChange?.(false);
+  }, [loadingData, onLoadingChange]);
 
   // ── Load Year picklist ───────────────────────────────────
   useEffect(() => {
@@ -128,12 +134,8 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
   };
 
   return (
-    <div style={themeStyles.container}>
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
-        </div>
-      )}
+    <div style={{ ...themeStyles.container, position: "relative" }}>
+      {loadingData && <LoadingOverlay />}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
