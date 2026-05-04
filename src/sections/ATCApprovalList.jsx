@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { getAllSchoolsForATC, getAllSchoolsForPO } from "../api/poGrading";
 import ATCGrading from "./ATCGrading";
 import { SchoolApp } from "../App";
+import { Spinner } from "../schools/SchoolMasterComponents";
+import Loader from "../components/Loader";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
@@ -164,7 +166,9 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
                       </thead>
                       <tbody>
                         {loading ? (
-                          <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>Loading...</td></tr>
+                          <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>
+                            <Loader color="#28a745" />
+                          </td></tr>
                         ) : paged.length === 0 ? (
                           <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>
                             {schools.length === 0 ? "Click Search to load schools" : "No schools found"}

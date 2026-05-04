@@ -58,7 +58,7 @@ export const getAllSchoolsForPO = (schoolType) => {
           year === currentYear &&
           s.approvalStatus !== "" &&
           s.approvalStatus !== "PO Recommended for Approval") ||
-        s.approvalStatus !== "SendBack by ATC"
+        s.approvalStatus === "SendBack by ATC"
       ) {
         // ✅ Only current year (e.g., 2026)
         return { ...s };
@@ -67,7 +67,7 @@ export const getAllSchoolsForPO = (schoolType) => {
           year < currentYear &&
           s.approvalStatus !== "" &&
           s.approvalStatus !== "PO Recommended for Approval") ||
-        s.approvalStatus !== "SendBack by ATC"
+        s.approvalStatus === "SendBack by ATC"
       ) {
         // ✅ Less than current year
         return { ...s };
