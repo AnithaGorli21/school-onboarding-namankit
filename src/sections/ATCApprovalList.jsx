@@ -4,8 +4,9 @@
 //  "PO Recommended for Approval" status
 // ============================================================
 import { useEffect, useState } from "react";
-import { getAllSchoolsForPO } from "../api/poGrading";
+import { getAllSchoolsForATC, getAllSchoolsForPO } from "../api/poGrading";
 import ATCGrading from "./ATCGrading";
+import { SchoolApp } from "../App";
 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
@@ -30,7 +31,12 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [showSchoolProfile, setShowSchoolProfile] = useState(false);
+  const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
+  const [schoolType, setSchoolType] = useState("");
+
   console.log('selected School.....', selectedSchool);
+  console.log('school type....', schoolType)
 
   // const handleSearch = () => {
   //   setLoading(true);
@@ -54,8 +60,13 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
 
   const handleSearch = () => {
     setLoading(true);
+    if (!schoolType) {
+      setError("Please select school type");
+      setLoading(false);
+      return;
+    }
     setError(null);
-    getAllSchoolsForPO("")
+    getAllSchoolsForATC(schoolType)
       .then(setSchools)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
@@ -88,103 +99,135 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {
-        selectedSchool ? (<div style={{ width: "100%" }}>
-          <ATCGrading school={selectedSchool} />
-        </div>) : (
-          <div style={{ padding: "24px 32px" }}>
-            <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
+        showSchoolProfile ? (
+          <SchoolApp
+            list="data"
+            isDisabled={true}
+            hideHeader={true}
+            hideSidebar={true}
+            setShowSchoolProfile={setShowSchoolProfile}
+            selectedSchoolForProfile={selectedSchoolForProfile}
+          />
+        ) :
+          (<div>
+            {
+              selectedSchool ? (<div style={{ width: "100%" }}>
+                <ATCGrading school={selectedSchool} />
+              </div>) : (
+                <div style={{ padding: "24px 32px" }}>
+                  <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
 
-            {/* Filter row */}
-            <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
-              <button onClick={handleSearch}
-                style={{ background: "#28a745", color: "#fff", border: "none", borderRadius: 4, padding: "8px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-                Search
-              </button>
-              <div style={{ marginLeft: "auto" }}>
-                <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-                  placeholder="Search by name, UDISE..."
-                  style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, width: 260, outline: "none" }} />
-              </div>
-            </div>
+                  {/* Filter row */}
+                  <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
 
-            {error && (
-              <div style={{ background: "#f8d7da", color: "#721c24", padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
-                Failed to load — {error}
-              </div>
-            )}
+                    <div style={{ display: 'flex' }}>
+                      <div>
+                        <label style={{ fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 6 }}>School Type</label>
+                        <select value={schoolType} onChange={e => setSchoolType(e.target.value)}
+                          style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, minWidth: 160, cursor: "pointer" }}>
+                          <option value="">---Select---</option>
+                          <option value="NEW">NEW</option>
+                          <option value="OLD">OLD</option>
+                        </select>
+                      </div>
+                      <button onClick={handleSearch}
+                        style={{ maxHeight: "34px", alignSelf: "flex-end", marginLeft: 5, background: "#28a745", color: "#fff", border: "none", borderRadius: 4, padding: "8px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+                        Search
+                      </button>
+                      {/* {error && <p style={{ color: "red", fontSize: 12, marginTop: 4 }}>{error}</p>} */}
 
-            {/* Table */}
-            <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-                <thead>
-                  <tr>
-                    {["Sr No.", "UDISE", "Trustee Name", "School Name", "Approval Status", "Details", "Grading"].map(h => (
-                      <th key={h} style={TH}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>Loading...</td></tr>
-                  ) : paged.length === 0 ? (
-                    <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>
-                      {schools.length === 0 ? "Click Search to load schools" : "No schools found"}
-                    </td></tr>
-                  ) : (
-                    paged.map((school, idx) => (
-                      <tr key={school.id} style={{ background: idx % 2 === 0 ? "#fff" : "#f8f9fa" }}>
-                        <td style={TD}>{(page - 1) * pageSize + idx + 1}</td>
-                        <td style={TD}>{school.udiseCode || "—"}</td>
-                        <td style={TD}>{school.trusteeName || "—"}</td>
-                        <td style={{ ...TD, fontWeight: 500 }}>{school.schoolName || "—"}</td>
-                        <td style={TD}>{badge(getStatus(school))}</td>
-                        <td style={TD}>
-                          <button onClick={() => onViewDetails?.(school.id)}
-                            style={{ background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
-                            View Details
-                          </button>
-                        </td>
-                        <td style={TD}>
-                          {/* {(getStatus(school) === "PO Recommended for Approval" || getStatus(school) === "SendBack") ? ( */}
-                          {school?.approvalStatus === 'PO Recommended for Approval' ? (
-                            <button onClick={() => onGrading(school)}
-                              style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
-                              Grading
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: 12, color: "#aaa" }}>—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    </div>
+                    <div style={{ marginLeft: "auto" }}>
+                      <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+                        placeholder="Search by name, UDISE..."
+                        style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, width: 260, outline: "none" }} />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div style={{ background: "#f8d7da", color: "#721c24", padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
+                      Failed to load — {error}
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Pagination */}
-            {!loading && filtered.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, fontSize: 13, color: "#555" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>Rows per page:</span>
-                  <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                    style={{ padding: "4px 8px", border: "1px solid #ced4da", borderRadius: 4, fontSize: 13 }}>
-                    {[5, 10, 20].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                  {/* Table */}
+                  <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, overflow: "hidden" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                      <thead>
+                        <tr>
+                          {["Sr No.", "UDISE", "Trustee Name", "School Name", "Approval Status", "Details", "Grading"].map(h => (
+                            <th key={h} style={TH}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loading ? (
+                          <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>Loading...</td></tr>
+                        ) : paged.length === 0 ? (
+                          <tr><td colSpan={7} style={{ ...TD, textAlign: "center", color: "#888", padding: 40 }}>
+                            {schools.length === 0 ? "Click Search to load schools" : "No schools found"}
+                          </td></tr>
+                        ) : (
+                          paged.map((school, idx) => (
+                            <tr key={school.id} style={{ background: idx % 2 === 0 ? "#fff" : "#f8f9fa" }}>
+                              <td style={TD}>{(page - 1) * pageSize + idx + 1}</td>
+                              <td style={TD}>{school.udiseCode || "—"}</td>
+                              <td style={TD}>{school.trusteeName || "—"}</td>
+                              <td style={{ ...TD, fontWeight: 500 }}>{school.schoolName || "—"}</td>
+                              <td style={TD}>{badge(getStatus(school))}</td>
+                              <td style={TD}>
+                                <button onClick={() => {
+                                  // onViewDetails?.(school.id);
+                                  setSelectedSchoolForProfile(school);
+                                  setShowSchoolProfile(true)
+                                }}
+                                  style={{ background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
+                                  View Details
+                                </button>
+                              </td>
+                              <td style={TD}>
+                                {/* {(getStatus(school) === "PO Recommended for Approval" || getStatus(school) === "SendBack") ? ( */}
+                                {school?.approvalStatus === 'PO Recommended for Approval' ? (
+                                  <button onClick={() => onGrading(school)}
+                                    style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>
+                                    Grading
+                                  </button>
+                                ) : (
+                                  <span style={{ fontSize: 12, color: "#aaa" }}>—</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  {!loading && filtered.length > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, fontSize: 13, color: "#555" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span>Rows per page:</span>
+                        <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+                          style={{ padding: "4px 8px", border: "1px solid #ced4da", borderRadius: 4, fontSize: 13 }}>
+                          {[5, 10, 20].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <PBtn label="Previous" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                          <PBtn key={n} label={String(n)} onClick={() => setPage(n)} active={n === page} />
+                        ))}
+                        <PBtn label="Next" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  <PBtn label="Previous" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-                    <PBtn key={n} label={String(n)} onClick={() => setPage(n)} active={n === page} />
-                  ))}
-                  <PBtn label="Next" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} />
-                </div>
-              </div>
-            )}
-          </div>
-        )
+              )
+            }
+          </div>)
       }
     </div>
   );

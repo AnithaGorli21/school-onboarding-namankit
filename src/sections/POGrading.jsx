@@ -358,7 +358,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
               <div style={{ marginBottom: 10 }}>
                 <label style={styles.label}>Marks Obtained(ATC Evaluation) *</label>
                 <input
-                disabled
+                  disabled
                   type="number" step="0.01" min="0" max={q.maxMarks}
                   value={questionData[idx]?.poMarks ?? ""}
                   onChange={e => {
@@ -390,7 +390,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
                       updateQ(idx, "poMarks", 0);
                     }
                   }}
-                  style={{ ...styles.input, maxWidth: 400,cursor: "not-allowed",background: "#e9ecef", }}
+                  style={{ ...styles.input, maxWidth: 400, cursor: "not-allowed", background: "#e9ecef", }}
                 />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -457,11 +457,11 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           style={styles.btn("#28a745")}>
           {saving ? "Saving..." : "Approve"}
         </button>
-        <button onClick={() => handleSubmit("Rejected")} disabled={saving}
+        <button onClick={() => handleSubmit("Rejected by PO")} disabled={saving}
           style={styles.btn("#dc3545")}>
           Reject
         </button>
-        <button onClick={() => handleSubmit("SendBack")} disabled={saving}
+        <button onClick={() => handleSubmit("SendBack by PO")} disabled={saving}
           style={styles.btn("#ffc107", "#333")}>
           Send Back
         </button>

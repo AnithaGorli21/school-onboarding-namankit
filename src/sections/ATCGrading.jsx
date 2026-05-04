@@ -362,8 +362,8 @@ export default function ATCGrading({ school, onBack }) {
         <button onClick={() => handleSubmit("ATC Recommended for Approval")} disabled={saving} style={styles.btn("#28a745")}>
           {saving ? "Saving..." : "Approve"}
         </button>
-        <button onClick={() => handleSubmit("Rejected")} disabled={saving} style={styles.btn("#dc3545")}>Reject</button>
-        <button onClick={() => handleSubmit("SendBack")} disabled={saving} style={styles.btn("#ffc107", "#333")}>Send Back</button>
+        <button onClick={() => handleSubmit("Rejected by ATC")} disabled={saving} style={styles.btn("#dc3545")}>Reject</button>
+        <button onClick={() => handleSubmit("SendBack by ATC")} disabled={saving} style={styles.btn("#ffc107", "#333")}>Send Back</button>
         <button onClick={onBack} style={styles.btn("#6c757d")}>Cancel</button>
       </div>
 
