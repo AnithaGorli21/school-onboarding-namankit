@@ -35,6 +35,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   const [pageSize, setPageSize] = useState(5);
   const [showSchoolProfile, setShowSchoolProfile] = useState(false);
   const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
+  const [schoolProfileLoading, setSchoolProfileLoading] = useState(false);
   const [schoolType, setSchoolType] = useState("");
 
   console.log('selected School.....', selectedSchool);
@@ -104,14 +105,22 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
     <div style={{ display: "flex", flexDirection: "column" }}>
       {
         showSchoolProfile ? (
-          <SchoolApp
-            list="data"
-            isDisabled={true}
-            hideHeader={true}
-            hideSidebar={true}
-            setShowSchoolProfile={setShowSchoolProfile}
-            selectedSchoolForProfile={selectedSchoolForProfile}
-          />
+          <div style={{ position: "relative", minHeight: 320 }}>
+            {schoolProfileLoading && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 2000, background: "rgba(255, 255, 255, 0.78)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Loader color="#28a745" />
+              </div>
+            )}
+            <SchoolApp
+              list="data"
+              isDisabled={true}
+              hideHeader={true}
+              hideSidebar={true}
+              setShowSchoolProfile={setShowSchoolProfile}
+              selectedSchoolForProfile={selectedSchoolForProfile}
+              onSchoolBasicDetailsLoadingChange={setSchoolProfileLoading}
+            />
+          </div>
         ) :
           (<div>
             {
@@ -185,6 +194,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
                                 <button onClick={() => {
                                   // onViewDetails?.(school.id);
                                   setSelectedSchoolForProfile(school);
+                                  setSchoolProfileLoading(true);
                                   setShowSchoolProfile(true)
                                 }}
                                   style={{ background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>

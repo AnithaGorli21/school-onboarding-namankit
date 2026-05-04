@@ -16,6 +16,7 @@ import {
   getSchoolProfileById,
 } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
+import Loader from "../components/Loader";
 
 const emptyProfile = {
   trusteeName: "",
@@ -53,7 +54,7 @@ const emptyIntake = {
   other_girls_nonresidential: "",
 };
 
-export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId, isDisabled=false }) {
+export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId, isDisabled = false, onLoadingChange }) {
   const [profile, setProfile] = useState(emptyProfile);
   const [intake, setIntake] = useState(emptyIntake);
   const [perfRows, setPerfRows] = useState([]);
@@ -65,27 +66,32 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   const [alert, setAlert] = useState(null);
   const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+  const [childrenLoading, setChildrenLoading] = useState(false);
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData || childrenLoading);
+  }, [loadingData, childrenLoading, onLoadingChange]);
 
   // ── Helper functions to map API IDs to dropdown values ───────────
   const mapSchoolBoardIdToValue = (boardId) => {
     if (!boardId || boardId === 0) return "";
-    
+
     // Map known board IDs to their string values
     // These mappings should match the actual database IDs
     const boardMappings = {
       1: "SSC",
-      2: "CBSE", 
+      2: "CBSE",
       3: "ICSE",
       4: "State",
       // Add more mappings as needed based on actual database
     };
-    
+
     return boardMappings[boardId] || "";
   };
 
   const mapAreaIdToValue = (areaId) => {
     if (!areaId || areaId === 0) return "";
-    
+
     // Map known area IDs to their string values
     // These mappings should match the actual database IDs
     const areaMappings = {
@@ -94,7 +100,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       3: "MahaNagarPalika",
       // Add more mappings as needed based on actual database
     };
-    
+
     return areaMappings[areaId] || "";
   };
 
@@ -106,7 +112,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       .then((record) => {
         if (!record) return;
         console.log('School Details.....', record)
-        
+
         // Debug missing fields
         console.log('Missing fields debug:', {
           schoolSelectionYear: record.schoolSelectionYear,
@@ -114,7 +120,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           schoolFallsUnderWhichAreaId: record.schoolFallsUnderWhichAreaId,
           'Possible intake fields': Object.keys(record).filter(k => k.toLowerCase().includes('intake') || k.toLowerCase().includes('namankit')),
         });
-        
+
         setRecordId(record.id);
         setProfile({
           trusteeName: record.trusteeName || "",
@@ -142,7 +148,9 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         });
       })
       .catch((err) => console.error("[SchoolBasicDetails] load error:", err))
-      .finally(() => setLoadingData(false));
+      .finally(() => {
+        setLoadingData(false);
+      });
   }, [schoolProfileId]);
 
   // ── Load Intake Data (if API available) ───────────────────────
@@ -251,10 +259,10 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   };
 
   return (
-    <div style={{ padding: "16px 20px 32px" }}>
-      {loadingData && (
-        <div style={{ textAlign: "center", padding: "12px", color: "#888", fontSize: 13 }}>
-          Loading saved data...
+    <div style={{ padding: "16px 20px 32px", position: 'relative' }}>
+      {(loadingData || childrenLoading) && (
+        <div style={{ width: '100%', height: '100%', top: 0, left: 0, position: 'absolute', zIndex: 1000, background: 'rgba(255, 255, 255, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader />
         </div>
       )}
 
@@ -269,6 +277,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           setForm={setProfile}
           errors={errors}
           isDisabled={isDisabled}
+          onApiLoadingChange={setChildrenLoading}
         />
 
         {/* School Intake table with errors */}

@@ -3,7 +3,7 @@
 //  Cascade: State → District → Taluka → Village → PO Name
 //  Required (*) added on all mandatory fields per Excel spec
 // ============================================================
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
@@ -17,7 +17,7 @@ const SELECTION_YEAR_OPTIONS = [
   "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
 
-export default function SchoolProfile({ form, setForm, errors, isDisabled=false }) {
+export default function SchoolProfile({ form, setForm, errors, isDisabled=false, onApiLoadingChange }) {
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [talukas, setTalukas] = useState([]);
@@ -26,9 +26,29 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false 
   const [boardOpts, setBoardOpts] = useState([]);
   const [areaOpts, setAreaOpts] = useState([]);
   const [yearOpts, setYearOpts] = useState([]);
+  const pendingApiCalls = useRef(0);
+
+  const trackApiCall = (promise) => {
+    pendingApiCalls.current += 1;
+    onApiLoadingChange?.(true);
+
+    return promise.finally(() => {
+      pendingApiCalls.current = Math.max(0, pendingApiCalls.current - 1);
+      if (pendingApiCalls.current === 0) {
+        onApiLoadingChange?.(false);
+      }
+    });
+  };
 
   useEffect(() => {
-    getStates()
+    return () => {
+      pendingApiCalls.current = 0;
+      onApiLoadingChange?.(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    trackApiCall(getStates())
       .then(setStates)
       .catch(() => setStates([
         { value: 1, label: "Maharashtra" },
@@ -39,17 +59,17 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false 
 
   useEffect(() => {
     if (!form.state) { setDistricts([]); return; }
-    getDistricts(form.state).then(setDistricts).catch(() => setDistricts([]));
+    trackApiCall(getDistricts(form.state)).then(setDistricts).catch(() => setDistricts([]));
   }, [form.state]);
 
   useEffect(() => {
     if (!form.district) { setTalukas([]); return; }
-    getTalukas(form.district).then(setTalukas).catch(() => setTalukas([]));
+    trackApiCall(getTalukas(form.district)).then(setTalukas).catch(() => setTalukas([]));
   }, [form.district]);
 
   useEffect(() => {
     if (!form.taluka) { setVillages([]); return; }
-    getVillages(form.taluka).then(setVillages).catch(() => setVillages([]));
+    trackApiCall(getVillages(form.taluka)).then(setVillages).catch(() => setVillages([]));
   }, [form.taluka]);
 
   // useEffect(() => {
@@ -59,13 +79,13 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false 
 
   // ✅ Temporary — load all states as PO options
   useEffect(() => {
-    getStates()
+    trackApiCall(getStates())
       .then(setPoNames)
       .catch(() => setPoNames([]));
   }, []);
 
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS")
+    trackApiCall(getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS"))
       .then(setBoardOpts)
       .catch(() => setBoardOpts([
         { value: "SSC", label: "SSC Board" },
@@ -76,7 +96,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false 
   }, []);
 
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS")
+    trackApiCall(getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS"))
       .then(setAreaOpts)
       .catch(() => setAreaOpts([
         { value: "Rural", label: "Rural" },
@@ -86,7 +106,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false 
   }, []);
 
   useEffect(() => {
-    getPicklist("DBT-ADMISSION-YEAR-IN-COLLEGE")
+    trackApiCall(getPicklist("DBT-ADMISSION-YEAR-IN-COLLEGE"))
       .then(setYearOpts)
       .catch(() => setYearOpts(
         Array.from({ length: 75 }, (_, i) => ({

@@ -378,7 +378,7 @@ const SCHOOL_NAV = [
   { key: "studentReg", label: "Student Registration", icon: "👨‍🎓" },
 ];
  
-export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=false, setShowSchoolProfile=()=>{}, isDisabled=false, selectedSchoolForProfile=null }) {
+export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=false, setShowSchoolProfile=()=>{}, isDisabled=false, selectedSchoolForProfile=null, onSchoolBasicDetailsLoadingChange }) {
   console.log("isDisabled", isDisabled);
   const path = window.location.pathname;
   if (path === "/preview") return <PreviewPage />;
@@ -386,8 +386,8 @@ export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=f
   const [screen,          setScreen]          = useState("schoolList");
   const [view,            setView]            = useState(list);
   const [activeTab,       setActiveTab]       = useState("School Basic Details");
-  const [schoolProfileId, setSchoolProfileId] = useState(null);
-  const [isEditMode,      setIsEditMode]      = useState(false);
+  const [schoolProfileId, setSchoolProfileId] = useState(selectedSchoolForProfile?.id || null);
+  const [isEditMode,      setIsEditMode]      = useState(Boolean(selectedSchoolForProfile?.id));
   const [masterData,      setMasterData]      = useState({
     schoolBasic: {}, landDetails: {}, hostelDetails: {}, diningDetails: {},
     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
@@ -426,7 +426,7 @@ export function SchoolApp({ role='' ,list='list', hideSidebar=false,hideHeader=f
     const p = { onTabChange: setActiveTab, schoolProfileId, isEditMode };
     switch (activeTab) {
       case "School Basic Details":
-        return <SchoolBasicDetails {...p} isDisabled={isDisabled} onSave={(d) => { handleSaveSection("schoolBasic", d); if (d?.schoolId) setSchoolProfileId(d.schoolId); }} />;
+        return <SchoolBasicDetails {...p} isDisabled={isDisabled} onLoadingChange={onSchoolBasicDetailsLoadingChange} onSave={(d) => { handleSaveSection("schoolBasic", d); if (d?.schoolId) setSchoolProfileId(d.schoolId); }} />;
       case "Land Details":                return <LandDetails              {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("landDetails",    d)} />;
       case "Hostel Details":              return <HostelDetails            {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("hostelDetails",  d)} />;
       case "Dining Facilities Details":   return <DiningFacilitiesDetails  {...p} isDisabled={isDisabled} onSave={(d) => handleSaveSection("diningDetails",  d)} />;
@@ -588,4 +588,3 @@ export default function App() {
     default:               return <UnauthorizedApp />;
   }
 }
- 
