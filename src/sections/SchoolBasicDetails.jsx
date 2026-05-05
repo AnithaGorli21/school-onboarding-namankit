@@ -74,24 +74,21 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
  
   // ── Helper functions to map API IDs to dropdown values ───────────
   const mapSchoolBoardIdToValue = (boardId) => {
-    if (!boardId || boardId === 0) return "";
- 
-    // Map known board IDs to their string values
-    // These mappings should match the actual database IDs
     const boardMappings = {
-      1: "SSC",
-      2: "CBSE",
-      3: "ICSE",
-      4: "State",
+      0: "SSC",
+      1: "CBSE",
+      2: "ICSE",
+      3: "State",
       // Add more mappings as needed based on actual database
     };
- 
+
     return boardMappings[boardId] || "";
   };
- 
+
   const mapAreaIdToValue = (areaId) => {
-    if (!areaId || areaId === 0) return "";
- 
+    // TEMPORARY: Use test values when database has 0 to demonstrate prepopulation
+    if (!areaId || areaId === 0) return "Rural"; // Temporary test value
+
     // Map known area IDs to their string values
     // These mappings should match the actual database IDs
     const areaMappings = {
@@ -100,7 +97,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       3: "MahaNagarPalika",
       // Add more mappings as needed based on actual database
     };
- 
+
     return areaMappings[areaId] || "";
   };
  
@@ -122,7 +119,8 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         });
  
         setRecordId(record.id);
-        setProfile({
+        
+        const mappedProfile = {
           trusteeName: record.trusteeName || "",
           schoolName: record.schoolName || "",
           address: record.address || "",
@@ -137,15 +135,16 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           udiseCode: record.udiseCode || "",
           schoolSelectionYear: record.schoolSelectionYear ? `${new Date(record.schoolSelectionYear).getFullYear()}-${(new Date(record.schoolSelectionYear).getFullYear() + 1).toString().slice(-2)}` : "",
           schoolRegistrationNumber: record.schoolRegistrationNo || "",
-          schoolBoard: mapSchoolBoardIdToValue(record.schoolBoardId),
+          schoolBoard: record.schoolBoardId,
           sscBatchesCompletedCount: record.totalNoOfSscBatchesCompleted || "",
           yearOfEstablishment: record.yearOfEstablishment || "",
           isWebsiteAvailable: record.schoolWebsiteAvailable ? "Yes" : "No",
           websiteLink: record.websiteLink || "",
-          schoolAreaType: mapAreaIdToValue(record.schoolFallsUnderWhichAreaId),
+          schoolAreaType: record.schoolFallsUnderWhichAreaId,
           toiletsPerFloorCount: record.noOfToiletsOnEachFloorInSchlBuilding || "",
           schoolPhoto: null,
-        });
+        };
+        setProfile(mappedProfile);
       })
       .catch((err) => console.error("[SchoolBasicDetails] load error:", err))
       .finally(() => {
@@ -187,7 +186,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       const uploadedPhoto = profile.schoolPhoto
         ? await uploadFileToFolder(profile.schoolPhoto, "School Documents")
         : null;
- 
+ console.log('Profile school borad id:', profile)
       const payload = {
         address: profile.address || "",
         districtId: Number(profile.district) || 0,
