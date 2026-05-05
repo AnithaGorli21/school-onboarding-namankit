@@ -18,7 +18,7 @@ import {
   mapRecordToForm, mapCulturalToRows, mapToursToRows,
 } from "../api/sportsDetails";
 import { getPicklist } from "../api/liferay";
-import LoadingOverlay from "../components/LoadingOverlay";
+import Loader from "../components/Loader";
 
 const YES_NO = ["Yes", "No"];
 const MAGAZINE_TYPES = [
@@ -30,44 +30,49 @@ const MAGAZINE_TYPES = [
 // YEARS loaded from Liferay picklist
 
 const themeStyles = {
-  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
+  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)", position: "relative" },
+  card:      { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px", marginBottom: "20px" },
   addBtnRow: { display: "flex", justifyContent: "center", marginTop: "10px", marginBottom: "20px" },
 };
 
 const emptyForm = {
-  noOfPhysicalEducationPTTeacherAvailable: "",
-  numberOfSportsPlayedOnPlayground: "",
-  detailsOfSportsPlayedOnPlayground: "",
+  noOfPhysicalEducationPTTeacherAvailable:  "",
+  numberOfSportsPlayedOnPlayground:         "",
+  detailsOfSportsPlayedOnPlayground:        "",
   availOfQualifiedSportsTeacherAsPerStuCnt: "",
-  availabilityOfSeparateAuditorium: "",
-  auditoriumAreasqFt: "",
-  schoolMagazine: "",
-  schoolMagazineTypeId: "",
+  availabilityOfSeparateAuditorium:         "",
+  auditoriumAreasqFt:                       "",
+  schoolMagazine:                           "",
+  schoolMagazineTypeId:                     "",
 };
 
-export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode ,isDisabled, onLoadingChange}) {
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [recordId, setRecordId] = useState(null);
-  const [loadingData, setLoadingData] = useState(false);
-  const [yearOpts, setYearOpts] = useState([]);
+export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode, onLoadingChange }) {
+  const [form,         setForm]         = useState(emptyForm);
+  const [saving,       setSaving]       = useState(false);
+  const [alert,        setAlert]        = useState(null);
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
+  const [yearOpts,     setYearOpts]     = useState([]);
 
   const [culturalRows, setCulturalRows] = useState([]);
-  const [newCultural, setNewCultural] = useState({ yearId: "", programName: "", remarks: "" });
+  const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
 
-  const [tourRows, setTourRows] = useState([]);
-  const [newTour, setNewTour] = useState({ yearId: "", programName: "", place: "", purpose: "" });
+  const [tourRows,     setTourRows]     = useState([]);
+  const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
+
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
 
   useEffect(() => {
-    onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
-  }, [loadingData, onLoadingChange]);
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
 
   // ── Load Year picklist ───────────────────────────────────
   useEffect(() => {
-    getPicklist("44a7021a-e02e-2a85-16c5-5173bd49bd02")
+    trackLookupCall(getPicklist("44a7021a-e02e-2a85-16c5-5173bd49bd02"))
       .then(setYearOpts)
       .catch(() => setYearOpts([
         { value: "2023-2024", label: "2023-2024" },
@@ -113,6 +118,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
   const handleSave = async () => {
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitSportsDetails({ form, culturalRows, tourRows, schoolProfileId, recordId });
       setAlert({ type: "success", message: `Sports Facilities ${recordId ? "updated" : "saved"} successfully!` });
@@ -121,6 +127,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -134,20 +141,24 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
   };
 
   return (
-    <div style={{ ...themeStyles.container, position: "relative" }}>
-      {loadingData && <LoadingOverlay />}
+    <div style={themeStyles.container}>
+      {(loadingData || lookupLoadingCount > 0) && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
         <Row3>
-          <Field label="Number of Physical Education (PT) teacher available" required>
+          <Field label="Number Of Physical Education (PT) teacher available" required>
             <TextInput value={form.noOfPhysicalEducationPTTeacherAvailable} onChange={set("noOfPhysicalEducationPTTeacherAvailable")} type="number" />
           </Field>
-          <Field label="Number of sports Played On PlayGround" required>
+          <Field label="Number Of sports Played On PlayGround" required>
             <TextInput value={form.numberOfSportsPlayedOnPlayground} onChange={set("numberOfSportsPlayedOnPlayground")} type="number" />
           </Field>
-          <Field label="Details of sports Played On PlayGround" required>
+          <Field label="Details Of sports Played On PlayGround" required>
             <TextInput value={form.detailsOfSportsPlayedOnPlayground} onChange={set("detailsOfSportsPlayedOnPlayground")} placeholder="Basketball, Football..." />
           </Field>
         </Row3>
@@ -158,7 +169,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
           <div /><div />
         </Row3>
         <Row2>
-          <Field label="Availabilty of Separate Auditorium" required>
+          <Field label="Availabilty Of Separate Auditorium" required>
             <SelectInput value={form.availabilityOfSeparateAuditorium} onChange={set("availabilityOfSeparateAuditorium")} options={YES_NO} />
           </Field>
           <Field label="Auditorium Area(sq ft)" required>
@@ -195,7 +206,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 20 }}>
               <thead>
                 <tr>
-                  <th style={TH}>Sr No.</th>
+                  <th style={TH}>Sr No</th>
                   <th style={TH}>Year</th>
                   <th style={TH}>Program Name</th>
                   <th style={TH}>Remarks</th>
@@ -246,7 +257,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th style={TH}>Sr No.</th>
+                  <th style={TH}>Sr No</th>
                   <th style={TH}>Year</th>
                   <th style={TH}>Program Name</th>
                   <th style={TH}>Place</th>
@@ -275,7 +286,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

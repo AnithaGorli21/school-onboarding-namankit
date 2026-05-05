@@ -6,30 +6,29 @@ import { useEffect, useState } from "react";
 import { getAllSchoolsForPO } from "../api/poGrading";
 import { SchoolApp } from "../App";
 import Loader from "../components/Loader";
-
+ 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
-
+ 
 const STATUS_BADGE = {
   "PO Approval Pending": { bg: "#fff3cd", color: "#856404" },
   "PO Recommended for Approval": { bg: "#d4edda", color: "#155724" },
   "Rejected": { bg: "#f8d7da", color: "#721c24" },
   "SendBack": { bg: "#d1ecf1", color: "#0c5460" },
 };
-
+ 
 export default function POApprovalList({ onGrading, onViewDetails }) {
   const [schools, setSchools] = useState([]);
   const [schoolType, setSchoolType] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+ 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [showSchoolProfile, setShowSchoolProfile] = useState(false);
   const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
-  const [schoolProfileLoading, setSchoolProfileLoading] = useState(false);
-
+ 
   const handleSearch = () => {
     setLoading(true);
     if (!schoolType) {
@@ -55,10 +54,10 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
     );
     return matchSearch;
   });
-
+ 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-
+ 
   const badge = (status) => {
     const s = STATUS_BADGE[status] || { bg: "#e9ecef", color: "#555" };
     return (
@@ -67,34 +66,26 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
       </span>
     );
   };
-
+ 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       {
         showSchoolProfile ? (
-          <div style={{ position: "relative", minHeight: 320 }}>
-            {schoolProfileLoading && (
-              <div style={{ position: "absolute", inset: 0, zIndex: 2000, background: "rgba(255, 255, 255, 0.78)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Loader />
-              </div>
-            )}
-            <SchoolApp
-              list="data"
-              isDisabled={true}
-              hideHeader={true}
-              hideSidebar={true}
-              setShowSchoolProfile={setShowSchoolProfile}
-              selectedSchoolForProfile={selectedSchoolForProfile}
-              onSchoolBasicDetailsLoadingChange={setSchoolProfileLoading}
-            />
-          </div>
+          <SchoolApp
+            list="data"
+            isDisabled={true}
+            hideHeader={true}
+            hideSidebar={true}
+            setShowSchoolProfile={setShowSchoolProfile}
+            selectedSchoolForProfile={selectedSchoolForProfile}
+          />
         ) : (
           <div style={{ padding: "24px 32px" }}>
             <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
-
+ 
             {/* Filter row */}
             <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
-
+ 
               <div style={{ display: 'flex' }}>
                 <div>
                   <label style={{ fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 6 }}>School Type</label>
@@ -110,7 +101,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                   Search
                 </button>
                 {/* {error && <p style={{ color: "red", fontSize: 12, marginTop: 4 }}>{error}</p>} */}
-
+ 
               </div>
               <div style={{ marginLeft: "auto" }}>
                 <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -118,13 +109,13 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                   style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, width: 260, outline: "none" }} />
               </div>
             </div>
-
+ 
             {error && (
               <div style={{ background: "#f8d7da", color: "#721c24", padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
                 Failed to load — {error}
               </div>
             )}
-
+ 
             {/* Table */}
             <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -156,7 +147,6 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                         <td style={TD}>
                           <button onClick={() => {
                             setSelectedSchoolForProfile(school);
-                            setSchoolProfileLoading(true);
                             setShowSchoolProfile(true)
                             console.log("View Details clicked for school:", school.id);
                           }}
@@ -180,7 +170,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
                 </tbody>
               </table>
             </div>
-
+ 
             {/* Pagination */}
             {!loading && filtered.length > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, fontSize: 13, color: "#555" }}>
@@ -206,7 +196,7 @@ export default function POApprovalList({ onGrading, onViewDetails }) {
     </div>
   );
 }
-
+ 
 function PBtn({ label, onClick, disabled, active }) {
   return (
     <button onClick={!disabled ? onClick : undefined} style={{
@@ -218,3 +208,4 @@ function PBtn({ label, onClick, disabled, active }) {
     }}>{label}</button>
   );
 }
+ 

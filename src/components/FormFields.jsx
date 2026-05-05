@@ -73,12 +73,11 @@ export function SelectInput({ value, onChange, options = [], placeholder = "--Se
         cursor: disabled ? "not-allowed" : "pointer",
         background: disabled ? "#f5f5f5" : "#ffffff",
         appearance: "auto",
-        color: (value === undefined || value === null || value === "") ? "#888888" : "#333333",
       }}
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => {
-        const val = typeof opt === "object" ? opt.value || opt.name : opt;
+        const val   = typeof opt === "object" ? opt.value || opt.name : opt;
         const label = typeof opt === "object" ? opt.label || opt.name : opt;
         return <option key={val} value={val}>{label}</option>;
       })}
@@ -147,8 +146,8 @@ export function Alert({ type, message, onClose }) {
       justifyContent: "space-between",
       alignItems: "center",
       background: ok ? "#dff0d8" : "#f2dede",
-      color: ok ? "#3c763d" : "#a94442",
-      border: `1px solid ${ok ? "#d6e9c6" : "#ebccd1"}`,
+      color:      ok ? "#3c763d" : "#a94442",
+      border:     `1px solid ${ok ? "#d6e9c6" : "#ebccd1"}`,
     }}>
       <span>{message}</span>
       {onClose && (

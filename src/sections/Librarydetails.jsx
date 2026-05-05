@@ -9,42 +9,41 @@ import {
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { loadLibraryDetails, submitLibraryDetails, mapRecordToForm } from "../api/LibraryDetails";
-import LoadingOverlay from "../components/LoadingOverlay";
+import Loader from "../components/Loader";
 
 const YES_NO = ["Yes", "No"];
 
 const themeStyles = {
-  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)" },
-  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
+  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px) var(--spacing-xl, 32px)", position: "relative" },
+  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   uploadSection: { marginTop: "28px", borderTop: "1px solid var(--divider-color, #cccccc)", paddingTop: "20px" },
-  sectionTitle: { fontSize: "16px", fontWeight: "400", color: "var(--text-primary, #333)", marginBottom: "14px" },
-  noteText: { color: "var(--error-color, #cc0000)", fontSize: "13px", marginBottom: "14px" },
-  fileInput: { fontSize: "13px", padding: "4px 0" },
-  buttonRow: { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" },
+  sectionTitle:  { fontSize: "16px", fontWeight: "400", color: "var(--text-primary, #333)", marginBottom: "14px" },
+  noteText:      { color: "var(--error-color, #cc0000)", fontSize: "13px", marginBottom: "14px" },
+  fileInput:     { fontSize: "13px", padding: "4px 0" },
+  buttonRow:     { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" },
 };
 
 const emptyForm = {
-  separateLibrary: "",
+  separateLibrary:           "",
   areamin200FtWithFurniture: "",
-  actualArea: "",
-  noOfBooks: "",
+  actualArea:                "",
+  noOfBooks:                 "",
 };
 
-export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
-  const [form, setForm] = useState(emptyForm);
-  const [photoFile, setPhotoFile] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [recordId, setRecordId] = useState(null);
+export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [photoFile,   setPhotoFile]   = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [errors,      setErrors]      = useState({});
+  const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
+  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
   }, [loadingData, onLoadingChange]);
 
-  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
     console.log("[LibraryDetails] loading for schoolProfileId →", schoolProfileId);
@@ -75,10 +74,10 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
 
   const validate = () => {
     const e = {};
-    if (!form.separateLibrary) e.separateLibrary = "Required";
+    if (!form.separateLibrary)           e.separateLibrary           = "Required";
     if (!form.areamin200FtWithFurniture) e.areamin200FtWithFurniture = "Required";
-    if (!form.noOfBooks) e.noOfBooks = "Required";
-    if (!photoFile && !recordId) e.photo = "Library photo is required";
+    if (!form.noOfBooks)                 e.noOfBooks                 = "Required";
+    if (!photoFile && !recordId)         e.photo                     = "Library photo is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -90,6 +89,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
     }
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitLibraryDetails({ form, photoFile, schoolProfileId, recordId });
       setAlert({ type: "success", message: `Library Details ${recordId ? "updated" : "saved"} successfully!` });
@@ -98,6 +98,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -109,8 +110,12 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
   };
 
   return (
-    <div style={{ ...themeStyles.container, position: "relative" }}>
-      {loadingData && <LoadingOverlay />}
+    <div style={themeStyles.container}>
+      {loadingData && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
@@ -125,7 +130,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
           <Field label="Actual Area">
             <TextInput value={form.actualArea} onChange={set("actualArea")} type="number" />
           </Field>
-          <Field label="No. of Books" required error={errors.noOfBooks}>
+          <Field label="No of Books" required error={errors.noOfBooks}>
             <TextInput value={form.noOfBooks} onChange={set("noOfBooks")} type="number" />
           </Field>
         </Row3>
@@ -145,7 +150,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, i
 
       <div style={themeStyles.buttonRow}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

@@ -23,19 +23,18 @@ const emptyForm = {
   numberOfNurse:                   "",
 };
 
-export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId ,isDisabled, onLoadingChange}) {
+export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
   const [form,        setForm]        = useState(emptyForm);
   const [saving,      setSaving]      = useState(false);
   const [alert,       setAlert]       = useState(null);
   const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
+  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
   }, [loadingData, onLoadingChange]);
 
-  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
     console.log("[MedicalDetails] loading for schoolProfileId →", schoolProfileId);
@@ -56,6 +55,7 @@ export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId
   const handleSave = async () => {
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitMedicalDetails({ form, schoolProfileId, recordId });
       setAlert({ type: "success", message: `Medical Facilities ${recordId ? "updated" : "saved"} successfully!` });
@@ -64,6 +64,7 @@ export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -76,7 +77,6 @@ export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
-      isDisabled={isDisabled}
       loading={loadingData}
     >
       <SectionHeading title="Medical Facilities" />

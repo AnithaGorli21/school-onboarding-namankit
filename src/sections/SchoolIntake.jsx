@@ -33,19 +33,19 @@ const errStyle = {
 
 const toNum = (v) => parseInt(v || 0, 10);
 
-export default function SchoolIntake({ intake, setIntake, errors = {}, isDisabled = false }) {
+export default function SchoolIntake({ intake, setIntake, errors = {} }) {
   const set = (key) => (val) =>
     setIntake((prev) => ({ ...prev, [key]: val }));
 
   // ── Auto-calculated totals (rows 29–35) ──────────────────
-  const namankit_res_boys = toNum(intake.namankit_boys_residential);
+  const namankit_res_boys    = toNum(intake.namankit_boys_residential);
   const namankit_nonres_boys = toNum(intake.namankit_boys_nonresidential);
-  const other_res_boys = toNum(intake.other_boys_residential);
-  const other_nonres_boys = toNum(intake.other_boys_nonresidential);
-  const namankit_res_girls = toNum(intake.namankit_girls_residential);
+  const other_res_boys       = toNum(intake.other_boys_residential);
+  const other_nonres_boys    = toNum(intake.other_boys_nonresidential);
+  const namankit_res_girls    = toNum(intake.namankit_girls_residential);
   const namankit_nonres_girls = toNum(intake.namankit_girls_nonresidential);
-  const other_res_girls = toNum(intake.other_girls_residential);
-  const other_nonres_girls = toNum(intake.other_girls_nonresidential);
+  const other_res_girls       = toNum(intake.other_girls_residential);
+  const other_nonres_girls    = toNum(intake.other_girls_nonresidential);
 
   // Row 29 — Total Boys under Namankit (Res + Non-Res)
   const total_namankit_boys = namankit_res_boys + namankit_nonres_boys;
@@ -62,10 +62,10 @@ export default function SchoolIntake({ intake, setIntake, errors = {}, isDisable
   // Row 35 — Total Students
   const grand_total = total_boys + total_girls;
 
-  const col_namankit_res = namankit_res_boys + namankit_res_girls;
+  const col_namankit_res    = namankit_res_boys    + namankit_res_girls;
   const col_namankit_nonres = namankit_nonres_boys + namankit_nonres_girls;
-  const col_other_res = other_res_boys + other_res_girls;
-  const col_other_nonres = other_nonres_boys + other_nonres_girls;
+  const col_other_res       = other_res_boys       + other_res_girls;
+  const col_other_nonres    = other_nonres_boys    + other_nonres_girls;
 
   // Helper: input cell with error
   const InputCell = ({ fieldKey }) => (
@@ -75,7 +75,6 @@ export default function SchoolIntake({ intake, setIntake, errors = {}, isDisable
         onChange={set(fieldKey)}
         type="number"
         hasError={!!errors[fieldKey]}
-        disabled={isDisabled}
       />
       {errors[fieldKey] && (
         <span style={errStyle}>{errors[fieldKey]}</span>
@@ -151,7 +150,7 @@ export default function SchoolIntake({ intake, setIntake, errors = {}, isDisable
 
       {/* Auto-calculated summary (rows 29–35) */}
       <div style={{ marginTop: 16, padding: "12px 16px", background: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 3, fontSize: 13 }}>
-        <div style={{ fontWeight: 600, marginBottom: 8, color: "#333" }}>Auto-calculated Totals</div>
+        <div style={{ fontWeight: 600, marginBottom: 8, color: "#333" }}>Auto-Calculated Totals</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px 24px" }}>
           <div>Total Boys under Namankit: <strong>{total_namankit_boys}</strong></div>
           <div>Total Girls under Namankit: <strong>{total_namankit_girls}</strong></div>

@@ -78,7 +78,7 @@ export function validateSchoolProfile(form) {
   )
     errors.sscBatchesCompletedCount = "Must be a valid positive number.";
 
-  // Row 16 — Year of Establishment: Mandatory (4-digit year)
+  // Row 16 — Year Of Establishment: Mandatory (4-digit year)
   if (!form.yearOfEstablishment)
     errors.yearOfEstablishment = "Year of Establishment is required.";
 
@@ -101,7 +101,7 @@ export function validateSchoolProfile(form) {
   if (!form.schoolAreaType)
     errors.schoolAreaType = "Please select school Area Type";
 
-  // Row 20 — Number of Toilets on Each Floor in School Building: Mandatory + Numeric
+  // Row 20 — Number of Toilets On Each Floor In School Building: Mandatory + Numeric
   if (
     form.toiletsPerFloorCount === "" ||
     form.toiletsPerFloorCount === null ||
@@ -191,26 +191,26 @@ export function validatePerformanceRow(row) {
   if (row.standard === "Any Other" && !row.others?.trim())
     errors.others = "Please specify 'Others' when 'Any Other' is selected.";
 
-  // Row 39 — No. of Students Appeared: Mandatory + Numeric
+  // Row 39 — No of Students Appeared: Mandatory + Numeric
   if (
     row.studentsAppeared === "" ||
     row.studentsAppeared === null ||
     row.studentsAppeared === undefined
   )
-    errors.studentsAppeared = "No. of Students Appeared is required.";
+    errors.studentsAppeared = "No of Students Appeared is required.";
   else if (
     isNaN(Number(row.studentsAppeared)) ||
     Number(row.studentsAppeared) < 0
   )
     errors.studentsAppeared = "Must be a valid positive number.";
 
-  // Row 40 — No. of Students Passed: Mandatory + Numeric
+  // Row 40 — No of Students Passed: Mandatory + Numeric
   if (
     row.studentsPassed === "" ||
     row.studentsPassed === null ||
     row.studentsPassed === undefined
   )
-    errors.studentsPassed = "No. of Students Passed is required.";
+    errors.studentsPassed = "No of Students Passed is required.";
   else if (isNaN(Number(row.studentsPassed)) || Number(row.studentsPassed) < 0)
     errors.studentsPassed = "Must be a valid positive number.";
 
@@ -266,9 +266,9 @@ export function validateStudentRegistration(form) {
     errors.emailId = "Enter a valid email address";
 
   if (!form.aadharNumberUID?.toString()?.trim())
-    errors.aadharNumberUID = "Aadhaar number is required";
+    errors.aadharNumberUID = "Aadhar number is required";
   else if (!/^\d{12}$/.test(form.aadharNumberUID.toString()))
-    errors.aadharNumberUID = "Aadhaar must be 12 digits";
+    errors.aadharNumberUID = "Aadhar must be 12 digits";
 
   return errors;
 }

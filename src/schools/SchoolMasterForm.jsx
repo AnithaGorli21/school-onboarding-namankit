@@ -161,6 +161,7 @@ function validateField(field, value) {
 
     case "poNameId":
       return value ? "" : "Please select a PO Name.";
+
     // return value ? "" : "";
 
     case "mobileSchool":
@@ -483,6 +484,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
   });
 
   // ─── Load ALL PO Names from master API on mount ───────────────
+
   React.useEffect(() => {
     let cancelled = false;
 
@@ -490,7 +492,8 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
 
     fetchPOByATC()
       .then((data) => {
-        console.log('fetch PO masters...', data);
+        console.log("fetch PO masters...", data);
+
         if (!cancelled) setPONames(Array.isArray(data) ? data : []);
       })
 
@@ -662,24 +665,24 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
 
     setCheckingUDISE(true);
     try {
-      // ── Level 2: Check each UDISE against DB ────────────────────
-      const udiseFields = [
-        { field: "primaryUDISE", value: form.primaryUDISE },
-        { field: "secondaryUDISE", value: form.secondaryUDISE },
-        { field: "higherSecondaryUDISE", value: form.higherSecondaryUDISE },
-      ].filter((u) => u.value.trim());
+    // ── Level 2: Check each UDISE against DB ────────────────────
+    const udiseFields = [
+      { field: "primaryUDISE", value: form.primaryUDISE },
+      { field: "secondaryUDISE", value: form.secondaryUDISE },
+      { field: "higherSecondaryUDISE", value: form.higherSecondaryUDISE },
+    ].filter((u) => u.value.trim());
 
-      for (const { field, value } of udiseFields) {
-        const exists = await checkUDISEExists(value);
-        if (exists) {
-          setErrors((prev) => ({
-            ...prev,
-            [field]: `UDISE code ${value} is already registered.`,
-          }));
-          showToast(`UDISE code ${value} is already registered!`, "error");
-          return;
-        }
+    for (const { field, value } of udiseFields) {
+      const exists = await checkUDISEExists(value);
+      if (exists) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: `UDISE code ${value} is already registered.`,
+        }));
+        showToast(`UDISE code ${value} is already registered!`, "error");
+        return;
       }
+    }
 
     } finally {
       setCheckingUDISE(false);
@@ -691,7 +694,6 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
     setStep(STEP_REVIEW);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
 
   const handleConfirmationModalClose = () => {
     setShowConfirmationModal(false);
@@ -802,9 +804,8 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
   ) : null;
 
   // ─── Final Submit from Review ─────────────────────────────────
+
   async function handleSubmit() {
-
-
     setSubmitting(true);
 
     if (true) {
@@ -905,6 +906,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       }
 
       const userPayload = buildUserPayload(initialSchoolPayload, schoolId);
+
       console.log("User Payload for Liferay account creation:", userPayload);
 
       let liferayUser;
@@ -968,14 +970,22 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       }
 
       const payload = buildSchoolPayload(liferayUser, form);
-      console.log("Final School Payload with Liferay user details:", payload);
+      
+      // ── ADD THESE DEBUG LOGS HERE ──────────────────────────────
+console.log("liferayUserId being sent:", payload.liferayUserId);
+console.log("Type:", typeof payload.liferayUserId); // must be 'number'
+console.log("emailId being sent:", payload.emailId);
+console.log("screenName being sent:", payload.screenName);
+// ──────────────────────────────────────────────────────────
+
+console.log("Final School Payload with Liferay user details:", payload);
       const saved = await updateSchoolEntry(schoolId, payload);
 
       console.log("Updated School Entry with Liferay user details:", saved);
       // ── ADD THIS TOO — verify saved response ──────────────────
-      console.log("Saved liferayUserId in DB:", saved?.liferayUserId);
-      console.log("Saved screenName in DB:", saved?.screenName);
-      // ──────────────────────────────────────────────────────────
+console.log("Saved liferayUserId in DB:", saved?.liferayUserId);
+console.log("Saved screenName in DB:", saved?.screenName);
+// ──────────────────────────────────────────────────────────
 
       setSchoolData((prev) => ({
         ...prev,
@@ -988,7 +998,6 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       setFetchMessage("");
 
       setShowConfirmationModal(true);
-
 
       showToast("School registered successfully!", "success");
 
@@ -1035,10 +1044,9 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
 
       setShowFailureModal(true);
 
-
       // handleReset();
-      // setStep(STEP_FORM);
 
+      // setStep(STEP_FORM);
     } finally {
       setSubmitting(false);
 
@@ -1431,9 +1439,10 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
                 onToggleDeclaration={setDeclarationAccepted}
                 onBack={() => setStep(STEP_FORM)}
                 onSubmit={handleSubmit}
-
               />
+
               {confirmationModal}
+
               {failureModal}
             </>
           )}

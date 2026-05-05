@@ -11,12 +11,12 @@ import {
 import {
   getStates, getDistricts, getTalukas, getVillages, getPoNames, getPicklist,
 } from "../api/liferay";
-
+ 
 const WEBSITE_OPTIONS = ["Yes", "No"];
 const SELECTION_YEAR_OPTIONS = [
   "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
-
+ 
 export default function SchoolProfile({ form, setForm, errors, isDisabled=false, onApiLoadingChange }) {
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -27,11 +27,11 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
   const [areaOpts, setAreaOpts] = useState([]);
   const [yearOpts, setYearOpts] = useState([]);
   const pendingApiCalls = useRef(0);
-
+ 
   const trackApiCall = (promise) => {
     pendingApiCalls.current += 1;
     onApiLoadingChange?.(true);
-
+ 
     return promise.finally(() => {
       pendingApiCalls.current = Math.max(0, pendingApiCalls.current - 1);
       if (pendingApiCalls.current === 0) {
@@ -39,14 +39,14 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
       }
     });
   };
-
+ 
   useEffect(() => {
     return () => {
       pendingApiCalls.current = 0;
       onApiLoadingChange?.(false);
     };
   }, []);
-
+ 
   useEffect(() => {
     trackApiCall(getStates())
       .then(setStates)
@@ -56,34 +56,34 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
         { value: 3, label: "Karnataka" },
       ]));
   }, []);
-
+ 
   useEffect(() => {
     if (!form.state) { setDistricts([]); return; }
     trackApiCall(getDistricts(form.state)).then(setDistricts).catch(() => setDistricts([]));
   }, [form.state]);
-
+ 
   useEffect(() => {
     if (!form.district) { setTalukas([]); return; }
     trackApiCall(getTalukas(form.district)).then(setTalukas).catch(() => setTalukas([]));
   }, [form.district]);
-
+ 
   useEffect(() => {
     if (!form.taluka) { setVillages([]); return; }
     trackApiCall(getVillages(form.taluka)).then(setVillages).catch(() => setVillages([]));
   }, [form.taluka]);
-
+ 
   // useEffect(() => {
   //   if (!form.village) { setPoNames([]); return; }
   //   getPoNames(form.village).then(setPoNames).catch(() => setPoNames([]));
   // }, [form.village]);
-
+ 
   // ✅ Temporary — load all states as PO options
   useEffect(() => {
     trackApiCall(getStates())
       .then(setPoNames)
       .catch(() => setPoNames([]));
   }, []);
-
+ 
   useEffect(() => {
     trackApiCall(getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS"))
       .then(setBoardOpts)
@@ -94,7 +94,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
         { value: "State", label: "State Board" },
       ]));
   }, []);
-
+ 
   useEffect(() => {
     trackApiCall(getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-AREAS"))
       .then(setAreaOpts)
@@ -104,7 +104,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
         { value: "MahaNagarPalika", label: "Maha Nagar Palika" },
       ]));
   }, []);
-
+ 
   useEffect(() => {
     trackApiCall(getPicklist("DBT-ADMISSION-YEAR-IN-COLLEGE"))
       .then(setYearOpts)
@@ -115,18 +115,18 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
         }))
       ));
   }, []);
-
+ 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
-
+ 
   const onStateChange = (val) => setForm((p) => ({ ...p, state: val, district: "", taluka: "", village: "", poName: "" }));
   const onDistrictChange = (val) => setForm((p) => ({ ...p, district: val, taluka: "", village: "", poName: "" }));
   const onTalukaChange = (val) => setForm((p) => ({ ...p, taluka: val, village: "", poName: "" }));
   const onVillageChange = (val) => setForm((p) => ({ ...p, village: val, poName: "" }));
-
+ 
   return (
     <div>
       <SectionHeading title="School Profile" />
-
+ 
       {/* Row 1-3: Trustee Name (No*), School Name (Yes*), Address (Yes*) */}
       <Row3>
         {/* Row 1 — Trustee Name: NOT mandatory per Excel */}
@@ -145,7 +145,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <TextInput value={form.address} onChange={set("address")} />
         </Field>
       </Row3>
-
+ 
       {/* Row 4-5-6: Mobile (Yes*), State (Yes*), District (Yes*) */}
       <Row3>
         {/* Row 4 — Mobile Number: Mandatory */}
@@ -161,7 +161,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <SelectInput value={form.district} onChange={onDistrictChange} options={districts} disabled={!form.state} />
         </Field>
       </Row3>
-
+ 
       {/* Row 6-7-8: Taluka (Yes*), Village (Yes*), Pincode (Yes*) */}
       <Row3>
         {/* Row 6 — Taluka: Mandatory */}
@@ -177,7 +177,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <TextInput value={form.pincode} onChange={set("pincode")} />
         </Field>
       </Row3>
-
+ 
       {/* Row 9-10-11: Email (Yes*), PO Name (Yes*), UDISE Code (Yes*) */}
       <Row3>
         {/* Row 9 — Email ID: Mandatory */}
@@ -193,7 +193,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <TextInput value={form.udiseCode} onChange={set("udiseCode")} />
         </Field>
       </Row3>
-
+ 
       {/* Row 12-13-14: School Selection Year (Yes*), Reg No (Yes*), Board (Yes*) */}
       <Row3>
         {/* Row 12 — School Selection Year: Mandatory */}
@@ -209,7 +209,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <SelectInput value={form.schoolBoard} onChange={set("schoolBoard")} options={boardOpts} />
         </Field>
       </Row3>
-
+ 
       {/* Row 15-16-17: SSC Batches (Yes*), Year of Est (Yes*), Website Available (Yes*) */}
       <Row3>
         {/* Row 15 — Total SSC Batches: Mandatory + Numeric */}
@@ -225,7 +225,7 @@ export default function SchoolProfile({ form, setForm, errors, isDisabled=false,
           <SelectInput value={form.isWebsiteAvailable} onChange={set("isWebsiteAvailable")} options={WEBSITE_OPTIONS} />
         </Field>
       </Row3>
-
+ 
       {/* Row 18-19-20 */}
       <Row3>
         {/* Row 18 — Website Link: NOT mandatory, only shown if Yes selected */}

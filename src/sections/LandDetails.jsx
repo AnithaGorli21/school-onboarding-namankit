@@ -52,10 +52,10 @@ function Pagination({ total, pageSize, setPageSize, page, setPage }) {
       </div>
       <span>Page: {page} of {totalPages}</span>
       <div style={{ display: "flex", gap: 4 }}>
-        {navBtn("First", () => setPage(1), page > 1)}
-        {navBtn("Previous", () => setPage((p) => Math.max(1, p - 1)), page > 1)}
-        {navBtn("Next", () => setPage((p) => Math.min(totalPages, p + 1)), page < totalPages)}
-        {navBtn("Last", () => setPage(totalPages), page < totalPages)}
+        {navBtn("First",    () => setPage(1),                                   page > 1)}
+        {navBtn("Previous", () => setPage((p) => Math.max(1, p - 1)),          page > 1)}
+        {navBtn("Next",     () => setPage((p) => Math.min(totalPages, p + 1)), page < totalPages)}
+        {navBtn("Last",     () => setPage(totalPages),                          page < totalPages)}
       </div>
     </div>
   );
@@ -73,28 +73,33 @@ const emptyClassRow = {
   classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
-  const [land, setLand] = useState(emptyLand);
-  const [classRow, setClassRow] = useState(emptyClassRow);
-  const [classRows, setClassRows] = useState([]);
-  const [photoFile, setPhotoFile] = useState(null);
+export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [land,         setLand]         = useState(emptyLand);
+  const [classRow,     setClassRow]     = useState(emptyClassRow);
+  const [classRows,    setClassRows]    = useState([]);
+  const [photoFile,    setPhotoFile]    = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [rowErrors, setRowErrors] = useState({});
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [recordId, setRecordId] = useState(null);
-  const [loadingData, setLoadingData] = useState(false);
-  const [standardOpts, setStandardOpts] = useState([]);
-  const [ownershipOpts, setOwnershipOpts] = useState([]);
+  const [errors,       setErrors]       = useState({});
+  const [rowErrors,    setRowErrors]    = useState({});
+  const [saving,       setSaving]       = useState(false);
+  const [alert,        setAlert]        = useState(null);
+  const [page,         setPage]         = useState(1);
+  const [pageSize,     setPageSize]     = useState(10);
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
+  const [standardOpts,     setStandardOpts]     = useState([]);
+  const [ownershipOpts,    setOwnershipOpts]    = useState([]);
   const [sportQualityOpts, setSportQualityOpts] = useState([]);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
+
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
 
   useEffect(() => {
-    onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
-  }, [loadingData, onLoadingChange]);
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
 
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -110,34 +115,34 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
   }, [schoolProfileId]);
 
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-LAND-DETAILS-OWNERSHIP")
+    trackLookupCall(getPicklist("DBT-NAMANKIT-LAND-DETAILS-OWNERSHIP"))
       .then(opts => setOwnershipOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
       .catch(() => setOwnershipOpts([
-        { value: "Owned", label: "Owned" },
+        { value: "Owned",  label: "Owned" },
         { value: "Rented", label: "Rented" },
       ]));
   }, []);
 
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-LAND-DETAILS-SPORTS-QUALITY")
+    trackLookupCall(getPicklist("DBT-NAMANKIT-LAND-DETAILS-SPORTS-QUALITY"))
       .then(opts => setSportQualityOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
       .catch(() => setSportQualityOpts([
-        { value: "Best", label: "Best" },
-        { value: "Good", label: "Good" },
-        { value: "Average", label: "Average" },
+        { value: "Best",         label: "Best" },
+        { value: "Good",         label: "Good" },
+        { value: "Average",      label: "Average" },
         { value: "BelowAverage", label: "Below Average" },
       ]));
   }, []);
 
   useEffect(() => {
-    getPicklist("dbt-standard-grade")
+    trackLookupCall(getPicklist("dbt-standard-grade"))
       .then(setStandardOpts)
       .catch(() => setStandardOpts(
         Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))
       ));
   }, []);
 
-  const setL = (k) => (v) => setLand((p) => ({ ...p, [k]: v }));
+  const setL  = (k) => (v) => setLand((p)     => ({ ...p, [k]: v }));
   const setCR = (k) => (v) => setClassRow((p) => ({ ...p, [k]: v }));
 
   // ── Clear playground area when playground = No ────────────
@@ -150,10 +155,10 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
   // ── Validate classroom row ────────────────────────────────
   const validateClassRow = () => {
     const e = {};
-    if (!classRow.standard) e.standard = "Required";
-    if (!classRow.division) e.division = "Required";
-    if (!classRow.separateClassroom) e.separateClassroom = "Required";
-    if (!classRow.classroomWithBenches) e.classroomWithBenches = "Required";
+    if (!classRow.standard)              e.standard              = "Required";
+    if (!classRow.division)              e.division              = "Required";
+    if (!classRow.separateClassroom)     e.separateClassroom     = "Required";
+    if (!classRow.classroomWithBenches)  e.classroomWithBenches  = "Required";
     if (!classRow.classroomWithoutBenches) e.classroomWithoutBenches = "Required";
 
     // Row 56 — Division must equal sum of classrooms with + without benches
@@ -162,8 +167,8 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
       classRow.classroomWithBenches &&
       classRow.classroomWithoutBenches
     ) {
-      const div = Number(classRow.division);
-      const sum = Number(classRow.classroomWithBenches) + Number(classRow.classroomWithoutBenches);
+      const div  = Number(classRow.division);
+      const sum  = Number(classRow.classroomWithBenches) + Number(classRow.classroomWithoutBenches);
       if (div !== sum) {
         e.division = `Division (${div}) must equal Total With Benches + Without Benches (${sum}).`;
       }
@@ -299,7 +304,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
 
   return (
     <div style={{ padding: "16px 20px 32px", position: "relative" }}>
-      {loadingData && (
+      {(loadingData || lookupLoadingCount > 0) && (
         <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Loader />
         </div>
@@ -316,7 +321,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
             <SelectInput value={land.ownership} onChange={setL("ownership")} options={ownershipOpts} />
           </Field>
           {/* Row 45 — Total Area: Mandatory, Numeric 2 decimal */}
-          <Field label="Total Area (In Acres)[Building + Playground + Hostel,etc.]" required error={errors.totalAreaAcres}>
+          <Field label="Total Area(In Acres)[Building + Playground + Hostel etc]" required error={errors.totalAreaAcres}>
             <TextInput value={land.totalAreaAcres} onChange={setL("totalAreaAcres")} type="number" placeholder="e.g. 35.00" />
           </Field>
           {/* Row 46 — Compound Wall: Mandatory */}
@@ -359,7 +364,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
 
         <Row2>
           {/* Row 53 — Sport Quality: Mandatory (Best, Good, Average, Below Average) */}
-          <Field label="Quality of Sport Facilities / Infrastructure available" required error={errors.sportsFacilityQuality}>
+          <Field label="Quality Of Sport Facilities / Infrastructure available" required error={errors.sportsFacilityQuality}>
             <SelectInput value={land.sportsFacilityQuality} onChange={setL("sportsFacilityQuality")} options={sportQualityOpts} />
           </Field>
           {/* Row 54 — Others Sports: Mandatory */}
@@ -384,7 +389,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
               <TextInput value={classRow.division} onChange={setCR("division")} type="number" />
             </Field>
             {/* Row 57 — Separate Classroom: Mandatory */}
-            <Field label="Separate Classroom for Each Division" required error={rowErrors.separateClassroom}>
+            <Field label="Separate Classroom For Each Division" required error={rowErrors.separateClassroom}>
               <SelectInput value={classRow.separateClassroom} onChange={setCR("separateClassroom")} options={YES_NO} />
             </Field>
           </Row3>
@@ -421,7 +426,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, border: "1px solid #dee2e6" }}>
                   <thead>
                     <tr>
-                      {["Sr No.", "Standard", "Division", "Separate Classroom for Each Division", "Total Classroom With Benches", "Total Classroom without Benches", "Delete"].map((h) => (
+                      {["Sr No","Standard","Division","Separate Classroom For Each Division","Total Classroom With Benches","Total Classroom Without Benches","Delete"].map((h) => (
                         <th key={h} style={TH}>{h}</th>
                       ))}
                     </tr>
@@ -475,7 +480,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, isDi
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

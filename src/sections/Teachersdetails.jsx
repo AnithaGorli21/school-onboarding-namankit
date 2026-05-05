@@ -15,48 +15,53 @@ import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
 import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/teacherDetails";
 import { getPicklist, getQualifications } from "../api/liferay";
-import LoadingOverlay from "../components/LoadingOverlay";
+import Loader from "../components/Loader";
 
 // QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
 const themeStyles = {
-  container: { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)" },
-  card: { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
-  radioGroup: { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
+  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)", position: "relative" },
+  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
+  radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
   checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
-  addBtn: { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
+  addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
 };
 
 const emptyRow = {
-  name: "",
-  highestQualification: "",
-  mediumOfEducationTillStd10thId: "",
-  mediumOfEducationForDegreeId: "",
+  name:                                    "",
+  highestQualification:                    "",
+  mediumOfEducationTillStd10thId:          "",
+  mediumOfEducationForDegreeId:            "",
   mediumForEducationForBedDedBPedBedPhyId: "",
-  yearOfExperience: "",
-  subject1Id: "",
-  subject2Id: "",
-  isSportsBPed: false,
-  genderId: "",
-  teacherDetailStatus: "",
+  yearOfExperience:                        "",
+  subject1Id:                              "",
+  subject2Id:                              "",
+  isSportsBPed:                            false,
+  genderId:                                "",
+  teacherDetailStatus:                     "",
 };
 
-export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,isDisabled, onLoadingChange }) {
-  const [rows, setRows] = useState([]);
-  const [newRow, setNewRow] = useState(emptyRow);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [alert, setAlert] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
+export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [rows,        setRows]        = useState([]);
+  const [newRow,      setNewRow]      = useState(emptyRow);
+  const [page,        setPage]        = useState(1);
+  const [pageSize,    setPageSize]    = useState(10);
+  const [alert,       setAlert]       = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [loadingData,  setLoadingData]  = useState(false);
   const [qualificationOpts, setQualificationOpts] = useState([]);
-  const [mediumOpts, setMediumOpts] = useState([]);
-  const [subjectOpts, setSubjectOpts] = useState([]);
+  const [mediumOpts,        setMediumOpts]        = useState([]);
+  const [subjectOpts,  setSubjectOpts]  = useState([]);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
+
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
 
   useEffect(() => {
-    onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
-  }, [loadingData, onLoadingChange]);
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
 
   // ── Load existing rows on mount ───────────────────────────
   useEffect(() => {
@@ -74,39 +79,39 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
 
   // ── Load Qualifications from qualificationmasters object ─
   useEffect(() => {
-    getQualifications()
+    trackLookupCall(getQualifications())
       .then(setQualificationOpts)
       .catch(() => setQualificationOpts(
-        ["SSC", "HSC", "D.Ed", "B.Ed", "M.Ed", "B.A", "B.Sc", "M.A", "M.Sc", "PhD"]
-          .map(q => ({ value: q, label: q }))
+        ["SSC","HSC","D.Ed","B.Ed","M.Ed","B.A","B.Sc","M.A","M.Sc","PhD"]
+        .map(q => ({ value: q, label: q }))
       ));
   }, []);
 
   // ── Load Medium and Subject picklists ────────────────────
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM")
+    trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM"))
       .then(setMediumOpts)
       .catch(() => setMediumOpts([
         { value: "English", label: "English" },
         { value: "Marathi", label: "Marathi" },
-        { value: "Hindi", label: "Hindi" },
-        { value: "Urdu", label: "Urdu" },
-        { value: "Other", label: "Other" },
+        { value: "Hindi",   label: "Hindi" },
+        { value: "Urdu",    label: "Urdu" },
+        { value: "Other",   label: "Other" },
       ]));
   }, []);
 
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS")
+    trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS"))
       .then(setSubjectOpts)
       .catch(() => setSubjectOpts([
-        { value: "Mathematics", label: "Mathematics" },
-        { value: "Science", label: "Science" },
-        { value: "English", label: "English" },
-        { value: "Marathi", label: "Marathi" },
-        { value: "Hindi", label: "Hindi" },
-        { value: "Social Science", label: "Social Science" },
-        { value: "Sanskrit", label: "Sanskrit" },
-        { value: "P.E.", label: "P.E." },
+        { value: "Mathematics",   label: "Mathematics" },
+        { value: "Science",       label: "Science" },
+        { value: "English",       label: "English" },
+        { value: "Marathi",       label: "Marathi" },
+        { value: "Hindi",         label: "Hindi" },
+        { value: "Social Science",label: "Social Science" },
+        { value: "Sanskrit",      label: "Sanskrit" },
+        { value: "P.E.",          label: "P.E." },
       ]));
   }, []);
 
@@ -128,6 +133,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
     }
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitTeacherDetails({ rows, schoolProfileId });
       setAlert({ type: "success", message: "Teachers data saved successfully!" });
@@ -136,6 +142,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -143,8 +150,12 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div style={{ ...themeStyles.container, position: "relative" }}>
-      {loadingData && <LoadingOverlay />}
+    <div style={themeStyles.container}>
+      {(loadingData || lookupLoadingCount > 0) && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
@@ -168,7 +179,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
           <Field label="Medium for B.Ed/D.Ed/B.P.Ed" required>
             <SelectInput value={newRow.mediumForEducationForBedDedBPedBedPhyId} onChange={setR("mediumForEducationForBedDedBPedBedPhyId")} options={mediumOpts} />
           </Field>
-          <Field label="Years of Experience" required>
+          <Field label="Years Of Experience" required>
             <TextInput value={newRow.yearOfExperience} onChange={setR("yearOfExperience")} type="number" />
           </Field>
         </Row3>
@@ -271,7 +282,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId,i
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={() => { setRows([]); setNewRow(emptyRow); setAlert(null); }} />
-        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

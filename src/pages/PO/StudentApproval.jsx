@@ -75,11 +75,11 @@ export default function StudentApproval() {
                 const sheet = workbook.addWorksheet('Student Approvals');
 
                 sheet.columns = [
-                    { header: 'Sr No.', key: 'sr', width: 8 },
-                    { header: 'Unique No.', key: 'unique', width: 20 },
+                    { header: 'Sr No', key: 'sr', width: 8 },
+                    { header: 'Unique No', key: 'unique', width: 20 },
                     { header: 'Renewal Status', key: 'renewal', width: 18 },
                     { header: 'Student Name', key: 'name', width: 30 },
-                    { header: 'Aadhaar Number', key: 'aadhar', width: 20 },
+                    { header: 'Aadhar Number', key: 'aadhar', width: 20 },
                     { header: 'Family Income', key: 'income', width: 15 },
                     { header: 'Class', key: 'class', width: 10 },
                     { header: 'Approval Status', key: 'status', width: 20 },
@@ -171,7 +171,7 @@ export default function StudentApproval() {
                     <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 8 }}>
                         <thead style={{ background: '#fafafa' }}>
                             <th style={thStyle}></th>
-                            <tr>{["Sr. No.", "Student Unq. No.", "Renewal Status", "Student Name", "Aadhaar Number", "Family Income", "Class", "View Student Details", "Approve", "Remarks", "Approval Status"].map(title => (
+                            <tr>{["Sr. No.", "Student Unq. No.", "Renewal Status", "Student Name", "Aadhar Number", "Family Income", "Class", "View Student Details", "Approve", "Remarks", "Approval Status"].map(title => (
                                 <th style={{ padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" }}>{title}</th>
 
                             ))}

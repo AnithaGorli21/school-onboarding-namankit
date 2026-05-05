@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
-
+ 
 // ── All 28 questions with criteria ───────────────────────────
 const QUESTIONS = [
   {
@@ -144,22 +144,22 @@ const QUESTIONS = [
     criteria: [{ label: "Extraordinary", marks: 3 }, { label: "Excellent", marks: 2 }, { label: "Satisfactory", marks: 1 }],
   },
 ];
-
+ 
 // ── Fees structure ────────────────────────────────────────────
-
+ 
 // Helper to convert stored numeric questionNumber back to QUESTIONS key
 const toQNo = (n) => n === 61 ? '6A' : n === 62 ? '6B' : n === 101 ? '10A' : n;
 const toNumeric = (n) => n === '6A' ? 61 : n === '6B' ? 62 : n === '10A' ? 101 : Number(n);
-
+ 
 const getAssignedFees = (totalMarks) => {
   if (totalMarks >= 80) return 70000;
   if (totalMarks >= 70) return 60000;
   if (totalMarks >= 60) return 50000;
   return 0; // Not Eligible
 };
-
+ 
 const TDD_FEES = 425; // preset by department
-
+ 
 // ── Styles ────────────────────────────────────────────────────
 const styles = {
   page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
@@ -186,7 +186,7 @@ const styles = {
   textArea: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
   btn: (bg, color = "#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
 };
-
+ 
 export default function POGrading({ school, onBack, selectedSchool }) {
   const [schoolData, setSchoolData] = useState(null);
   const [gradingRecordId, setGradingRecordId] = useState(null);
@@ -198,7 +198,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-
+ 
   // ── Load existing data on mount ───────────────────────────
   useEffect(() => {
     if (!school?.id) return;
@@ -229,16 +229,16 @@ export default function POGrading({ school, onBack, selectedSchool }) {
     }).catch(err => console.error("[POGrading] load error:", err))
       .finally(() => setLoadingData(false));
   }, [school?.id]);
-
+ 
   // ── Auto-calculate totals ─────────────────────────────────
   const totalMarks = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.poMarks) || 0), 0), [questionData]);
   const assignedFees = useMemo(() => getAssignedFees(totalMarks), [totalMarks]);
   const finalFees = assignedFees + TDD_FEES;
-
+ 
   const updateQ = (idx, field, value) => {
     setQuestionData(prev => prev.map((q, i) => i === idx ? { ...q, [field]: value } : q));
   };
-
+ 
   const handleSubmit = async (approvalStatus) => {
     if (poRemarksSummary.trim().length < 100) {
       setAlert({ type: "error", message: `PO Remarks Summary must be at least 100 characters. Currently ${poRemarksSummary.trim().length} characters.` });
@@ -255,11 +255,11 @@ export default function POGrading({ school, onBack, selectedSchool }) {
         const marks = Math.min(Number(q.poMarks) || 0, max);
         return { ...q, poMarks: marks };
       });
-
+ 
       const sanitizedTotal = sanitizedQuestions.reduce((s, q) => s + (Number(q.poMarks) || 0), 0);
       const sanitizedAssignedFees = getAssignedFees(sanitizedTotal);
       const sanitizedFinalFees = sanitizedAssignedFees + TDD_FEES;
-
+ 
       await submitGrading({
         schoolProfileId: school.id,
         questions: sanitizedQuestions,
@@ -280,22 +280,22 @@ export default function POGrading({ school, onBack, selectedSchool }) {
       setSaving(false);
     }
   };
-
+ 
   if (loadingData) return <div style={{ textAlign: "center", padding: 60, fontSize: 14, color: "#888" }}>Loading grading data...</div>;
-
+ 
   return (
     <div style={styles.page}>
       {/* Back button */}
       <button onClick={onBack} style={{ ...styles.btn("#6c757d"), marginBottom: 16 }}>← Back to List</button>
-
+ 
       <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#1a2a5e" }}>School Profile Grading</h2>
-
+ 
       {alert && (
         <div style={{ background: alert.type === "success" ? "#d4edda" : "#f8d7da", color: alert.type === "success" ? "#155724" : "#721c24", border: `1px solid ${alert.type === "success" ? "#c3e6cb" : "#f5c6cb"}`, padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
           {alert.message}
         </div>
       )}
-
+ 
       {/* School Details */}
       <div style={styles.card}>
         <div style={styles.cardHeader}>School Details</div>
@@ -312,24 +312,24 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           ))}
         </div>
       </div>
-
+ 
       {/* Profile Related Questions */}
       <div style={{ ...styles.card, padding: "12px 16px" }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: "#1a2a5e", marginBottom: 12 }}>Profile related questions</div>
-
+ 
         {QUESTIONS.map((q, idx) => (
           <div key={q.no} style={styles.qCard}>
             {/* Question number badge */}
             <div style={{ padding: "10px 14px 0" }}>
               <div style={styles.qNum}>{q.no}</div>
             </div>
-
+ 
             {/* Question title + marks badge */}
             <div style={styles.qTitleRow}>
               <span style={styles.qTitle}>{q.label} : {q.title}</span>
               <span style={styles.marksTag}>Marks : {q.maxMarks}.00</span>
             </div>
-
+ 
             {/* Criteria table header row */}
             <div style={{ display: "flex", borderBottom: "1px solid #dee2e6" }}>
               {q.criteria.map((c, ci) => (
@@ -346,13 +346,13 @@ export default function POGrading({ school, onBack, selectedSchool }) {
                 </div>
               ))}
             </div>
-
+ 
             {/* System evaluated row */}
             <div style={styles.sysRow}>
               <span>System Evaluated Value</span>
               <span>Marks Obtained(System Evaluated) : <strong>{(questionData[idx]?.systemMarks || 0).toFixed(2)}</strong></span>
             </div>
-
+ 
             {/* Input fields */}
             <div style={{ padding: "10px 14px" }}>
               <div style={{ marginBottom: 10 }}>
@@ -415,7 +415,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           </div>
         ))}
       </div>
-
+ 
       {/* PO Remarks Summary */}
       <div style={styles.card}>
         <div style={{ background: "#3a7fc1", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 }}>
@@ -433,7 +433,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           </div>
         </div>
       </div>
-
+ 
       {/* Totals */}
       <div style={{ ...styles.card }}>
         <div style={{ ...styles.cardBody, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
@@ -450,7 +450,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           ))}
         </div>
       </div>
-
+ 
       {/* Action Buttons */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <button onClick={() => handleSubmit("PO Recommended for Approval")} disabled={saving}
@@ -469,7 +469,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           Cancel
         </button>
       </div>
-
+ 
       {/* Important Note */}
       <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
         <div style={{ color: "#e74c3c", fontWeight: 600, marginBottom: 8, fontSize: 13 }}>Important Note !!!</div>
@@ -479,7 +479,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           <li><strong>Cancel</strong> : School is proposed to be cancelled and existing students are proposed to be shifted to other schools.</li>
         </ul>
       </div>
-
+ 
       {/* Fees Structure Table */}
       <div style={styles.card}>
         <div style={{ ...styles.cardBody }}>

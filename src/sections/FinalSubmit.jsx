@@ -11,16 +11,16 @@ import {
   getMedicalFacilities, getProfileFeeMaster, getSchoolBankDetails,
   patchSchoolBasicDetails,
 } from "../api/liferay";
-
-export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
+ 
+export default function FinalSubmit({ data, onTabChange, schoolProfileId, setShowPreview=()=>{}}) {
   const [loading, setLoading] = useState(false);
-
+ 
   const handleFinalSubmit = () => {
     if (window.confirm("Are you sure? You cannot edit after submission.")) {
       alert("Form submitted successfully!");
     }
   };
-
+ 
   const hasFilled = (obj) => {
     if (obj == null) return false;
     if (typeof obj === 'string') return obj.trim() !== '';
@@ -29,7 +29,7 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
     if (typeof obj === 'object') return Object.keys(obj).length > 0 && Object.values(obj).some(hasFilled);
     return false;
   };
-
+ 
   const SECTION_ORDER = [
     ['schoolBasic', 'School Basic Details'],
     ['landDetails', 'Land Details'],
@@ -44,7 +44,7 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
     ['feeMaster', 'Profile FeeMaster'],
     ['bankDetails', 'School Bank Details'],
   ];
-
+ 
   const validateData = (d) => {
     const missing = [];
     for (const [k, label] of SECTION_ORDER) {
@@ -52,7 +52,7 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
     }
     return missing;
   };
-
+ 
   const handleReview = async () => {
     // Validate collected data first — ensure mandatory sections have values
     const missing = validateData(data);
@@ -70,7 +70,7 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
       await patchSchoolBasicDetails(schoolProfileId, {
         approvalStatus: "School Profile Request"
       });
-
+ 
       // All APIs called with schoolProfileId — fetches THIS school's data only
       const [
         schoolBasic, landDetails, hostelDetails, diningDetails,
@@ -90,22 +90,23 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId }) {
         getProfileFeeMaster(schoolProfileId),
         getSchoolBankDetails(schoolProfileId),
       ]);
-
+ 
       const reviewData = {
         schoolBasic, landDetails, hostelDetails, diningDetails,
         labDetails, libraryDetails, teacherDetails, extraCurriculum,
         sportsDetails, medicalDetails, feeMaster, bankDetails,
       };
-
+ 
       sessionStorage.setItem("schoolReviewData", JSON.stringify(reviewData));
-      window.open("/preview", "_blank");
+      //window.open("/preview", "_blank");
+      setShowPreview(true);
     } catch (e) {
       alert("Failed to load review data — " + e.message);
     } finally {
       setLoading(false);
     }
   };
-
+ 
   return (
     <div className="final-submit-container" style={{ padding: "20px" }}>
       <div style={{ textAlign: "center", background: "#fff", padding: "20px", marginBottom: "20px", border: "1px solid #ddd" }}>

@@ -17,7 +17,7 @@ import {
 } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
 import Loader from "../components/Loader";
-
+ 
 const emptyProfile = {
   trusteeName: "",
   schoolName: "",
@@ -42,7 +42,7 @@ const emptyProfile = {
   toiletsPerFloorCount: "",
   schoolPhoto: null,
 };
-
+ 
 const emptyIntake = {
   namankit_boys_residential: "",
   namankit_boys_nonresidential: "",
@@ -53,7 +53,7 @@ const emptyIntake = {
   other_girls_residential: "",
   other_girls_nonresidential: "",
 };
-
+ 
 export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileId, isDisabled = false, onLoadingChange }) {
   const [profile, setProfile] = useState(emptyProfile);
   const [intake, setIntake] = useState(emptyIntake);
@@ -67,16 +67,15 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
   const [childrenLoading, setChildrenLoading] = useState(false);
-
+ 
   useEffect(() => {
     onLoadingChange?.(loadingData || childrenLoading);
-    return () => onLoadingChange?.(false);
   }, [loadingData, childrenLoading, onLoadingChange]);
-
+ 
   // ── Helper functions to map API IDs to dropdown values ───────────
   const mapSchoolBoardIdToValue = (boardId) => {
     if (!boardId || boardId === 0) return "";
-
+ 
     // Map known board IDs to their string values
     // These mappings should match the actual database IDs
     const boardMappings = {
@@ -86,13 +85,13 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       4: "State",
       // Add more mappings as needed based on actual database
     };
-
+ 
     return boardMappings[boardId] || "";
   };
-
+ 
   const mapAreaIdToValue = (areaId) => {
     if (!areaId || areaId === 0) return "";
-
+ 
     // Map known area IDs to their string values
     // These mappings should match the actual database IDs
     const areaMappings = {
@@ -101,10 +100,10 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       3: "MahaNagarPalika",
       // Add more mappings as needed based on actual database
     };
-
+ 
     return areaMappings[areaId] || "";
   };
-
+ 
   // ── Load existing record ──────────────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -113,7 +112,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       .then((record) => {
         if (!record) return;
         console.log('School Details.....', record)
-
+ 
         // Debug missing fields
         console.log('Missing fields debug:', {
           schoolSelectionYear: record.schoolSelectionYear,
@@ -121,7 +120,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           schoolFallsUnderWhichAreaId: record.schoolFallsUnderWhichAreaId,
           'Possible intake fields': Object.keys(record).filter(k => k.toLowerCase().includes('intake') || k.toLowerCase().includes('namankit')),
         });
-
+ 
         setRecordId(record.id);
         setProfile({
           trusteeName: record.trusteeName || "",
@@ -153,7 +152,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         setLoadingData(false);
       });
   }, [schoolProfileId]);
-
+ 
   // ── Load Intake Data (if API available) ───────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
@@ -161,18 +160,18 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
     // For now, intake data will remain empty until API is implemented
     console.log("Intake data loading not implemented - schoolProfileId:", schoolProfileId);
   }, [schoolProfileId]);
-
+ 
   // ── Save ──────────────────────────────────────────────────
   const handleSave = async () => {
     // Run full validation
     const { profileErrors, intakeErrors, photoErrors, perfError, hasErrors }
       = validateAllSchoolBasicDetails(profile, intake, perfRows);
-
+ 
     setErrors(profileErrors);
     setIntakeErrors(intakeErrors);
     setPhotoErrors(photoErrors);
     setPerfError(perfError);
-
+ 
     if (hasErrors) {
       setAlert({
         type: "error",
@@ -181,14 +180,14 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-
+ 
     setSaving(true);
     setAlert(null);
     try {
       const uploadedPhoto = profile.schoolPhoto
         ? await uploadFileToFolder(profile.schoolPhoto, "School Documents")
         : null;
-
+ 
       const payload = {
         address: profile.address || "",
         districtId: Number(profile.district) || 0,
@@ -233,11 +232,11 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         websiteLink: profile.websiteLink || "",
         yearOfEstablishment: Number(profile.yearOfEstablishment) || 0,
       };
-
+ 
       const response = recordId
         ? await patchSchoolBasicDetails(recordId, payload)
         : await saveSchoolBasicDetails(payload);
-
+ 
       onSave?.({ ...profile, ...intake, performance: perfRows, schoolId: response?.id });
       setAlert({ type: "success", message: "School Basic Details saved successfully!" });
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -247,7 +246,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       setSaving(false);
     }
   };
-
+ 
   const handleReset = () => {
     setProfile(emptyProfile);
     setIntake(emptyIntake);
@@ -258,21 +257,19 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
     setPerfError(null);
     setAlert(null);
   };
-
+ 
   return (
     <div style={{ padding: "16px 20px 32px", position: 'relative' }}>
       {(loadingData || childrenLoading) && (
-        <div style={{ width: '100%', height: '100%', top: 0, left: 0, position: 'absolute', zIndex: 1000, background: 'rgba(255, 255, 255, 0.72)', display: 'flex', alignItems: 'start', justifyContent: 'center' }}>
-          <div style={{ marginTop: 400 }}>
-            <Loader />
-          </div>
+        <div style={{ width: '100%', height: '100%', top: 0, left: 0, position: 'absolute', zIndex: 1000, background: 'rgba(255, 255, 255, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader />
         </div>
       )}
-
+ 
       {alert && (
         <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
       )}
-
+ 
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
         {/* School Profile fields */}
         <SchoolProfile
@@ -282,7 +279,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           isDisabled={isDisabled}
           onApiLoadingChange={setChildrenLoading}
         />
-
+ 
         {/* School Intake table with errors */}
         <SchoolIntake
           intake={intake}
@@ -290,7 +287,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           errors={intakeErrors}
           isDisabled={isDisabled}
         />
-
+ 
         {/* School Performance with min-3 error */}
         <SchoolPerformance
           rows={perfRows}
@@ -298,7 +295,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           perfError={perfError}
           isDisabled={isDisabled}
         />
-
+ 
         {/* Photo upload with error */}
         <UploadSchoolProfile
           form={profile}
@@ -307,7 +304,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           isDisabled={isDisabled}
         />
       </div>
-
+ 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} disabled={isDisabled} />
         {/* <BtnBack onClick={() => onTabChange?.("Final Submit")} /> */}

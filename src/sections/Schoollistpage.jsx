@@ -21,10 +21,7 @@ export default function SchoolListPage({ onEdit }) {
   useEffect(() => {
     setLoading(true);
     getAllSchools()
-      .then((schools) => {
-        console.log('All Schools....', schools)
-        setSchools(schools)
-      })
+      .then(setSchools)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -139,36 +136,18 @@ export default function SchoolListPage({ onEdit }) {
                     {school.mobileNumberTrustee || school.mobileNumberSchool || "—"}
                   </td>
                   <td style={{ padding: "12px 16px" }}>
-                    {
-                      (school.approvalStatus && school.approvalStatus.toLowerCase() === 'cancel') ||
-                        (school.approvalStatus && school.approvalStatus.toLowerCase() === 'rejected') ? (<button
-                          disabled={true}
-                          onClick={() => onEdit(school.id)}
-                          style={{
-                            background: "#1a2a5e", color: "#fff",
-                            border: "none", borderRadius: 4,
-                            padding: "6px 16px", fontSize: 13,
-                            cursor: "pointer", fontWeight: 500,
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                            opacity: 0.4,
-                            cursor: 'not-allowed'
-                          }}
-                        >
-                          ✎ Edit
-                        </button>) : (<button
-                          onClick={() => onEdit(school.id)}
-                          style={{
-                            background: "#1a2a5e", color: "#fff",
-                            border: "none", borderRadius: 4,
-                            padding: "6px 16px", fontSize: 13,
-                            cursor: "pointer", fontWeight: 500,
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                          }}
-                        >
-                          ✎ Edit
-                        </button>)
-                    }
-
+                    <button
+                      onClick={() => onEdit(school.id)}
+                      style={{
+                        background: "#1a2a5e", color: "#fff",
+                        border: "none", borderRadius: 4,
+                        padding: "6px 16px", fontSize: 13,
+                        cursor: "pointer", fontWeight: 500,
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                      }}
+                    >
+                      ✎ Edit
+                    </button>
                   </td>
                 </tr>
               ))

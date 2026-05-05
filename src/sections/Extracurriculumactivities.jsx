@@ -1,63 +1,72 @@
 // ============================================================
 //  src/sections/ExtraCurriculumActivities.jsx
-//
-//  FIXES:
-//  1. Payload converts Yes/No strings → booleans (swagger expects boolean)
-//  2. Uses saveExtraCurriculumActivities from liferay.js (Authorization header)
-//  3. Payload matches swagger exactly
 // ============================================================
 import { useEffect, useState } from "react";
 import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
-import { saveExtraCurriculumActivities } from "../api/liferay";
+import { loadExtraCurriculum, submitExtraCurriculum, mapRecordToForm } from "../api/ExtraCurriculum";
 
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  nccsanctioned:           "",
-  scoutguide:              "",
-  nSS:                     "",
+  nccsanctioned: "",
+  scoutguide: "",
+  nSS: "",
   otherCurriculumActivity: "",
 };
 
-export default function ExtraCurriculumActivities({ onTabChange, onSave ,isDisabled, onLoadingChange}) {
-  const [form,   setForm]   = useState(emptyForm);
+export default function ExtraCurriculumActivities({
+  onSave,
+  schoolProfileId,
+  isDisabled,
+  onLoadingChange,
+}) {
+  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [alert,  setAlert]  = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [recordId, setRecordId] = useState(null);
 
   useEffect(() => {
-    onLoadingChange?.(false);
-  }, [onLoadingChange]);
+    onLoadingChange?.(loadingData || saving);
+  }, [loadingData, saving, onLoadingChange]);
 
-  const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
+  useEffect(() => {
+    if (!schoolProfileId) return;
+
+    setLoadingData(true);
+    loadExtraCurriculum(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[ExtraCurriculumActivities] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
+
+  const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSave = async () => {
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
-      // Payload exactly matching swagger schema
-      const payload = {
-        nccsanctioned:           form.nccsanctioned === "Yes",
-        nSS:                     form.nSS           === "Yes",
-        otherCurriculumActivity: form.otherCurriculumActivity || "",
-        scoutguide:              form.scoutguide    === "Yes",
-      };
-
-      console.log("[ExtraCurriculumActivities] payload →", JSON.stringify(payload, null, 2));
-      await saveExtraCurriculumActivities(payload);
-
+      await submitExtraCurriculum({ form, schoolProfileId, recordId });
       setAlert({ type: "success", message: "Extra Curriculum Activities saved successfully!" });
-      
-      // Notify parent component with the saved data
       onSave?.(form);
-    } catch (e) {
-      setAlert({ type: "error", message: "Save failed — " + e.message });
+    } catch (err) {
+      setAlert({ type: "error", message: "Save failed - " + (err.message || "Please try again.") });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
-  const handleReset = () => { setForm(emptyForm); setAlert(null); };
+  const handleReset = () => {
+    setForm(emptyForm);
+    setAlert(null);
+  };
 
   return (
     <SectionWrapper
@@ -66,6 +75,7 @@ export default function ExtraCurriculumActivities({ onTabChange, onSave ,isDisab
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
+      loading={loadingData || saving}
       isDisabled={isDisabled}
     >
       <SectionHeading title="Cultural Activities" />

@@ -52,7 +52,7 @@ const emptyForm = {
   uploadCancelledChequeImage: null,
 };
 
-export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, schoolProfileId, onLoadingChange }) {
+export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
   useInjectStyles();
 
   const [form,            setForm]            = useState(emptyForm);
@@ -63,12 +63,11 @@ export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, scho
   const [recordId,        setRecordId]        = useState(null);
   const [loadingData,     setLoadingData]     = useState(false);
 
+  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
   }, [loadingData, onLoadingChange]);
 
-  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
     console.log("[SchoolBankDetails] loading for schoolProfileId →", schoolProfileId);
@@ -107,6 +106,7 @@ export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, scho
     }
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitBankDetails({ form, schoolProfileId, recordId });
       setAlert({ type: "success", message: `School Bank Details ${recordId ? "updated" : "saved"} successfully!` });
@@ -115,6 +115,7 @@ export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, scho
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -143,7 +144,6 @@ export default function SchoolBankDetails({ onTabChange,isDisabled, onSave, scho
       onSave={handleSave}
       onReset={handleReset}
       saving={saving}
-      isDisabled={isDisabled}
       loading={loadingData}
     >
       <SectionHeading title="School Bank Details" />

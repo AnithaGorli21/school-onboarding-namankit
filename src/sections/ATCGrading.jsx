@@ -7,7 +7,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
-
+ 
 // ── Same 28 questions as POGrading ───────────────────────────
 const QUESTIONS = [
   { no: 3, label: "Q.No. 3", title: "No. of year since establishment of School", maxMarks: 3, criteria: [{ label: ">=20", marks: 3 }, { label: "15 to 19", marks: 2 }, { label: "13 to 14.99", marks: 1 }, { label: "<13", marks: 0 }] },
@@ -38,12 +38,12 @@ const QUESTIONS = [
   { no: 27, label: "Q.No. 27", title: "No. of toilets on each floor in school building (with ratio 20:1)", maxMarks: 2, criteria: [{ label: "Yes", marks: 2 }, { label: "No", marks: 0 }] },
   { no: 28, label: "Q.No. 28", title: "School academic performance", maxMarks: 3, criteria: [{ label: "Extraordinary", marks: 3 }, { label: "Excellent", marks: 2 }, { label: "Satisfactory", marks: 1 }] },
 ];
-
-
+ 
+ 
 // Helper to convert stored numeric questionNumber back to QUESTIONS key
 const toQNo = (n) => n === 61 ? '6A' : n === 62 ? '6B' : n === 101 ? '10A' : n;
 const toNumeric = (n) => n === '6A' ? 61 : n === '6B' ? 62 : n === '10A' ? 101 : Number(n);
-
+ 
 const getAssignedFees = (totalMarks) => {
   if (totalMarks >= 80) return 70000;
   if (totalMarks >= 70) return 60000;
@@ -51,7 +51,7 @@ const getAssignedFees = (totalMarks) => {
   return 0;
 };
 const TDD_FEES = 600;
-
+ 
 const styles = {
   page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
   card: { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
@@ -71,7 +71,7 @@ const styles = {
   textArea: { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 4, padding: "7px 10px", fontSize: 13, outline: "none", minHeight: 38, resize: "vertical" },
   btn: (bg, color = "#fff") => ({ background: bg, color, border: "none", borderRadius: 4, padding: "9px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }),
 };
-
+ 
 export default function ATCGrading({ school, onBack }) {
   const [schoolData, setSchoolData] = useState(null);
   const [gradingRecordId, setGradingRecordId] = useState(null);
@@ -85,7 +85,7 @@ export default function ATCGrading({ school, onBack }) {
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-
+ 
   useEffect(() => {
     if (!school?.id) return;
     Promise.all([
@@ -117,16 +117,16 @@ export default function ATCGrading({ school, onBack }) {
     }).catch(err => console.error("[ATCGrading] load error:", err))
       .finally(() => setLoadingData(false));
   }, [school?.id]);
-
+ 
   // ATC total = sum of atcMarks
   const totalMarks = useMemo(() => questionData.reduce((s, q) => s + (parseFloat(q.atcMarks) || 0), 0), [questionData]);
   const assignedFees = useMemo(() => getAssignedFees(totalMarks), [totalMarks]);
   const finalFees = assignedFees + TDD_FEES;
-
+ 
   const updateQ = (idx, field, value) => {
     setQuestionData(prev => prev.map((q, i) => i === idx ? { ...q, [field]: value } : q));
   };
-
+ 
   const handleSubmit = async (approvalStatus) => {
     if (atcRemarksSummary.trim().length < 100) {
       setAlert({ type: "error", message: `ATC Remarks Summary must be at least 100 characters. Currently ${atcRemarksSummary.trim().length} characters.` });
@@ -138,7 +138,7 @@ export default function ATCGrading({ school, onBack }) {
     try {
       // Update grading record with ATC data
       const { patchSchoolGrading, patchGradingQuestion, updateApprovalStatus } = await import("../api/poGrading");
-
+ 
       // Sanitize marks to ensure none exceed question max before saving
       const sanitizedQuestions = questionData.map(q => {
         const def = QUESTIONS.find(d => d.no === q.questionNumber || toNumeric(d.no) === q.questionNumber);
@@ -146,11 +146,11 @@ export default function ATCGrading({ school, onBack }) {
         const marks = Math.min(Number(q.atcMarks) || 0, max);
         return { ...q, atcMarks: marks };
       });
-
+ 
       const sanitizedTotal = sanitizedQuestions.reduce((s, q) => s + (Number(q.atcMarks) || 0), 0);
       const sanitizedAssignedFees = getAssignedFees(sanitizedTotal);
       const sanitizedFinalFees = sanitizedAssignedFees + TDD_FEES;
-
+ 
       // Update main grading record using sanitized totals
       await patchSchoolGrading(gradingRecordId, {
         atcRemarksSummary,
@@ -161,7 +161,7 @@ export default function ATCGrading({ school, onBack }) {
         finalFees: sanitizedFinalFees,
         approvalStatus,
       });
-
+ 
       // Update each question's atcMarks and atcRemarks with sanitized marks
       for (const q of sanitizedQuestions) {
         const existing = existingQs.find(eq => eq.questionNumber === toNumeric(q.questionNumber) || eq.questionNumber === q.questionNumber);
@@ -172,10 +172,10 @@ export default function ATCGrading({ school, onBack }) {
           });
         }
       }
-
+ 
       // Update approval status on school profile
       await updateApprovalStatus(school.id, approvalStatus);
-
+ 
       setAlert({ type: "success", message: `School ${approvalStatus} successfully!` });
       setTimeout(() => onBack?.(), 1500);
     } catch (e) {
@@ -184,21 +184,21 @@ export default function ATCGrading({ school, onBack }) {
       setSaving(false);
     }
   };
-
+ 
   if (loadingData) return <div style={{ textAlign: "center", padding: 60, fontSize: 14, color: "#888" }}>Loading grading data...</div>;
-
+ 
   return (
     <div style={styles.page}>
       <button onClick={onBack} style={{ ...styles.btn("#6c757d"), marginBottom: 16 }}>← Back to List</button>
-
+ 
       <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#1a2a5e" }}>School Profile Grading</h2>
-
+ 
       {alert && (
         <div style={{ background: alert.type === "success" ? "#d4edda" : "#f8d7da", color: alert.type === "success" ? "#155724" : "#721c24", border: `1px solid ${alert.type === "success" ? "#c3e6cb" : "#f5c6cb"}`, padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
           {alert.message}
         </div>
       )}
-
+ 
       {/* School Details */}
       <div style={styles.card}>
         <div style={styles.cardHeader}>School Details</div>
@@ -211,7 +211,7 @@ export default function ATCGrading({ school, onBack }) {
           ))}
         </div>
       </div>
-
+ 
       {/* PO Remarks Summary — blue header, grey non-editable like 1.0 */}
       <div style={styles.card}>
         <div style={{ ...styles.cardHeader, background: "#4a90d9" }}>PO Remarks Summary (min 100 characters length required)</div>
@@ -220,11 +220,11 @@ export default function ATCGrading({ school, onBack }) {
             style={{ ...styles.textArea, minHeight: 60, background: "#e9ecef", color: "#555", cursor: "not-allowed" }} />
         </div>
       </div>
-
+ 
       {/* Profile Related Questions */}
       <div style={{ ...styles.card, padding: "12px 16px" }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: "#1a2a5e", marginBottom: 12 }}>Profile related questions</div>
-
+ 
         {QUESTIONS.map((q, idx) => (
           <div key={q.no} style={styles.qCard}>
             <div style={{ padding: "10px 14px 0" }}>
@@ -307,7 +307,7 @@ export default function ATCGrading({ school, onBack }) {
           </div>
         ))}
       </div>
-
+ 
       {/* ATC Remarks Summary — blue header, editable like 1.0 */}
       <div style={styles.card}>
         <div style={{ ...styles.cardHeader, background: "#4a90d9" }}>
@@ -322,7 +322,7 @@ export default function ATCGrading({ school, onBack }) {
           </div>
         </div>
       </div>
-
+ 
       {/* No. of Proposed Students — blue header like 1.0 */}
       <div style={styles.card}>
         <div style={{ ...styles.cardHeader, background: "#4a90d9" }}>
@@ -334,7 +334,7 @@ export default function ATCGrading({ school, onBack }) {
             style={styles.input} />
         </div>
       </div>
-
+ 
       {/* Totals — 2x2 grid with grey readonly inputs like 1.0 */}
       <div style={{ ...styles.card, marginBottom: 16 }}>
         <div style={{ ...styles.cardBody, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -356,7 +356,7 @@ export default function ATCGrading({ school, onBack }) {
           </div>
         </div>
       </div>
-
+ 
       {/* Action Buttons */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         <button onClick={() => handleSubmit("ATC Recommended for Approval")} disabled={saving} style={styles.btn("#28a745")}>
@@ -366,7 +366,7 @@ export default function ATCGrading({ school, onBack }) {
         <button onClick={() => handleSubmit("SendBack by ATC")} disabled={saving} style={styles.btn("#ffc107", "#333")}>Send Back</button>
         <button onClick={onBack} style={styles.btn("#6c757d")}>Cancel</button>
       </div>
-
+ 
       {/* Important Note */}
       <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
         <div style={{ color: "#e74c3c", fontWeight: 600, marginBottom: 8, fontSize: 13 }}>Important Note !!!</div>
@@ -376,7 +376,7 @@ export default function ATCGrading({ school, onBack }) {
           <li><strong>Cancel</strong> : School is proposed to be cancelled and existing students are proposed to be shifted to other schools.</li>
         </ul>
       </div>
-
+ 
       {/* Fees Structure */}
       <div style={styles.card}>
         <div style={styles.cardBody}>

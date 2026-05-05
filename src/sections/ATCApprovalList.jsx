@@ -9,23 +9,23 @@ import ATCGrading from "./ATCGrading";
 import { SchoolApp } from "../App";
 import { Spinner } from "../schools/SchoolMasterComponents";
 import Loader from "../components/Loader";
-
+ 
 const TH = { padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" };
 const TD = { padding: "11px 16px", fontSize: 13, color: "#333", borderBottom: "1px solid #dee2e6", verticalAlign: "middle" };
-
+ 
 const STATUS_BADGE = {
   "PO Recommended for Approval": { bg: "#d4edda", color: "#155724" },
   "ATC Recommended for Approval": { bg: "#cce5ff", color: "#004085" },
   "Rejected": { bg: "#f8d7da", color: "#721c24" },
   "SendBack": { bg: "#d1ecf1", color: "#0c5460" },
 };
-
+ 
 // Liferay returns picklist fields as { key, name } objects; normalise to string
 const getStatus = (s) =>
   s.approvalStatus && typeof s.approvalStatus === "object"
     ? (s.approvalStatus.key || s.approvalStatus.name || "")
     : (s.approvalStatus === 'PO Recommended for Approval' ? s.approvalStatus : "PO Approval Pending");
-
+ 
 export default function ATCApprovalList({ onGrading, onViewDetails, selectedSchool }) {
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,10 +37,10 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   const [selectedSchoolForProfile, setSelectedSchoolForProfile] = useState(null);
   const [schoolProfileLoading, setSchoolProfileLoading] = useState(false);
   const [schoolType, setSchoolType] = useState("");
-
+ 
   console.log('selected School.....', selectedSchool);
   console.log('school type....', schoolType)
-
+ 
   // const handleSearch = () => {
   //   setLoading(true);
   //   setError(null);
@@ -60,7 +60,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   //     .catch(e => setError(e.message))
   //     .finally(() => setLoading(false));
   // };
-
+ 
   const handleSearch = () => {
     setLoading(true);
     if (!schoolType) {
@@ -76,10 +76,10 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
   };
   useEffect(() => {
     console.log('schoolData====>', schools)
-
+ 
   }, [schools]
   )
-
+ 
   const filtered = schools.filter(s => {
     const q = search.toLowerCase();
     return (
@@ -88,10 +88,10 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
       (s.udiseCode || "").toLowerCase().includes(q)
     );
   });
-
+ 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-
+ 
   const badge = (status) => {
     const s = STATUS_BADGE[status] || { bg: "#e9ecef", color: "#555" };
     return (
@@ -100,7 +100,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
       </span>
     );
   };
-
+ 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       {
@@ -129,10 +129,10 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
               </div>) : (
                 <div style={{ padding: "24px 32px" }}>
                   <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
-
+ 
                   {/* Filter row */}
                   <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
-
+ 
                     <div style={{ display: 'flex' }}>
                       <div>
                         <label style={{ fontSize: 13, fontWeight: 600, color: "#333", display: "block", marginBottom: 6 }}>School Type</label>
@@ -148,7 +148,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
                         Search
                       </button>
                       {/* {error && <p style={{ color: "red", fontSize: 12, marginTop: 4 }}>{error}</p>} */}
-
+ 
                     </div>
                     <div style={{ marginLeft: "auto" }}>
                       <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -156,13 +156,13 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
                         style={{ padding: "7px 12px", fontSize: 13, border: "1px solid #ced4da", borderRadius: 4, width: 260, outline: "none" }} />
                     </div>
                   </div>
-
+ 
                   {error && (
                     <div style={{ background: "#f8d7da", color: "#721c24", padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
                       Failed to load — {error}
                     </div>
                   )}
-
+ 
                   {/* Table */}
                   <div style={{ background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, overflow: "hidden" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -218,7 +218,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
                       </tbody>
                     </table>
                   </div>
-
+ 
                   {/* Pagination */}
                   {!loading && filtered.length > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, fontSize: 13, color: "#555" }}>
@@ -246,7 +246,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
     </div>
   );
 }
-
+ 
 function PBtn({ label, onClick, disabled, active }) {
   return (
     <button onClick={!disabled ? onClick : undefined} style={{

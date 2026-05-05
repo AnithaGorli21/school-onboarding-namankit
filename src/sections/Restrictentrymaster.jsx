@@ -14,7 +14,7 @@ import {
   mapRecordToDates,
   fmtDate,
 } from "../api/RestrictEntryMaster";
-
+ 
 // ── Config ────────────────────────────────────────────────────
 const RESTRICT_OPTIONS = [
   { value: "", label: "--Select--" },
@@ -23,7 +23,7 @@ const RESTRICT_OPTIONS = [
   { value: "schoolRegistration", label: "School Registration" },
   { value: "profileRegistration", label: "School Profile Registration" },
 ];
-
+ 
 const FIELD_CONFIG = {
   studentRegistration: [
     { key: "billgeneration", label: "Student Registration Date" },
@@ -40,7 +40,7 @@ const FIELD_CONFIG = {
     { key: "billpodeduction", label: "Profile Registration To Date" },
   ],
 };
-
+ 
 const EMPTY_DATES = {
   billgeneration: "",
   billadmissionsummary: "",
@@ -49,23 +49,23 @@ const EMPTY_DATES = {
   billdeduction: "",
   billpodeduction: "",
 };
-
+ 
 // ── Validation ────────────────────────────────────────────────
 function validate(selectedType, dates) {
   // Rule 1 — Dropdown is mandatory
   if (!selectedType) {
     return "Please select a value from Restrict Entry List.";
   }
-
+ 
   const fields = FIELD_CONFIG[selectedType] || [];
-
+ 
   // Rule 2 — All date fields for selected type are mandatory
   for (const f of fields) {
     if (!dates[f.key]) {
       return `"${f.label}" is required.`;
     }
   }
-
+ 
   // Rule 3 — School Registration: From Date must be before To Date
   if (selectedType === "schoolRegistration") {
     if (dates.billstudent && dates.billarrear) {
@@ -74,7 +74,7 @@ function validate(selectedType, dates) {
       }
     }
   }
-
+ 
   // Rule 4 — Profile Registration: From Date must be before To Date
   if (selectedType === "profileRegistration") {
     if (dates.billdeduction && dates.billpodeduction) {
@@ -83,10 +83,10 @@ function validate(selectedType, dates) {
       }
     }
   }
-
+ 
   return null; // no error
 }
-
+ 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
   pageWrap: {
@@ -143,7 +143,7 @@ const s = {
   errBox: { background: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: 4, padding: "12px 16px", fontSize: 13, color: "#721c24", marginBottom: 16 },
   inlineErr: { color: "#c0392b", fontSize: 13, marginBottom: 10, padding: "8px 12px", background: "#fff5f5", border: "1px solid #f5c6cb", borderRadius: 3 },
 };
-
+ 
 // ── Info Modal ────────────────────────────────────────────────
 function InfoModal({ message, onClose }) {
   return (
@@ -158,7 +158,7 @@ function InfoModal({ message, onClose }) {
     </div>
   );
 }
-
+ 
 // ── Main Component ────────────────────────────────────────────
 export default function RestrictEntryMaster() {
   const [recordId, setRecordId] = useState(null);
@@ -172,7 +172,7 @@ export default function RestrictEntryMaster() {
   const [fieldErrors, setFieldErrors] = useState({});  // per-field errors
   const [loadErr, setLoadErr] = useState("");
   const [touched, setTouched] = useState({});  // track user interaction
-
+ 
   // ── Load on mount ──────────────────────────────────────────
   useEffect(() => {
     setLoading(true);
@@ -187,7 +187,7 @@ export default function RestrictEntryMaster() {
       .catch((err) => setLoadErr(err.message))
       .finally(() => setLoading(false));
   }, []);
-
+ 
   // ── Handle dropdown change ─────────────────────────────────
   const handleTypeChange = (val) => {
     setSelectedType(val);
@@ -195,7 +195,7 @@ export default function RestrictEntryMaster() {
     setFieldErrors({});
     setTouched({});
   };
-
+ 
   // ── Handle date change ─────────────────────────────────────
   const handleDate = (key, val) => {
     setDates((prev) => ({ ...prev, [key]: val }));
@@ -204,24 +204,24 @@ export default function RestrictEntryMaster() {
     setFieldErrors((prev) => ({ ...prev, [key]: "" }));
     setInlineErr("");
   };
-
+ 
   // ── Validate single field on blur ──────────────────────────
   const handleBlur = (key, label) => {
     if (!dates[key]) {
       setFieldErrors((prev) => ({ ...prev, [key]: `${label} is required.` }));
     }
   };
-
+ 
   // ── Save handler ───────────────────────────────────────────
   const handleSave = async () => {
     setInlineErr("");
     setFieldErrors({});
-
+ 
     // Run full validation
     const error = validate(selectedType, dates);
     if (error) {
       setInlineErr(error);
-
+ 
       // Also highlight specific fields
       if (selectedType) {
         const newFieldErrors = {};
@@ -233,7 +233,7 @@ export default function RestrictEntryMaster() {
       }
       return;
     }
-
+ 
     setSaving(true);
     try {
       const result = await submitRestrictEntry({ dates, recordId });
@@ -250,34 +250,34 @@ export default function RestrictEntryMaster() {
       setSaving(false);
     }
   };
-
+ 
   const activeFields = FIELD_CONFIG[selectedType] || [];
   const showDropdownErr = touched.__dropdown && !selectedType;
   const today = new Date().toISOString().split('T')[0];
   return (
     <>
       {modalMsg && <InfoModal message={modalMsg} onClose={() => setModalMsg("")} />}
-
+ 
       <div style={s.pageWrap}>
         <div style={s.card}>
           <div style={s.heading}>Restrict Entry Master</div>
-
+ 
           {loadErr && (
             <div style={s.errBox}><strong>API Error:</strong> {loadErr}</div>
           )}
-
+ 
           {loading ? (
             <div style={{ color: "#888", fontSize: 13, padding: "12px 0" }}>Loading...</div>
           ) : (
             <>
               {/* ── Form ── */}
               <div style={{display:'flex', flexDirection:'column', gap: 16}}>
-
+ 
                 {/* General inline error */}
                 {/* {inlineErr && (
                   <div style={s.inlineErr}>⚠️ {inlineErr}</div>
                 )} */}
-
+ 
                 {/* Form Row: All Input Elements */}
                 <div style={{display:'flex', alignItems: 'flex-start', gap: 16}}>
                   {/* Dropdown — Mandatory */}
@@ -302,7 +302,7 @@ export default function RestrictEntryMaster() {
                       <span style={s.fieldErr}>Please select a value from Restrict Entry List.</span>
                     )}
                   </div>
-
+ 
                   {/* Dynamic date fields — each mandatory */}
                   {activeFields.map((f) => (
                     <div key={f.key}>
@@ -323,7 +323,7 @@ export default function RestrictEntryMaster() {
                     </div>
                   ))}
                 </div>
-
+ 
                 {/* Save Button Row */}
                 <div style={{display:'flex', justifyContent: 'flex-start'}}>
                   <button
@@ -335,7 +335,7 @@ export default function RestrictEntryMaster() {
                   </button>
                 </div>
               </div>
-
+ 
               {/* ── Table ── */}
               {savedData ? (
                 <>
@@ -365,7 +365,7 @@ export default function RestrictEntryMaster() {
                       </tbody>
                     </table>
                   </div>
-
+ 
                   {/* Pagination */}
                   <div style={s.paginWrap}>
                     <div style={s.paginLeft}>

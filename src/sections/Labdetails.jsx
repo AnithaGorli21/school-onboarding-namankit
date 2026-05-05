@@ -15,41 +15,40 @@ import {
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { loadLabDetails, submitLabDetails, mapRecordToForm } from "../api/LabDetails";
-import LoadingOverlay from "../components/LoadingOverlay";
+import Loader from "../components/Loader";
 
 const YES_NO = ["Yes", "No"];
 
 const emptyForm = {
-  isComputerLabAvailable: "",
+  isComputerLabAvailable:        "",
   computersWithPeripheralsCount: "",
-  computersWorkingCount: "",
-  isChemistryLabAvailable: "",
-  isChemistryLabAreaSufficient: "",
-  chemistryLabAreaSqft: "",
-  isBiologyLabAvailable: "",
-  isBiologyLabAreaSufficient: "",
-  biologyLabAreaSqft: "",
-  isPhysicsLabAvailable: "",
-  isPhysicsLabAreaSufficient: "",
-  physicsLabAreaSqft: "",
-  digitalClassroomCount: "",
+  computersWorkingCount:         "",
+  isChemistryLabAvailable:       "",
+  isChemistryLabAreaSufficient:  "",
+  chemistryLabAreaSqft:          "",
+  isBiologyLabAvailable:         "",
+  isBiologyLabAreaSufficient:    "",
+  biologyLabAreaSqft:            "",
+  isPhysicsLabAvailable:         "",
+  isPhysicsLabAreaSufficient:    "",
+  physicsLabAreaSqft:            "",
+  digitalClassroomCount:         "",
 };
 
-export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisabled, onLoadingChange }) {
-  const [form, setForm] = useState(emptyForm);
-  const [photoFile, setPhotoFile] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [recordId, setRecordId] = useState(null);
+export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [photoFile,   setPhotoFile]   = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [errors,      setErrors]      = useState({});
+  const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
+  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
   }, [loadingData, onLoadingChange]);
 
-  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     if (!schoolProfileId) return;
     setLoadingData(true);
@@ -69,9 +68,9 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
   const onComputerLabChange = (v) => {
     setForm((p) => ({
       ...p,
-      isComputerLabAvailable: v,
+      isComputerLabAvailable:        v,
       computersWithPeripheralsCount: v !== "Yes" ? "" : p.computersWithPeripheralsCount,
-      computersWorkingCount: v !== "Yes" ? "" : p.computersWorkingCount,
+      computersWorkingCount:         v !== "Yes" ? "" : p.computersWorkingCount,
     }));
   };
 
@@ -80,7 +79,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
     setForm((p) => ({
       ...p,
       isChemistryLabAreaSufficient: v,
-      chemistryLabAreaSqft: v !== "Yes" ? "" : p.chemistryLabAreaSqft,
+      chemistryLabAreaSqft:         v !== "Yes" ? "" : p.chemistryLabAreaSqft,
     }));
   };
 
@@ -88,7 +87,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
     setForm((p) => ({
       ...p,
       isBiologyLabAreaSufficient: v,
-      biologyLabAreaSqft: v !== "Yes" ? "" : p.biologyLabAreaSqft,
+      biologyLabAreaSqft:         v !== "Yes" ? "" : p.biologyLabAreaSqft,
     }));
   };
 
@@ -96,7 +95,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
     setForm((p) => ({
       ...p,
       isPhysicsLabAreaSufficient: v,
-      physicsLabAreaSqft: v !== "Yes" ? "" : p.physicsLabAreaSqft,
+      physicsLabAreaSqft:         v !== "Yes" ? "" : p.physicsLabAreaSqft,
     }));
   };
 
@@ -174,14 +173,17 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
     }
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitLabDetails({ form, photoFile, schoolProfileId, recordId });
       setAlert({ type: "success", message: `Lab Details ${recordId ? "updated" : "saved"} successfully!` });
       onSave?.(form);
+      setLoadingData(false)
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false)
     }
   };
 
@@ -194,7 +196,11 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
 
   return (
     <div style={{ padding: "16px 20px 32px", position: "relative" }}>
-      {loadingData && <LoadingOverlay />}
+      {loadingData && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
 
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
@@ -211,10 +217,10 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
           {/* Rows 92, 93 — shown ONLY if Computer Lab = Yes */}
           {form.isComputerLabAvailable === "Yes" && (
             <>
-              <Field label="No. of Computers in Working Condition (With Printers, Scanners, Internet, etc)">
+              <Field label="No of Computers in Working Condition (With Printers, Scanners, Internet, etc)">
                 <TextInput value={form.computersWithPeripheralsCount} onChange={set("computersWithPeripheralsCount")} type="number" />
               </Field>
-              <Field label="No. of Computers in Working Condition">
+              <Field label="No of Computers in Working Condition">
                 <TextInput value={form.computersWorkingCount} onChange={set("computersWorkingCount")} type="number" />
               </Field>
             </>
@@ -306,7 +312,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId,isDisa
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
-        <BtnSave onClick={handleSave} disabled={saving || isDisabled}>
+        <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>

@@ -7,35 +7,35 @@
 //  - namankitschoolprofiles — update approvalStatus
 // ============================================================
 import { apiFetch, apiPost, apiPatch } from "./liferay";
-
+ 
 // ── School Grading (main record) ──────────────────────────────
 export const getSchoolGrading = (schoolProfileId) =>
   apiFetch(
     `/o/c/schoolgradings?filter=schoolProfileId eq ${schoolProfileId}&pageSize=1`,
   ).then((d) => (d.items || [])[0] || null);
-
+ 
 export const saveSchoolGrading = (payload) =>
   apiPost("/o/c/schoolgradings", payload);
 export const patchSchoolGrading = (id, payload) =>
   apiPatch(`/o/c/schoolgradings/${id}`, payload);
-
+ 
 // ── Grading Questions (one per question per school) ───────────
 export const getGradingQuestions = (schoolProfileId) =>
   apiFetch(
     `/o/c/schoolgradingquestions?filter=schoolProfileId eq ${schoolProfileId}&pageSize=50&sort=questionNumber:asc`,
   ).then((d) => d.items || []);
-
+ 
 export const saveGradingQuestion = (payload) =>
   apiPost("/o/c/schoolgradingquestions", payload);
 export const patchGradingQuestion = (id, payload) =>
   apiPatch(`/o/c/schoolgradingquestions/${id}`, payload);
-
+ 
 // ── Update approval status on school profile ─────────────────
 export const updateApprovalStatus = (schoolProfileId, status) =>
   apiPatch(`/o/c/namankitschoolprofiles/${schoolProfileId}`, {
     approvalStatus: status,
   });
-
+ 
 // ── Get all schools with approvalStatus for PO list ───────────
 export const getAllSchoolsForPO = (schoolType) => {
   console.log("schoolType", schoolType);
@@ -44,15 +44,15 @@ export const getAllSchoolsForPO = (schoolType) => {
   ).then((d) => {
     const items = d.items || [];
     const currentYear = new Date().getFullYear();
-
+ 
     if (!schoolType) return items;
-
+ 
     return items.filter((s) => {
       const year = Number(s.yearOfEstablishment);
-
+ 
       // ✅ Check valid 4-digit year
       if (!year || year.toString().length !== 4) return false;
-
+ 
       if (
         (schoolType === "NEW" &&
           year === currentYear &&
@@ -75,7 +75,7 @@ export const getAllSchoolsForPO = (schoolType) => {
     });
   });
 };
-
+ 
 export const getAllSchoolsForATC = (schoolType) => {
   console.log("schoolType", schoolType);
   return apiFetch(
@@ -83,15 +83,15 @@ export const getAllSchoolsForATC = (schoolType) => {
   ).then((d) => {
     const items = d.items || [];
     const currentYear = new Date().getFullYear();
-
+ 
     if (!schoolType) return items;
-
+ 
     return items.filter((s) => {
       const year = Number(s.yearOfEstablishment);
-
+ 
       // ✅ Check valid 4-digit year
       if (!year || year.toString().length !== 4) return false;
-
+ 
       if (
         schoolType === "NEW" &&
         year === currentYear &&
@@ -112,7 +112,7 @@ export const getAllSchoolsForATC = (schoolType) => {
     });
   });
 };
-
+ 
 // ── Submit all grading questions + main record ────────────────
 export async function submitGrading({
   schoolProfileId,
@@ -138,13 +138,13 @@ export async function submitGrading({
     atcRemarksSummary: "",
     proposedStudents: 0,
   };
-
+ 
   if (gradingRecordId) {
     await patchSchoolGrading(gradingRecordId, gradingPayload);
   } else {
     await saveSchoolGrading(gradingPayload);
   }
-
+ 
   // 2. Save or update each question
   for (const q of questions) {
     // Convert string question numbers to numeric for Liferay Long Integer field
@@ -166,7 +166,7 @@ export async function submitGrading({
       poRemarks: q.poRemarks || "",
       atcRemarks: q.atcRemarks || "",
     };
-
+ 
     const existing = existingQuestions.find(
       (eq) => eq.questionNumber === q.questionNumber,
     );
@@ -176,7 +176,8 @@ export async function submitGrading({
       await saveGradingQuestion(qPayload);
     }
   }
-
+ 
   // 3. Update approvalStatus on school profile
   await updateApprovalStatus(schoolProfileId, approvalStatus);
 }
+ 

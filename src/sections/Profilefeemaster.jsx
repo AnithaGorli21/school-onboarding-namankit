@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
 import { getPicklist } from "../api/liferay";
-import LoadingOverlay from "../components/LoadingOverlay";
+import Loader from "../components/Loader";
 
 // FEE_TYPE_OPTS loaded from Liferay picklist
 const emptyInput = { feesItemId: "", itemFeesTDD: "", itemFeesGeneral: "" };
@@ -60,38 +60,43 @@ function useInjectStyles() {
   }, []);
 }
 
-export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId, isDisabled, onLoadingChange }) {
+export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
   useInjectStyles();
 
-  const [feesPerStudentST, setFeesPerStudentST] = useState(0);
+  const [feesPerStudentST,      setFeesPerStudentST]      = useState(0);
   const [feesPerStudentGeneral, setFeesPerStudentGeneral] = useState(0);
-  const [input, setInput] = useState(emptyInput);
-  const [inputErr, setInputErr] = useState("");
-  const [rows, setRows] = useState([]);
-  const [receiptFile, setReceiptFile] = useState(null);
+  const [input,          setInput]          = useState(emptyInput);
+  const [inputErr,       setInputErr]       = useState("");
+  const [rows,           setRows]           = useState([]);
+  const [receiptFile,    setReceiptFile]    = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [loadingData, setLoadingData] = useState(false);
-  const [feeTypeOpts, setFeeTypeOpts] = useState([]);
+  const [saving,         setSaving]         = useState(false);
+  const [alert,          setAlert]          = useState(null);
+  const [loadingData,    setLoadingData]    = useState(false);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
+  const [feeTypeOpts,    setFeeTypeOpts]    = useState([]);
+
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
 
   useEffect(() => {
-    onLoadingChange?.(loadingData);
-    return () => onLoadingChange?.(false);
-  }, [loadingData, onLoadingChange]);
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
 
   // ── Load Fee Type picklist ───────────────────────────────
   useEffect(() => {
-    getPicklist("DBT-NAMANKIT-SPORTS-FACILITY-FEES")
+    trackLookupCall(getPicklist("DBT-NAMANKIT-SPORTS-FACILITY-FEES"))
       .then(setFeeTypeOpts)
       .catch(() => setFeeTypeOpts([
-        { value: "AdmissionFee", label: "Admission Fee" },
-        { value: "TuitionFee", label: "Tuition Fee" },
+        { value: "AdmissionFee",   label: "Admission Fee" },
+        { value: "TuitionFee",     label: "Tuition Fee" },
         { value: "ExaminationFee", label: "Examination Fee" },
-        { value: "LibraryFee", label: "Library Fee" },
-        { value: "LaboratoryFee", label: "Laboratory Fee" },
-        { value: "SportsFee", label: "Sports Fee" },
-        { value: "Other", label: "Other" },
+        { value: "LibraryFee",     label: "Library Fee" },
+        { value: "LaboratoryFee",  label: "Laboratory Fee" },
+        { value: "SportsFee",      label: "Sports Fee" },
+        { value: "Other",          label: "Other" },
       ]));
   }, []);
 
@@ -111,7 +116,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
   // ── Recompute totals when rows change ─────────────────────
   useEffect(() => {
-    const st = rows.reduce((s, r) => s + (parseFloat(r.itemFeesTDD) || 0), 0);
+    const st      = rows.reduce((s, r) => s + (parseFloat(r.itemFeesTDD)     || 0), 0);
     const general = rows.reduce((s, r) => s + (parseFloat(r.itemFeesGeneral) || 0), 0);
     setFeesPerStudentST(st);
     setFeesPerStudentGeneral(general);
@@ -126,31 +131,31 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
   };
 
   // ── Add row — prevent duplicate ───────────────────────────
-  const handleAdd = () => {
-    if (!input.feesItemId || !input.itemFeesTDD || !input.itemFeesGeneral) {
-      setInputErr("Please fill all fields before adding.");
-      return;
-    }
+ const handleAdd = () => {
+  if (!input.feesItemId || !input.itemFeesTDD || !input.itemFeesGeneral) {
+    setInputErr("Please fill all fields before adding.");
+    return;
+  }
 
-    // Check fee values > 0
-    if (Number(input.itemFeesTDD) <= 0 || Number(input.itemFeesGeneral) <= 0) {
-      setInputErr("Fee values must be greater than 0.");
-      return;
-    }
+  // Check fee values > 0
+  if (Number(input.itemFeesTDD) <= 0 || Number(input.itemFeesGeneral) <= 0) {
+    setInputErr("Fee values must be greater than 0.");
+    return;
+  }
 
-    // Check duplicate fee item
-    const alreadyAdded = rows.some(
-      (r) => String(r.feesItemId) === String(input.feesItemId)
-    );
-    if (alreadyAdded) {
-      setInputErr("This fee item is already added. Please select a different fee item.");
-      return;
-    }
+  // Check duplicate fee item
+  const alreadyAdded = rows.some(
+    (r) => String(r.feesItemId) === String(input.feesItemId)
+  );
+  if (alreadyAdded) {
+    setInputErr("This fee item is already added. Please select a different fee item.");
+    return;
+  }
 
-    setInputErr("");
-    setRows((p) => [...p, { ...input, id: Date.now(), liferayId: null }]);
-    setInput(emptyInput);
-  };
+  setInputErr("");
+  setRows((p) => [...p, { ...input, id: Date.now(), liferayId: null }]);
+  setInput(emptyInput);
+};
 
   const handleDelete = (id) => setRows((p) => p.filter((r) => r.id !== id));
 
@@ -185,6 +190,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
     setSaving(true);
     setAlert(null);
+    setLoadingData(true);
     try {
       await submitFeemaster({ rows, receiptFile, feesPerStudentST, feesPerStudentGeneral, schoolProfileId });
       setAlert({ type: "success", message: "Profile Fee Master saved successfully!" });
@@ -193,6 +199,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setLoadingData(false);
     }
   };
 
@@ -219,8 +226,13 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4, position: "relative" }}>
-      {loadingData && <LoadingOverlay />}
       <div className="pfm-heading">Profile FeeMaster</div>
+
+      {(loadingData || lookupLoadingCount > 0) && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
 
       {alert && (
         <div className={`pfm-alert ${alert.type}`}>
@@ -238,11 +250,11 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
       <div className="pfm-row2">
         <div>
-          <label className="pfm-label">Fees per Student ST <span className="req">*</span></label>
+          <label className="pfm-label">Fees Per Student ST <span className="req">*</span></label>
           <input className="pfm-input grey" value={feesPerStudentST} readOnly />
         </div>
         <div>
-          <label className="pfm-label">Fees per Student General <span className="req">*</span></label>
+          <label className="pfm-label">Fees Per Student General <span className="req">*</span></label>
           <input className="pfm-input grey" value={feesPerStudentGeneral} readOnly />
         </div>
       </div>
@@ -339,7 +351,7 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
       )}
 
       <div className="pfm-actions">
-        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving || isDisabled}>
+        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : "Save"}
         </button>
         <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
