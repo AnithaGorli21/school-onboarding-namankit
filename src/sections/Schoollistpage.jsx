@@ -34,7 +34,11 @@ export default function SchoolListPage({ onEdit }) {
       (s.address || "").toLowerCase().includes(q)
     );
   });
-
+useEffect(()=>{
+  filtered.forEach((school) => {
+    console.log(school.approvalStatus);
+  });
+}, [filtered]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -43,7 +47,12 @@ export default function SchoolListPage({ onEdit }) {
   // Generate page numbers to show
   const pageNums = [];
   for (let i = 1; i <= totalPages; i++) pageNums.push(i);
-
+  const isDisabled = (status)=>{
+    return status === "Approved" || status === "ATC Recommended for Approval" || 
+    status === "PO Recommended for Approval" ||
+    status === "Sendback by ATC" ||
+    status === "Rejected by ATC" || status === "School Profile Request";
+  };
   return (
     <div style={{ padding: "24px 32px", fontFamily: "Arial, sans-serif" }}>
 
@@ -142,8 +151,11 @@ export default function SchoolListPage({ onEdit }) {
                         background: "#1a2a5e", color: "#fff",
                         border: "none", borderRadius: 4,
                         padding: "6px 16px", fontSize: 13,
-                        cursor: "pointer", fontWeight: 500,
+                        fontWeight: 500,
                         display: "inline-flex", alignItems: "center", gap: 6,
+                        opacity: isDisabled(school.approvalStatus) ? 0.5 : 1,
+                        pointerEvents: isDisabled(school.approvalStatus) ? "none" : "auto",
+                        cursor: isDisabled(school.approvalStatus) ? "not-allowed" : "pointer"
                       }}
                     >
                       ✎ Edit

@@ -667,7 +667,7 @@ const SCHOOL_NAV = [
 export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideHeader = false, setShowSchoolProfile = () => { }, isDisabled = false, selectedSchoolForProfile = null, onSchoolBasicDetailsLoadingChange }) {
   console.log("isDisabled", isDisabled);
   const path = window.location.pathname;
-  console.log('path in schoolapp....', path)
+  console.log('path in schoolapp....', window.location.origin)
   if (path.includes("/preview")) return <PreviewPage />;
 
   const [screen, setScreen] = useState("schoolList");
