@@ -7,6 +7,7 @@
 //  - namankitschoolprofiles — update approvalStatus
 // ============================================================
 import { apiFetch, apiPost, apiPatch } from "./liferay";
+import { patchSchoolDetails, saveSchoolDetails } from "./schoolDetails";
  
 // ── School Grading (main record) ──────────────────────────────
 export const getSchoolGrading = (schoolProfileId) =>
@@ -125,6 +126,7 @@ export async function submitGrading({
   approvalStatus,
   gradingRecordId,
   existingQuestions,
+  schoolName,
 }) {
   // 1. Save or update main grading record
   const gradingPayload = {
@@ -138,11 +140,20 @@ export async function submitGrading({
     atcRemarksSummary: "",
     proposedStudents: 0,
   };
- 
+ const schoolDetailsPayLoad = {
+    schoolProfileId: Number(schoolProfileId),
+    poRemarks: poRemarksSummary,
+    pOVerificationStatus: approvalStatus,
+    atcRemarks: '',
+    systemCalculatedMarks: totalMarks,
+    schoolName: schoolName,
+ }
   if (gradingRecordId) {
     await patchSchoolGrading(gradingRecordId, gradingPayload);
+    await patchSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
   } else {
     await saveSchoolGrading(gradingPayload);
+    await saveSchoolDetails(schoolDetailsPayLoad);
   }
  
   // 2. Save or update each question

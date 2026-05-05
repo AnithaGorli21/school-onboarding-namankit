@@ -188,6 +188,7 @@ const styles = {
 };
  
 export default function POGrading({ school, onBack, selectedSchool }) {
+  console.log('Schoollll...', school)
   const [schoolData, setSchoolData] = useState(null);
   const [gradingRecordId, setGradingRecordId] = useState(null);
   const [existingQs, setExistingQs] = useState([]);
@@ -271,6 +272,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
         approvalStatus,
         gradingRecordId,
         existingQuestions: existingQs,
+        schoolName: school.schoolName,
       });
       setAlert({ type: "success", message: `School ${approvalStatus} successfully!` });
       setTimeout(() => onBack?.(), 1500);
