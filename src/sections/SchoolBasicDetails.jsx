@@ -105,6 +105,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   useEffect(() => {
     if (!schoolProfileId) return;
     setLoadingData(true);
+    console.log('Loading school details for ID:', schoolProfileId);
     getSchoolProfileById(schoolProfileId)
       .then((record) => {
         if (!record) return;
@@ -231,13 +232,30 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         websiteLink: profile.websiteLink || "",
         yearOfEstablishment: Number(profile.yearOfEstablishment) || 0,
       };
- 
+
       const response = recordId
         ? await patchSchoolBasicDetails(recordId, payload)
         : await saveSchoolBasicDetails(payload);
- 
+
+      // Save intake data if schoolProfileId is available
+      if (response?.id || schoolProfileId) {
+        try {
+          const intakeResponse = await intake._submitIntake?.();
+          console.log('[SchoolBasicDetails] Intake data saved:', intakeResponse);
+        } catch (intakeErr) {
+          console.error('[SchoolBasicDetails] Intake save error:', intakeErr);
+          // Don't fail the entire save if intake fails, but show a warning
+          setAlert({ 
+            type: "warning", 
+            message: "School Basic Details saved, but intake data failed to save. Please save again." 
+          });
+        }
+      }
+
       onSave?.({ ...profile, ...intake, performance: perfRows, schoolId: response?.id });
-      setAlert({ type: "success", message: "School Basic Details saved successfully!" });
+      if (!alert || alert.type !== "warning") {
+        setAlert({ type: "success", message: "School Basic Details saved successfully!" });
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setAlert({ type: "error", message: "Save failed — " + (err.message || "Please try again.") });
@@ -245,7 +263,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       setSaving(false);
     }
   };
- 
+
   const handleReset = () => {
     setProfile(emptyProfile);
     setIntake(emptyIntake);
@@ -285,6 +303,8 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           setIntake={setIntake}
           errors={intakeErrors}
           isDisabled={isDisabled}
+          schoolProfileId={schoolProfileId}
+          onApiLoadingChange={setChildrenLoading}
         />
  
         {/* School Performance with min-3 error */}

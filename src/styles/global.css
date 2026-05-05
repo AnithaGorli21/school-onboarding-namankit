@@ -84,3 +84,20 @@ body {
   --tdd-radius-lg:  8px;
   --tdd-transition: 0.2s ease;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}

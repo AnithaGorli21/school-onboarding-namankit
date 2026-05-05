@@ -105,6 +105,7 @@ export const saveMedicalFacilities = (p) =>
   apiPost("/o/c/medicalfacilities", p);
 export const saveProfileFeeMaster = (p) => apiPost("/o/c/profilefeemasters", p);
 export const saveSchoolProfileIntake = (p) => apiPost("/o/c/schoolprofileintakes", p);
+export const saveSchoolIntakeStudents = (p) => apiPost("/o/c/schoolintakestudents", p);
 export const saveSchoolBankDetails = (p) =>
   apiPost("/o/c/schoolbankdetails", p);
 export const saveStudentRegistration = (p) =>
@@ -137,8 +138,12 @@ export const patchMedicalFacilities = (id, p) =>
   apiPatch(`/o/c/medicalfacilities/${id}`, p);
 export const patchProfileFeeMaster = (id, p) =>
   apiPatch(`/o/c/profilefeemasters/${id}`, p);
+export const patchSchoolProfileIntake = (id, p) =>
+  apiPatch(`/o/c/schoolprofileintakes/${id}`, p);
 export const patchSchoolPerformanceIntake = (id, p) =>
   apiPatch(`/o/c/schoolprofileintakes/${id}`, p);
+export const patchSchoolIntakeStudents = (id, p) =>
+  apiPatch(`/o/c/schoolintakestudents/${id}`, p);
 export const patchSchoolBankDetails = (id, p) =>
   apiPatch(`/o/c/schoolbankdetails/${id}`, p);
 export const patchStudentRegistration = (id, p) =>
@@ -224,7 +229,7 @@ export const getProfileFeeMaster = (id) =>
     (d) => d.items || [],
   );
 export const getSchoolProfileIntake = (id) =>
-  apiFetch(`/o/c/schoolprofileintakes?pageSize=200&sort=dateCreated:desc`).then(
+  apiFetch(`/o/c/schoolprofileintakes?filter=schoolProfileIntakeId  eq '${id}'pageSize=200&sort=dateCreated:desc`).then(
     (d) => {
       const allItems = d.items || [];
       console.log('[Liferay] All schoolprofileintakes records:', allItems);
@@ -239,6 +244,24 @@ export const getSchoolProfileIntake = (id) =>
       // Temporarily return all records to see data in UI
       console.log('[Liferay] Temporarily returning all records (no filtering)');
       return allItems;
+    },
+  );
+export const getSchoolIntakeStudents = (id) =>
+  apiFetch(`/o/c/schoolintakestudents?pageSize=200&sort=dateCreated:desc`).then(
+    (d) => {
+      const allItems = d.items || [];
+      console.log('[Liferay] All schoolintakestudents records:', allItems);
+      
+      if (!id) {
+        console.log('[Liferay] No schoolProfileId provided, returning first record or null');
+        return allItems[0] || null;
+      }
+      
+      // Client-side filtering since server-side filter is not supported
+      const filteredItems = allItems.filter(item => item.schoolMasterId === Number(id));
+      console.log('[Liferay] Filtered records for schoolMasterId:', id, 'found:', filteredItems.length);
+      
+      return filteredItems[0] || null;
     },
   );
 export const getSchoolBankDetails = (id) =>

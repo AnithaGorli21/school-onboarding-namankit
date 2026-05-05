@@ -3,8 +3,11 @@
 //  Validations added:
 //  - All 8 input cells are mandatory + numeric (Excel rows 21–28)
 //  - Auto-calculated totals (rows 29–35) shown read-only
+//  - API integration for POST/GET and data prepopulation
 // ============================================================
+import { useState, useEffect } from "react";
 import { TextInput, SectionHeading } from "../components/FormFields";
+import { loadSchoolIntakeStudents, submitSchoolIntakeStudents, mapRecordToIntake } from "../api/schoolIntakeStudents";
 
 const th = (extra = {}) => ({
   padding: "9px 10px",
@@ -33,9 +36,68 @@ const errStyle = {
 
 const toNum = (v) => parseInt(v || 0, 10);
 
-export default function SchoolIntake({ intake, setIntake, errors = {} }) {
+export default function SchoolIntake({ 
+  intake, 
+  setIntake, 
+  errors = {}, 
+  schoolProfileId, 
+  onApiLoadingChange,
+  isDisabled = false 
+}) {
+  const [loadingData, setLoadingData] = useState(false);
+  const [alert, setAlert] = useState(null);
+
   const set = (key) => (val) =>
     setIntake((prev) => ({ ...prev, [key]: val }));
+
+  // ── Load existing data on mount (if schoolProfileId provided) ────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    
+    console.log('[SchoolIntake] Loading data for schoolProfileId:', schoolProfileId);
+    setLoadingData(true);
+    onApiLoadingChange?.(true);
+    
+    loadSchoolIntakeStudents(schoolProfileId)
+      .then(({ record }) => {
+        if (record) {
+          const mappedIntake = mapRecordToIntake(record);
+          console.log('[SchoolIntake] Mapped intake data:', mappedIntake);
+          setIntake(mappedIntake);
+        }
+      })
+      .catch((err) => {
+        console.error('[SchoolIntake] Load error:', err);
+        setAlert({ type: "error", message: "Failed to load intake data" });
+      })
+      .finally(() => {
+        setLoadingData(false);
+        onApiLoadingChange?.(false);
+      });
+  }, [schoolProfileId, setIntake, onApiLoadingChange]);
+
+  // ── Submit function for external use ───────────────────────────────
+  const handleSubmit = async () => {
+    if (!schoolProfileId) {
+      throw new Error("schoolProfileId is required for saving intake data");
+    }
+    
+    try {
+      const result = await submitSchoolIntakeStudents({ intake, schoolProfileId });
+      console.log('[SchoolIntake] Save successful:', result);
+      return result;
+    } catch (err) {
+      console.error('[SchoolIntake] Save error:', err);
+      throw err;
+    }
+  };
+
+  // Expose submit function to parent component
+  useEffect(() => {
+    if (setIntake && typeof setIntake === 'function') {
+      setIntake((prev) => ({ ...prev, _submitIntake: handleSubmit }));
+    }
+  }, [schoolProfileId, setIntake]);
 
   // ── Auto-calculated totals (rows 29–35) ──────────────────
   const namankit_res_boys    = toNum(intake.namankit_boys_residential);

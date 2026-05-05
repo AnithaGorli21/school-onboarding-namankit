@@ -70,7 +70,7 @@ export default function FinalSubmit({ data, onTabChange, schoolProfileId, setSho
       await patchSchoolBasicDetails(schoolProfileId, {
         approvalStatus: "School Profile Request"
       });
- 
+      setShowPreview(true);
       // All APIs called with schoolProfileId — fetches THIS school's data only
       const [
         schoolBasic, landDetails, hostelDetails, diningDetails,

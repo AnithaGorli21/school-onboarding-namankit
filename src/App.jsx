@@ -668,8 +668,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
   console.log("isDisabled", isDisabled);
   const path = window.location.pathname;
   console.log('path in schoolapp....', window.location.origin)
-  if (path.includes("/preview")) return <PreviewPage />;
-
+  if (path.includes("/preview")) return <PreviewPage schoolProfileId={selectedSchoolForProfile?.id} />;
   const [screen, setScreen] = useState("schoolList");
   const [view, setView] = useState(list);
   const [activeTab, setActiveTab] = useState("School Basic Details");
@@ -680,7 +679,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
     sportsDetails: {}, medicalDetails: {}, feeMaster: {}, bankDetails: {},
   });
-
+  const [showPreview, setShowPreview] = useState(false);
   const handleSaveSection = (key, data) =>
     setMasterData((prev) => ({ ...prev, [key]: data }));
 
@@ -725,7 +724,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
       case "Medical Facilities": return <MedicalFacilities        {...p} isDisabled={isDisabled} onLoadingChange={onSchoolBasicDetailsLoadingChange} onSave={(d) => handleSaveSection("medicalDetails", d)} />;
       case "Profile FeeMaster": return <ProfileFeeMaster         {...p} isDisabled={isDisabled} onLoadingChange={onSchoolBasicDetailsLoadingChange} onSave={(d) => handleSaveSection("feeMaster", d)} />;
       case "School Bank Details": return <SchoolBankDetails        {...p} isDisabled={isDisabled} onLoadingChange={onSchoolBasicDetailsLoadingChange} onSave={(d) => handleSaveSection("bankDetails", d)} />;
-      case "Final Submit": return <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} />;
+      case "Final Submit": return <FinalSubmit data={masterData} onTabChange={setActiveTab} schoolProfileId={schoolProfileId} setShowPreview={setShowPreview}/>;
       default: return null;
     }
   };
@@ -809,8 +808,15 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
                 </span>
               )}
             </div>
-            <TabNav activeTab={activeTab} onTabChange={handleTabChange} isDisabled={isDisabled} />
+            {
+              showPreview && schoolProfileId ? (<PreviewPage schoolProfileId={schoolProfileId} setShowPreview={setShowPreview}/>) : (
+                <div>
+                   <TabNav activeTab={activeTab} onTabChange={handleTabChange} isDisabled={isDisabled} />
             <div style={{ background: "#f0f4f5", flex: 1 }}>{renderTab()}</div>
+                </div>
+              )
+            }
+           
           </div>
         );
       case "studentReg":

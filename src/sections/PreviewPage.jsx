@@ -4,11 +4,54 @@
 //  Reads data from sessionStorage (set by FinalSubmit).
 //  Design matches reference site exactly.
 // ============================================================
-import React from "react";
+import React, { useState,useEffect } from "react";
+import {
+  getSchoolProfileById, getSchoolLandDetails, getHostelDetails,
+  getDiningFacilities, getLabDetails, getLibraryDetails,
+  getTeacherDetails, getExtraCurriculum, getSportsFacilities,
+  getMedicalFacilities, getProfileFeeMaster, getSchoolBankDetails,
+  patchSchoolBasicDetails,
+} from "../api/liferay";
 
-export default function PreviewPage() {
-  const data = JSON.parse(sessionStorage.getItem("schoolReviewData") || "{}");
+export default function PreviewPage({ schoolProfileId,setShowPreview=()=>{} }) {
+  
+   const [data, setData] = useState([]);
+  //const data = JSON.parse(sessionStorage.getItem("schoolReviewData") || "{}");
+useEffect(() => {
+  getReviewData(schoolProfileId).then((data) => {
+    setData(data);
+  });
+}, [schoolProfileId]);
 
+  const getReviewData = async (schoolProfileId) => {
+    const [
+      schoolBasic, landDetails, hostelDetails, diningDetails,
+      labDetails, libraryDetails, teacherDetails, extraCurriculum,
+      sportsDetails, medicalDetails, feeMaster, bankDetails,
+    ] = await Promise.all([
+      getSchoolProfileById(schoolProfileId),
+      getSchoolLandDetails(schoolProfileId),
+      getHostelDetails(schoolProfileId),
+      getDiningFacilities(schoolProfileId),
+      getLabDetails(schoolProfileId),
+      getLibraryDetails(schoolProfileId),
+      getTeacherDetails(schoolProfileId),
+      getExtraCurriculum(schoolProfileId),
+      getSportsFacilities(schoolProfileId),
+      getMedicalFacilities(schoolProfileId),
+      {},
+      //getProfileFeeMaster(schoolProfileId),
+      getSchoolBankDetails(schoolProfileId),
+    ]);
+   
+    const reviewData = {
+      schoolBasic, landDetails, hostelDetails, diningDetails,
+      labDetails, libraryDetails, teacherDetails, extraCurriculum,
+      sportsDetails, medicalDetails, feeMaster, bankDetails,
+    };
+    return reviewData;
+  };
+  console.log('data.....', data)
   const sb  = data.schoolBasic    || {};
   const ld  = data.landDetails    || {};
   const hd  = data.hostelDetails  || {};
@@ -100,10 +143,37 @@ export default function PreviewPage() {
   };
 
   return (
-    <div style={page}>
+  <>
+    <style>
+      {`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+
+          #print-area, #print-area * {
+            visibility: visible;
+          }
+
+          #print-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}
+    </style>
+    <div style={page} id="print-area" >
       {/* Print button */}
       <button
-        onClick={() => window.print()}
+        onClick={() =>{ 
+          setShowPreview(false);
+          window.print()}}
         style={{ padding: "6px 16px", background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", marginBottom: "16px", fontSize: "13px" }}
       >
         Print
@@ -621,5 +691,6 @@ export default function PreviewPage() {
         </button>
       </div>
     </div>
+    </>
   );
 }
