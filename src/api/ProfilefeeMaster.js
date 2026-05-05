@@ -12,6 +12,7 @@ import { saveProfileFeeMaster, patchProfileFeeMaster, getProfileFeeMaster } from
 // ── Load existing rows ────────────────────────────────────────
 export async function loadFeemaster(schoolProfileId) {
   const records = await getProfileFeeMaster(schoolProfileId);
+  console.log('records in profileFeemaster', records)
   return { records };
 }
 

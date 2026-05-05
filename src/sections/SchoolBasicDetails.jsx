@@ -294,6 +294,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           setRows={setPerfRows}
           perfError={perfError}
           isDisabled={isDisabled}
+          schoolProfileId={schoolProfileId}
         />
  
         {/* Photo upload with error */}

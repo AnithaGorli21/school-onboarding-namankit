@@ -104,6 +104,7 @@ export const saveEducationalTour = (p) =>
 export const saveMedicalFacilities = (p) =>
   apiPost("/o/c/medicalfacilities", p);
 export const saveProfileFeeMaster = (p) => apiPost("/o/c/profilefeemasters", p);
+export const saveSchoolProfileIntake = (p) => apiPost("/o/c/schoolprofileintakes", p);
 export const saveSchoolBankDetails = (p) =>
   apiPost("/o/c/schoolbankdetails", p);
 export const saveStudentRegistration = (p) =>
@@ -136,6 +137,8 @@ export const patchMedicalFacilities = (id, p) =>
   apiPatch(`/o/c/medicalfacilities/${id}`, p);
 export const patchProfileFeeMaster = (id, p) =>
   apiPatch(`/o/c/profilefeemasters/${id}`, p);
+export const patchSchoolPerformanceIntake = (id, p) =>
+  apiPatch(`/o/c/schoolprofileintakes/${id}`, p);
 export const patchSchoolBankDetails = (id, p) =>
   apiPatch(`/o/c/schoolbankdetails/${id}`, p);
 export const patchStudentRegistration = (id, p) =>
@@ -217,14 +220,32 @@ export const getMedicalFacilities = (id) =>
     (d) => (d.items || [])[0] || null,
   );
 export const getProfileFeeMaster = (id) =>
-  apiFetch(`/o/c/profilefeemasters${bySchoolMany(id)}`).then(
+  apiFetch(`/o/c/profilefeemasters?filter=schoolProfileId eq '${id}'&pageSize=200&sort=dateCreated:desc`).then(
     (d) => d.items || [],
+  );
+export const getSchoolProfileIntake = (id) =>
+  apiFetch(`/o/c/schoolprofileintakes?pageSize=200&sort=dateCreated:desc`).then(
+    (d) => {
+      const allItems = d.items || [];
+      console.log('[Liferay] All schoolprofileintakes records:', allItems);
+      console.log('[Liferay] Looking for schoolProfileId field in records...');
+      
+      // Check what fields are available in the first record
+      if (allItems.length > 0) {
+        console.log('[Liferay] Available fields:', Object.keys(allItems[0]));
+        console.log('[Liferay] First record sample:', allItems[0]);
+      }
+      
+      // Temporarily return all records to see data in UI
+      console.log('[Liferay] Temporarily returning all records (no filtering)');
+      return allItems;
+    },
   );
 export const getSchoolBankDetails = (id) =>
   apiFetch(`/o/c/schoolbankdetails${bySchool(id)}`).then(
     (d) => (d.items || [])[0] || null,
   );
- 
+
 // Bill Generation
 export const saveBillGeneration = (p) => apiPost("/o/c/billgenerations", p);
 export const getBillGenerations = () =>
