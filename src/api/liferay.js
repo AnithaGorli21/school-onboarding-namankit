@@ -243,7 +243,7 @@ export const getSchoolProfileIntake = (id) =>
       
       // Temporarily return all records to see data in UI
       console.log('[Liferay] Temporarily returning all records (no filtering)');
-      return allItems;
+      return allItems.filter(item => item.schoolProfileId === Number(id));
     },
   );
 export const getSchoolIntakeStudents = (id) =>

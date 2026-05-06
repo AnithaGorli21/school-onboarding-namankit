@@ -83,7 +83,7 @@ function buildPayload({ row, schoolProfileId }) {
 // ── Submit (POST new rows, PATCH existing rows) ───────────────
 export async function submitSchoolPerformanceIntake(rows, schoolProfileId ) {
   if (!schoolProfileId) throw new Error("School Profile ID is missing. Please complete School Basic Details first.");
-
+console.log('Rows.......', rows)
   for (const row of rows) {
     const payload = buildPayload({ row, schoolProfileId });
 

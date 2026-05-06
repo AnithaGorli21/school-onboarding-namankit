@@ -67,11 +67,14 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   const [recordId, setRecordId] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
   const [childrenLoading, setChildrenLoading] = useState(false);
+  const [schoolIntakeData, setSchoolIntakeData] = useState([]);
  
   useEffect(() => {
     onLoadingChange?.(loadingData || childrenLoading);
   }, [loadingData, childrenLoading, onLoadingChange]);
- 
+ useEffect(() => {
+  console.log('schoolIntakeData,,,,,,', schoolIntakeData);
+ }, [schoolIntakeData]);
   // ── Helper functions to map API IDs to dropdown values ───────────
   const mapSchoolBoardIdToValue = (boardId) => {
     const boardMappings = {
@@ -305,6 +308,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           isDisabled={isDisabled}
           schoolProfileId={schoolProfileId}
           onApiLoadingChange={setChildrenLoading}
+          setSchoolIntakeData={setSchoolIntakeData}
         />
  
         {/* School Performance with min-3 error */}

@@ -42,7 +42,8 @@ export default function SchoolIntake({
   errors = {}, 
   schoolProfileId, 
   onApiLoadingChange,
-  isDisabled = false 
+  isDisabled = false ,
+  setSchoolIntakeData
 }) {
   const [loadingData, setLoadingData] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -134,7 +135,9 @@ export default function SchoolIntake({
     <td style={td({ verticalAlign: "top" })}>
       <TextInput
         value={intake[fieldKey]}
-        onChange={set(fieldKey)}
+        onChange={()=>{
+          set(fieldKey)
+        }}
         type="number"
         hasError={!!errors[fieldKey]}
       />
