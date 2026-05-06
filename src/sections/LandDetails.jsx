@@ -14,6 +14,7 @@ import {
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
 import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/landdetails";
+import { loadLandSchoolClassroomDetails, submitLandSchoolClassroomDetails, mapRecordsToRows } from "../api/landSchoolClassroomDetails";
 import { getPicklist } from "../api/liferay";
 import Loader from "../components/Loader";
 
@@ -108,10 +109,47 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
       .then(({ record, recordId: rid }) => {
         setRecordId(rid);
         const formData = mapRecordToForm(record);
-        if (formData) setLand(formData);
+        if (formData) {
+          setLand(formData);
+          // Set photo file if exists in the mapped data
+          if (formData.photoFile) {
+            setPhotoFile(formData.photoFile);
+          }
+        }
       })
       .catch((err) => console.error("[LandDetails] load error:", err))
       .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
+
+  // ── Handle photo preview for existing and new photos ───────────────────────
+  useEffect(() => {
+    if (photoFile) {
+      console.log('[LandDetails] Setting photo preview:', photoFile);
+      // For existing files, use the downloadURL or contentUrl
+      if (photoFile.existingFile) {
+        setPhotoPreview(photoFile.downloadURL || photoFile.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setPhotoPreview(URL.createObjectURL(photoFile));
+      }
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [photoFile]);
+
+  // ── Load existing classroom data ──────────────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    loadLandSchoolClassroomDetails(schoolProfileId)
+      .then(({ records }) => {
+        console.log('[LandDetails] Loaded classroom records:', records);
+        if (records && records.length > 0) {
+          const mappedRows = mapRecordsToRows(records);
+          console.log('[LandDetails] Mapped classroom rows:', mappedRows);
+          setClassRows(mappedRows);
+        }
+      })
+      .catch((err) => console.error('[LandDetails] Failed to load classroom data:', err));
   }, [schoolProfileId]);
 
   useEffect(() => {
@@ -178,12 +216,38 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
     return Object.keys(e).length === 0;
   };
 
-  const handleAddRow = () => {
+  const handleAddRow = async () => {
     if (!validateClassRow()) return;
+    if (!schoolProfileId) {
+      setAlert({ type: "error", message: "School profile ID is required to add classroom details." });
+      return;
+    }
+
     setRowErrors({});
-    setClassRows((prev) => [...prev, { ...classRow, id: Date.now() }]);
-    setClassRow(emptyClassRow);
-    setPage(1);
+    setSaving(true);
+    
+    try {
+      console.log('[LandDetails] Adding classroom row:', classRow);
+      
+      // Create the new row with temporary ID
+      const newRow = { ...classRow, id: Date.now(), liferayId: null };
+      
+      // Call API to save the row
+      const savedRows = await submitLandSchoolClassroomDetails([newRow], schoolProfileId);
+      console.log('[LandDetails] Classroom row saved successfully:', savedRows);
+      
+      // Update state with saved row (now has liferayId)
+      setClassRows((prev) => [...prev, savedRows[0]]);
+      setClassRow(emptyClassRow);
+      setPage(1);
+      
+      setAlert({ type: "success", message: "Classroom details added successfully!" });
+    } catch (err) {
+      console.error('[LandDetails] Failed to save classroom row:', err);
+      setAlert({ type: "error", message: "Failed to add classroom details: " + err.message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteRow = (id) => {
@@ -407,8 +471,22 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
                 <TextInput value={classRow.classroomWithoutBenches} onChange={setCR("classroomWithoutBenches")} type="number" />
               </Field>
             </div>
-            <button onClick={handleAddRow} style={{ background: "#28a745", color: "#fff", border: "none", borderRadius: 4, padding: "6px 20px", fontSize: 14, cursor: "pointer", height: 32, flexShrink: 0 }}>
-              Add
+            <button 
+              onClick={handleAddRow} 
+              disabled={saving}
+              style={{ 
+                background: saving ? "#6c757d" : "#28a745", 
+                color: "#fff", 
+                border: "none", 
+                borderRadius: 4, 
+                padding: "6px 20px", 
+                fontSize: 14, 
+                cursor: saving ? "not-allowed" : "pointer", 
+                height: 32, 
+                flexShrink: 0 
+              }}
+            >
+              {saving ? "Adding..." : "Add"}
             </button>
           </div>
 
@@ -470,8 +548,31 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
               </Field>
             </div>
             {photoPreview && (
-              <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
-                <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+                  <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoFile(null);
+                    setPhotoPreview(null);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: "#cc0000",
+                    background: "none",
+                    border: "1px solid #cc0000",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Remove Photo
+                </button>
               </div>
             )}
           </div>

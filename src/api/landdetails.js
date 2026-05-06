@@ -39,6 +39,14 @@ export function mapRecordToForm(record) {
     khoKhokabaddiGround: record.khokhoKabbadiGround   ? "Yes" : "No",
     sportsFacilityQuality: record.qualityOfSportFacilitiesInfrastrcAvaId || "",
     otherSports: record.othersSports || "",
+    photoFile: record.uploadSchoolLandPhoto ? {
+      documentId: record.uploadSchoolLandPhoto.id,
+      title: record.uploadSchoolLandPhoto.name,
+      downloadURL: record.uploadSchoolLandPhoto.fileURL || record.uploadSchoolLandPhoto.link?.href,
+      contentUrl: record.uploadSchoolLandPhoto.fileURL || record.uploadSchoolLandPhoto.link?.href,
+      externalReferenceCode: record.uploadSchoolLandPhoto.externalReferenceCode,
+      existingFile: true
+    } : null,
   };
 }
 
@@ -58,22 +66,31 @@ function buildPayload({ land, uploaded, schoolProfileId }) {
     swimmingTank:        land.swimmingTank        === "Yes",
     totalAreainAcres:    land.totalAreaAcres ? Number(land.totalAreaAcres) : 0,
     uploadSchoolLandPhoto: uploaded
-      ? {
-          id:         uploaded.documentId,
-          name:       uploaded.title,
-          fileURL:    uploaded.downloadURL,
-          fileBase64: "",
-          folder: { externalReferenceCode: "", siteId: 0 },
-        }
+      ? uploaded.existingFile 
+        ? {
+            id: uploaded.documentId,
+            name: uploaded.title,
+            fileURL: uploaded.downloadURL,
+            fileBase64: "",
+            folder: { externalReferenceCode: uploaded.externalReferenceCode || "", siteId: 0 },
+          }
+        : {
+            id: uploaded.documentId,
+            name: uploaded.title,
+            fileURL: uploaded.downloadURL,
+            fileBase64: "",
+            folder: { externalReferenceCode: "", siteId: 0 },
+          }
       : null,
   };
 }
 
 // ── Submit (POST or PATCH) ────────────────────────────────────
 export async function submitLandDetails({ land, photoFile, schoolProfileId, recordId }) {
-  const uploaded = photoFile
+  // Only upload if it's a new file (not existing)
+  const uploaded = photoFile && !photoFile.existingFile
     ? await uploadFileToFolder(photoFile, "School Documents")
-    : null;
+    : photoFile;
 
   const payload = buildPayload({ land, uploaded, schoolProfileId });
 

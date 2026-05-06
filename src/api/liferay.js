@@ -108,6 +108,8 @@ export const saveSchoolProfileIntake = (p) => apiPost("/o/c/schoolprofileintakes
 export const saveSchoolIntakeStudents = (p) => apiPost("/o/c/schoolintakestudents", p);
 export const saveSchoolBankDetails = (p) =>
   apiPost("/o/c/schoolbankdetails", p);
+export const saveLandSchoolClassroomDetails = (p) =>
+  apiPost("/o/c/landschoolclassroomdetails", p);
 export const saveStudentRegistration = (p) =>
   apiPost("/o/c/studentregistarions", p);
  
@@ -267,6 +269,10 @@ export const getSchoolIntakeStudents = (id) =>
 export const getSchoolBankDetails = (id) =>
   apiFetch(`/o/c/schoolbankdetails${bySchool(id)}`).then(
     (d) => (d.items || [])[0] || null,
+  );
+export const getLandSchoolClassroomDetails = (id) =>
+  apiFetch(`/o/c/landschoolclassroomdetails?filter=schoolProfileId eq ${id}&pageSize=200&sort=dateCreated:desc`).then(
+    (d) => d.items || [],
   );
 
 // Bill Generation
