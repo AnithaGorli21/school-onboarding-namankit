@@ -228,7 +228,7 @@ export const getMedicalFacilities = (id) =>
     (d) => (d.items || [])[0] || null,
   );
 export const getProfileFeeMaster = (id) =>
-  apiFetch(`/o/c/profilefeemasters?filter=schoolProfileId eq '${id}'&pageSize=200&sort=dateCreated:desc`).then(
+  apiFetch(`/o/c/profilefeemasters?filter=schoolProfileId eq ${id}&pageSize=200&sort=dateCreated:desc`).then(
     (d) => d.items || [],
   );
 export const getSchoolProfileIntake = (id) =>
