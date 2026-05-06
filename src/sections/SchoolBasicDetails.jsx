@@ -147,7 +147,14 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           websiteLink: record.websiteLink || "",
           schoolAreaType: record.schoolFallsUnderWhichAreaId,
           toiletsPerFloorCount: record.noOfToiletsOnEachFloorInSchlBuilding || "",
-          schoolPhoto: null,
+          schoolPhoto: record.uploadSchoolPhoto ? {
+            documentId: record.uploadSchoolPhoto.id,
+            title: record.uploadSchoolPhoto.name,
+            downloadURL: record.uploadSchoolPhoto.link?.href || "",
+            contentUrl: record.uploadSchoolPhoto.link?.href || "",
+            externalReferenceCode: record.uploadSchoolPhoto.externalReferenceCode,
+            existingFile: true
+          } : null,
         };
         setProfile(mappedProfile);
       })
@@ -188,9 +195,10 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
     setSaving(true);
     setAlert(null);
     try {
-      const uploadedPhoto = profile.schoolPhoto
+      // Only upload if it's a new file (not existing)
+      const uploadedPhoto = profile.schoolPhoto && !profile.schoolPhoto.existingFile
         ? await uploadFileToFolder(profile.schoolPhoto, "School Documents")
-        : null;
+        : profile.schoolPhoto;
  console.log('Profile school borad id:', profile)
       const payload = {
         address: profile.address || "",
@@ -224,13 +232,21 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         trusteeName: profile.trusteeName || "",
         udiseCode: profile.udiseCode || "",
         uploadSchoolPhoto: uploadedPhoto
-          ? {
-            id: uploadedPhoto.documentId,
-            name: uploadedPhoto.title,
-            fileURL: uploadedPhoto.downloadURL,
-            fileBase64: "",
-            folder: { externalReferenceCode: "", siteId: 0 },
-          }
+          ? uploadedPhoto.existingFile 
+            ? {
+                id: uploadedPhoto.documentId,
+                name: uploadedPhoto.title,
+                fileURL: uploadedPhoto.downloadURL,
+                fileBase64: "",
+                folder: { externalReferenceCode: uploadedPhoto.externalReferenceCode || "", siteId: 0 },
+              }
+            : {
+                id: uploadedPhoto.documentId,
+                name: uploadedPhoto.title,
+                fileURL: uploadedPhoto.downloadURL,
+                fileBase64: "",
+                folder: { externalReferenceCode: "", siteId: 0 },
+              }
           : null,
         villageId: Number(profile.village) || 0,
         websiteLink: profile.websiteLink || "",

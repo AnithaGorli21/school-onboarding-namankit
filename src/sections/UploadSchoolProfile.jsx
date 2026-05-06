@@ -1,11 +1,27 @@
 // ============================================================
 // src/sections/UploadSchoolProfile.jsx
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Field, Row3 } from "../components/FormFields";
 
 export default function UploadSchoolProfile({ form, setForm, errors }) {
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  // ── Handle existing photo prepopulation ───────────────────────
+  useEffect(() => {
+    if (form.schoolPhoto) {
+      console.log('[UploadSchoolProfile] Setting existing photo preview:', form.schoolPhoto);
+      // For existing files, use the downloadURL or contentUrl
+      if (form.schoolPhoto.existingFile) {
+        setPhotoPreview(form.schoolPhoto.downloadURL || form.schoolPhoto.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setPhotoPreview(URL.createObjectURL(form.schoolPhoto));
+      }
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [form.schoolPhoto]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -56,20 +72,43 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
         </div>
 
         {photoPreview && (
-          <div style={{
-            width: 120,
-            height: 90,
-            border: "1px solid #cccccc",
-            borderRadius: 3,
-            overflow: "hidden",
-            flexShrink: 0,
-            marginTop: 10
-          }}>
-            <img 
-              src={photoPreview} 
-              alt="Preview" 
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-            />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 120,
+              height: 90,
+              border: "1px solid #cccccc",
+              borderRadius: 3,
+              overflow: "hidden",
+              flexShrink: 0,
+              marginTop: 10
+            }}>
+              <img 
+                src={photoPreview} 
+                alt="Preview" 
+                style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+              />
+            </div>
+            <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+              {form.schoolPhoto?.existingFile ? "Current Photo" : "New Photo"}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setForm((prev) => ({ ...prev, schoolPhoto: null }));
+                setPhotoPreview(null);
+              }}
+              style={{
+                fontSize: 11,
+                color: "#cc0000",
+                background: "none",
+                border: "1px solid #cc0000",
+                borderRadius: 3,
+                padding: "2px 6px",
+                cursor: "pointer"
+              }}
+            >
+              Remove Photo
+            </button>
           </div>
         )}
       </div>
