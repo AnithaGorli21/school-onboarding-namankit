@@ -132,7 +132,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           village: record.villageId || "",
           pincode: record.pincode || "",
           emailId: record.emailId || "",
-          poName: record.poNameId || "",
+          poName: record.poNameId,
           udiseCode: record.udiseCode || "",
           schoolSelectionYear: record.schoolSelectionYear ? `${new Date(record.schoolSelectionYear).getFullYear()}-${(new Date(record.schoolSelectionYear).getFullYear() + 1).toString().slice(-2)}` : "",
           schoolRegistrationNumber: record.schoolRegistrationNo || "",

@@ -229,7 +229,7 @@ export const getProfileFeeMaster = (id) =>
     (d) => d.items || [],
   );
 export const getSchoolProfileIntake = (id) =>
-  apiFetch(`/o/c/schoolprofileintakes?filter=schoolProfileIntakeId  eq '${id}'pageSize=200&sort=dateCreated:desc`).then(
+  apiFetch(`/o/c/schoolprofileintakes`).then(
     (d) => {
       const allItems = d.items || [];
       console.log('[Liferay] All schoolprofileintakes records:', allItems);

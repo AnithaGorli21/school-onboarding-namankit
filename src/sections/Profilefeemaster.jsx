@@ -159,16 +159,17 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
 
   const handleDelete = (id) => setRows((p) => p.filter((r) => r.id !== id));
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      window.alert("File must be under 2MB");
-      return;
-    }
-    setReceiptFile(file);
-    setReceiptPreview(file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
-  };
+  // handleFileChange 
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    window.alert("File must be under 2MB");
+    return;
+  }
+  setReceiptFile(file);
+  setReceiptPreview(URL.createObjectURL(file)); // works for image AND pdf
+};
 
   // ── Save — validate all fee items added ───────────────────
   const handleSave = async () => {
@@ -311,14 +312,14 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
             <span className="pfm-filename">{receiptFile ? receiptFile.name : "No file chosen"}</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="pfm-view-btn"
-          onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
-          disabled={!receiptFile}
-        >
-          View Uploaded Receipt
-        </button>
+<button
+  type="button"
+  className="pfm-view-btn"
+  onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
+  disabled={!receiptPreview}
+>
+  View Uploaded Receipt
+</button>
       </div>
 
       {rows.length > 0 && (
@@ -359,3 +360,4 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
     </div>
   );
 }
+ 

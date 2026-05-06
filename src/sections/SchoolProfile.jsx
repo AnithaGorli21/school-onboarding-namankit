@@ -11,6 +11,7 @@ import {
 import {
   getStates, getDistricts, getTalukas, getVillages, getPoNames, getPicklist,
 } from "../api/liferay";
+import { fetchPOByATC } from "../api/fetch-masters";
 
 const WEBSITE_OPTIONS = ["Yes", "No"];
 const SELECTION_YEAR_OPTIONS = [
@@ -60,9 +61,24 @@ export default function SchoolProfile({ form, setForm, errors }) {
 
   // ✅ Temporary — load all states as PO options
   useEffect(() => {
-    getStates()
-      .then(setPoNames)
-      .catch(() => setPoNames([]));
+    let cancelled = false;
+
+    fetchPOByATC()
+          .then((data) => {
+            console.log("fetch PO masters...", data);
+    
+            if (!cancelled) setPoNames(Array.isArray(data) ? data : []);
+          })
+    
+          .catch((err) => {
+            console.error("[SchoolMasterForm] PO Names load failed:", err);
+    
+            if (!cancelled) setPoNames([]);
+          })
+    
+          .finally(() => {
+            //if (!cancelled) setLoadingPO(false);
+          });
   }, []);
 
   useEffect(() => {
@@ -123,6 +139,16 @@ export default function SchoolProfile({ form, setForm, errors }) {
     }
     return val;
    }
+   const onPONameChange = (val) =>{
+    console.log('PO name change:', typeof val, val);
+    poNames.forEach((opt,i)=> {
+      console.log('PO name option:', opt.value);
+      if (opt.value === Number(val)) {
+      console.log('PO name value:', poNames[val]?.value);
+        setForm((p) => ({ ...p, poName: i }));
+      }
+    });
+  } 
    //School Area
    const onSchoolAreaChange = (val) =>{
     console.log('School area change:', val);
@@ -136,6 +162,16 @@ export default function SchoolProfile({ form, setForm, errors }) {
     if(typeof val === 'number'){
       return areaOpts[val]?.value || "";
     }
+    return val;
+   }
+    const getPONameValue=(val)=>{
+      console.log('PO name value:', val, poNames);
+    if(typeof val === 'number'){
+      console.log('PO name value:', poNames[val]?.value);
+      return poNames[val]?.value || "";
+    }
+      console.log('PO name value:', poNames[val]?.value);
+
     return val;
    }
   return (
@@ -198,7 +234,7 @@ export default function SchoolProfile({ form, setForm, errors }) {
         </Field>
         {/* Row 10 — PO Name: Mandatory */}
         <Field label="PO Name" required error={errors.poName}>
-          <SelectInput value={form.poName} onChange={set("poName")} options={poNames} disabled={!form.village} />
+          <SelectInput value={getPONameValue(form.poName)} onChange={e=>onPONameChange(e)} options={poNames} disabled={!form.village} />
         </Field>
         {/* Row 11 — UDISE Code: Mandatory */}
         <Field label="UDISE Code" required error={errors.udiseCode}>
