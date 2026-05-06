@@ -8,7 +8,11 @@
 import { useState, useEffect } from "react";
 import { Field, TextInput, SectionHeading } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
-import { loadBankDetails, submitBankDetails, mapRecordToForm } from "../api/schoolbank";
+import {
+  loadBankDetails,
+  submitBankDetails,
+  mapRecordToForm,
+} from "../api/schoolbank";
 
 const STYLE_ID = "school-bank-details-responsive";
 const responsiveCSS = `
@@ -39,29 +43,38 @@ function useInjectStyles() {
     tag.id = STYLE_ID;
     tag.textContent = responsiveCSS;
     document.head.appendChild(tag);
-    return () => { document.getElementById(STYLE_ID)?.remove(); };
+    return () => {
+      document.getElementById(STYLE_ID)?.remove();
+    };
   }, []);
 }
 
 const emptyForm = {
-  bankName:                   "",
-  bankBranchName:             "",
-  bankIFSCCode:               "",
-  bankAccountNo:              "",
-  bankBranchAddress:          "",
+  bankName: "",
+  bankBranchName: "",
+  bankIFSCCode: "",
+  bankAccountNo: "",
+  bankBranchAddress: "",
   uploadCancelledChequeImage: null,
 };
 
-export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+export default function SchoolBankDetails({
+  onTabChange,
+  onSave,
+  schoolProfileId,
+  onLoadingChange,
+}) {
   useInjectStyles();
-
-  const [form,            setForm]            = useState(emptyForm);
-  const [errors,          setErrors]          = useState({});
-  const [saving,          setSaving]          = useState(false);
-  const [alert,           setAlert]           = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
-  const [recordId,        setRecordId]        = useState(null);
-  const [loadingData,     setLoadingData]     = useState(false);
+  const [recordId, setRecordId] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [ifscLoading, setIfscLoading] = useState(false);
+  const [ifscError, setIfscError] = useState("");
+  const [ifscFetched, setIfscFetched] = useState(false);
 
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
@@ -70,13 +83,20 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
 
   useEffect(() => {
     if (!schoolProfileId) return;
-    console.log("[SchoolBankDetails] loading for schoolProfileId →", schoolProfileId);
+    console.log(
+      "[SchoolBankDetails] loading for schoolProfileId →",
+      schoolProfileId,
+    );
     setLoadingData(true);
     loadBankDetails(schoolProfileId)
       .then(({ record, recordId: rid }) => {
         setRecordId(rid);
         const formData = mapRecordToForm(record);
-        if (formData) setForm(formData);
+        if (formData) {
+          setForm(formData);
+          // If record already has IFSC, treat as fetched so fields are disabled
+          if (formData.bankIFSCCode) setIfscFetched(true);
+        }
       })
       .catch((err) => console.error("[SchoolBankDetails] load error:", err))
       .finally(() => setLoadingData(false));
@@ -86,22 +106,25 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
 
   const validate = () => {
     const e = {};
-    if (!form.bankName.trim())                 e.bankName                   = "Required";
-    if (!form.bankBranchName.trim())           e.bankBranchName             = "Required";
-    if (!form.bankIFSCCode.trim())             e.bankIFSCCode               = "Required";
+    if (!form.bankName.trim()) e.bankName = "Required";
+    if (!form.bankBranchName.trim()) e.bankBranchName = "Required";
+    if (!form.bankIFSCCode.trim()) e.bankIFSCCode = "Required";
     else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
-                                               e.bankIFSCCode               = "Invalid IFSC format (e.g. SBIN0001234)";
-    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo              = "Required";
-    if (!form.bankBranchAddress.trim())        e.bankBranchAddress          = "Required";
+      e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
+    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo = "Required";
+    if (!form.bankBranchAddress.trim()) e.bankBranchAddress = "Required";
     if (!form.uploadCancelledChequeImage && !recordId)
-                                               e.uploadCancelledChequeImage = "Required";
+      e.uploadCancelledChequeImage = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = async () => {
     if (!validate()) {
-      setAlert({ type: "error", message: "Please fix the highlighted errors." });
+      setAlert({
+        type: "error",
+        message: "Please fix the highlighted errors.",
+      });
       return;
     }
     setSaving(true);
@@ -109,7 +132,10 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
     setLoadingData(true);
     try {
       await submitBankDetails({ form, schoolProfileId, recordId });
-      setAlert({ type: "success", message: `School Bank Details ${recordId ? "updated" : "saved"} successfully!` });
+      setAlert({
+        type: "success",
+        message: `School Bank Details ${recordId ? "updated" : "saved"} successfully!`,
+      });
       onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
@@ -119,11 +145,47 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
     }
   };
 
+  // ── IFSC auto-fetch ───────────────────────────────────────
+  const handleIFSCChange = async (v) => {
+    const val = v.toUpperCase();
+    set("bankIFSCCode")(val);
+    setIfscError("");
+    setIfscFetched(false); // reset fetched state when user changes IFSC
+
+    // Only fetch when IFSC is complete (11 chars) and valid format
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val)) return;
+
+    setIfscLoading(true);
+    try {
+      const res = await fetch(`https://ifsc.razorpay.com/${val}`);
+      if (!res.ok) {
+        setIfscError("Invalid IFSC code — bank not found.");
+        return;
+      }
+      const data = await res.json();
+      // Auto-fill bank fields, leave bankAccountNo untouched
+      setForm((p) => ({
+        ...p,
+        bankIFSCCode: val,
+        bankName: data.BANK || p.bankName,
+        bankBranchName: data.BRANCH || p.bankBranchName,
+        bankBranchAddress: data.ADDRESS || p.bankBranchAddress,
+      }));
+      setIfscFetched(true); // disable auto-fetched fields
+    } catch {
+      setIfscError("Failed to fetch bank details. Please fill manually.");
+    } finally {
+      setIfscLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setForm(emptyForm);
     setErrors({});
     setAlert(null);
     setImagePreviewUrl(null);
+    setIfscError("");
+    setIfscFetched(false);
   };
 
   const handleFileChange = (e) => {
@@ -134,7 +196,9 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
       return;
     }
     setForm((p) => ({ ...p, uploadCancelledChequeImage: file }));
-    setImagePreviewUrl(file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
+    setImagePreviewUrl(
+      file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
+    );
   };
 
   return (
@@ -147,58 +211,111 @@ export default function SchoolBankDetails({ onTabChange, onSave, schoolProfileId
       loading={loadingData}
     >
       <SectionHeading title="School Bank Details" />
-
       <div className="sbd-row3">
         <Field label="Bank Name" required error={errors.bankName}>
-          <TextInput value={form.bankName} onChange={set("bankName")} />
+          <TextInput
+            value={form.bankName}
+            onChange={set("bankName")}
+            disabled={ifscFetched}
+          />
         </Field>
         <Field label="Bank Branch Name" required error={errors.bankBranchName}>
-          <TextInput value={form.bankBranchName} onChange={set("bankBranchName")} />
+          <TextInput
+            value={form.bankBranchName}
+            onChange={set("bankBranchName")}
+            disabled={ifscFetched}
+          />
         </Field>
-        <Field label="Bank IFSC Code" required error={errors.bankIFSCCode}>
+        <Field
+          label="Bank IFSC Code"
+          required
+          error={errors.bankIFSCCode || ifscError}
+        >
           <TextInput
             value={form.bankIFSCCode}
-            onChange={(v) => set("bankIFSCCode")(v.toUpperCase())}
+            onChange={handleIFSCChange}
             placeholder="e.g. SBIN0001234"
+          />
+          {ifscLoading && (
+            <span
+              style={{
+                fontSize: 11,
+                color: "#1a7a8a",
+                marginTop: 3,
+                display: "block",
+              }}
+            >
+              Fetching bank details...
+            </span>
+          )}
+        </Field>
+      </div>
+      <div className="sbd-row2">
+        <Field label="Bank Account No" required error={errors.bankAccountNo}>
+          <TextInput
+            value={form.bankAccountNo}
+            onChange={set("bankAccountNo")}
+          />
+        </Field>
+        <Field
+          label="Bank Branch Address"
+          required
+          error={errors.bankBranchAddress}
+        >
+          <TextInput
+            value={form.bankBranchAddress}
+            onChange={set("bankBranchAddress")}
+            disabled={ifscFetched}
           />
         </Field>
       </div>
-
-      <div className="sbd-row2">
-        <Field label="Bank Account No" required error={errors.bankAccountNo}>
-          <TextInput value={form.bankAccountNo} onChange={set("bankAccountNo")} />
-        </Field>
-        <Field label="Bank Branch Address" required error={errors.bankBranchAddress}>
-          <TextInput value={form.bankBranchAddress} onChange={set("bankBranchAddress")} />
-        </Field>
-      </div>
-
       <div className="sbd-upload-wrap">
-        <Field label="Upload Cancelled Cheque Image" required error={errors.uploadCancelledChequeImage}>
+        <Field
+          label="Upload Cancelled Cheque Image"
+          required
+          error={errors.uploadCancelledChequeImage}
+        >
           <div className="sbd-upload-inner">
             <div className="sbd-file-box">
               <label className="sbd-choose-label">
                 Choose File
-                <input type="file" style={{ display: "none" }} accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  style={{ display: "none" }}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handleFileChange}
+                />
               </label>
               <span className="sbd-filename">
-                {form.uploadCancelledChequeImage ? form.uploadCancelledChequeImage.name : "No file chosen"}
+                {form.uploadCancelledChequeImage
+                  ? form.uploadCancelledChequeImage.name
+                  : "No file chosen"}
               </span>
             </div>
             <button
               type="button"
               className="sbd-open-btn"
-              onClick={() => imagePreviewUrl && window.open(imagePreviewUrl, "_blank")}
+              onClick={() =>
+                imagePreviewUrl && window.open(imagePreviewUrl, "_blank")
+              }
               disabled={!form.uploadCancelledChequeImage}
-              style={{ background: form.uploadCancelledChequeImage ? "#e5a020" : "#f0b84a" }}
+              style={{
+                background: form.uploadCancelledChequeImage
+                  ? "#e5a020"
+                  : "#f0b84a",
+              }}
             >
               Open Image
             </button>
           </div>
         </Field>
       </div>
-
-      <button type="button" className="sbd-save-btn" onClick={handleSave} disabled={saving}>
+      <button
+        type="button"
+        className="sbd-save-btn"
+        onClick={handleSave}
+        disabled={saving}
+      >
         {saving ? "Saving…" : "Save"}
       </button>
     </SectionWrapper>
