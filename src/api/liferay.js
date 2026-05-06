@@ -173,10 +173,11 @@ const bySchoolMany = (id) =>
     : `?pageSize=200&sort=dateCreated:desc`;
  
 // Get ALL schools — for List Page
-export const getAllSchools = () =>
-  apiFetch(
-    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
-  ).then((d) => d.items || []);
+// export const getAllSchools = () =>
+//   apiFetch(
+//     "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
+//   ).then((d) => d.items || []);
+
 export const getSchoolProfiles = (id) =>
   apiFetch(`/o/c/namankitschoolprofiles${bySchool(id)}`).then(
     (d) => (d.items || [])[0] || null,
@@ -336,3 +337,15 @@ export const getQualifications = () =>
   apiFetch("/o/c/qualificationmasters?pageSize=200&sort=name:asc").then((d) =>
     (d.items || []).map((r) => ({ value: r.id, label: r.name })),
   );
+
+// Get ALL schools — for List Page
+export const getAllSchools = () =>
+  apiFetch(
+    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
+  ).then((d) => d.items || []);
+
+// ✅ ADD THIS — Get only the school matching logged-in user's email
+export const getSchoolByEmail = (email) =>
+  apiFetch(
+    `/o/c/namankitschoolprofiles?filter=emailId eq '${email}'&pageSize=1&sort=dateCreated:desc`,
+  ).then((d) => d.items || []);

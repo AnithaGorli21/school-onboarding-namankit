@@ -8,7 +8,7 @@
 //  - Pagination bottom right
 // ============================================================
 import { useState, useEffect } from "react";
-import { getAllSchools } from "../api/liferay";
+import { getAllSchools, getSchoolByEmail  } from "../api/liferay";
 
 export default function SchoolListPage({ onEdit }) {
   const [schools, setSchools] = useState([]);
@@ -18,13 +18,16 @@ export default function SchoolListPage({ onEdit }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
-  useEffect(() => {
-    setLoading(true);
-    getAllSchools()
-      .then(setSchools)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+  // AFTER
+useEffect(() => {
+  setLoading(true);
+  const email = window.Liferay?.ThemeDisplay?.getUserEmailAddress?.();
+  const fetcher = email ? getSchoolByEmail(email) : getAllSchools();
+  fetcher
+    .then(setSchools)
+    .catch((e) => setError(e.message))
+    .finally(() => setLoading(false));
+}, []);
 
   const filtered = schools.filter((s) => {
     const q = search.toLowerCase();
