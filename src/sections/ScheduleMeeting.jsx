@@ -7,6 +7,7 @@ import { Alert } from "../components/FormFields";
 import { validateGRDetails } from "../utils/validate";
 import { today } from "../utils/dates";
 import { getSchoolDetails } from "../api/schoolDetails";
+import Loader from "../components/Loader";
 
 export default function ScheduleMeeting() {
     const emptyForm = { committeeDate: "", grDate: "", atcName: "", schoolType: "", grFile: null, momFile: null, description: "" };
@@ -28,6 +29,7 @@ export default function ScheduleMeeting() {
     const [meetings, setMeetings] = useState([]);
     const [loadingMeetings, setLoadingMeetings] = useState(false);
     const [schoolDetails, setSchoolDetails] = useState([]);
+    const [loadingSchoolDetails, setLoadingSchoolDetails] = useState(false);
 
     const formatDate = (iso) => {
         if (!iso) return "";
@@ -86,6 +88,7 @@ export default function ScheduleMeeting() {
         console.log('isSearchSchools', isSearchSchools);
         if (isSearchSchools) {
             console.log('Fetching school details...');
+            setLoadingSchoolDetails(true);
             getSchoolDetails().then((res) => {
                 console.log('School Details.....',res);
                 console.log('School Details length:', res?.length);
@@ -97,6 +100,8 @@ export default function ScheduleMeeting() {
             }).catch((err) => {
                 console.error('Error fetching school details:', err);
                 setSchoolDetails([]);
+            }).finally(() => {
+                setLoadingSchoolDetails(false);
             });
         }
     }, [isSearchSchools]);
@@ -201,6 +206,8 @@ export default function ScheduleMeeting() {
         if (Object.keys(errs).length > 0) return;
 
         setAlert(null);
+        setLoadingSchoolDetails(true);
+
         try {
             const uploadedGR = form.grFile ? await uploadFileToFolder(form.grFile, "GR Documents") : null;
             const uploadedMOM = form.momFile ? await uploadFileToFolder(form.momFile, "GR Documents") : null;
@@ -243,9 +250,13 @@ export default function ScheduleMeeting() {
             // After successful save, fetch school data
             //fetchSchoolData();
             setIsSearchSchools(true);
-            setForm(emptyForm);
+            //setForm(emptyForm);
+            setLoadingSchoolDetails(false);
+
         } catch (err) {
             console.error(err);
+            setLoadingSchoolDetails(false);
+
             setAlert({ type: "error", message: err.message || "Failed to save GR details" });
         }
     };
@@ -462,7 +473,32 @@ export default function ScheduleMeeting() {
                         </div>
                     </div>
                 ) : (
-                    <div style={{ background: "#fff", borderRadius: 4, padding: 20, boxShadow: "0 1px 0 rgba(0,0,0,0.05)" }}>
+                    <div style={{position:'relative', background: "#fff", borderRadius: 4, padding: 20, boxShadow: "0 1px 0 rgba(0,0,0,0.05)" }}>
+                                {loadingSchoolDetails && (
+                                    <div style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        top: 0, 
+                                        left: 0, 
+                                        position: 'absolute', 
+                                        zIndex: 1000, 
+                                        background: 'rgba(255, 255, 255, 0.72)', 
+                                        display: 'flex', 
+                                        alignItems: 'start', 
+                                        justifyContent: 'center',
+                                        minHeight: '200px'
+                                    }}>
+                                        <div style={{width: '100%', 
+                                        height: '100%', 
+                                        display:'flex',
+                                        top: '20%', 
+                                        left: 0, 
+                                        position: 'absolute',justifyContent:'center' }}>
+                                            <Loader />
+                                        </div>
+                                    </div>
+                                )}
+                                
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <h2 style={{ color: "#1aa0b6", marginTop: 0 }}>GR Details</h2>
                             <button onClick={() => setView("list")} style={{ background: "#fff", color: "#1a2a5e", border: "1px solid #1a2a5e", padding: "8px 12px", borderRadius: 6, cursor: "pointer" }}>← Back to List</button>
@@ -619,7 +655,24 @@ export default function ScheduleMeeting() {
 
                         {/* School Details Table */}
                         {console.log('Rendering table - isSearchSchools:', isSearchSchools, 'schoolDetails:', schoolDetails) || (isSearchSchools || selectedMeeting) && (
-                            <div style={{ marginTop: 20 }}>
+                            <div style={{ marginTop: 20, position: 'relative' }}>
+                                {loadingSchoolDetails && (
+                                    <div style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        top: 0, 
+                                        left: 0, 
+                                        position: 'absolute', 
+                                        zIndex: 1000, 
+                                        background: 'rgba(255, 255, 255, 0.72)', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        minHeight: '200px'
+                                    }}>
+                                        <Loader />
+                                    </div>
+                                )}
                                 <div style={{ overflowX: "auto" }}>
                                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                         <thead>
