@@ -7,7 +7,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
- 
+import Loader from "../components/Loader";
+
 // ── Same 28 questions as POGrading ───────────────────────────
 const QUESTIONS = [
   { no: 3, label: "Q.No. 3", title: "No. of year since establishment of School", maxMarks: 3, criteria: [{ label: ">=20", marks: 3 }, { label: "15 to 19", marks: 2 }, { label: "13 to 14.99", marks: 1 }, { label: "<13", marks: 0 }] },
@@ -53,7 +54,7 @@ const getAssignedFees = (totalMarks) => {
 const TDD_FEES = 600;
  
 const styles = {
-  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
+  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh", position: "relative" },
   card: { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
   cardHeader: { background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
   cardBody: { padding: "14px 16px" },
@@ -83,6 +84,7 @@ export default function ATCGrading({ school, onBack }) {
   const [atcRemarksSummary, setAtcRemarksSummary] = useState("");
   const [proposedStudents, setProposedStudents] = useState("");
   const [saving, setSaving] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
  
@@ -134,11 +136,12 @@ export default function ATCGrading({ school, onBack }) {
       return;
     }
     setSaving(true);
+    setSubmitLoading(true);
     setAlert(null);
     try {
       // Update grading record with ATC data
       const { patchSchoolGrading, patchGradingQuestion, updateApprovalStatus } = await import("../api/poGrading");
- 
+
       // Sanitize marks to ensure none exceed question max before saving
       const sanitizedQuestions = questionData.map(q => {
         const def = QUESTIONS.find(d => d.no === q.questionNumber || toNumeric(d.no) === q.questionNumber);
@@ -146,11 +149,11 @@ export default function ATCGrading({ school, onBack }) {
         const marks = Math.min(Number(q.atcMarks) || 0, max);
         return { ...q, atcMarks: marks };
       });
- 
+
       const sanitizedTotal = sanitizedQuestions.reduce((s, q) => s + (Number(q.atcMarks) || 0), 0);
       const sanitizedAssignedFees = getAssignedFees(sanitizedTotal);
       const sanitizedFinalFees = sanitizedAssignedFees + TDD_FEES;
- 
+
       // Update main grading record using sanitized totals
       await patchSchoolGrading(gradingRecordId, {
         atcRemarksSummary,
@@ -161,7 +164,7 @@ export default function ATCGrading({ school, onBack }) {
         finalFees: sanitizedFinalFees,
         approvalStatus,
       });
- 
+
       // Update each question's atcMarks and atcRemarks with sanitized marks
       for (const q of sanitizedQuestions) {
         const existing = existingQs.find(eq => eq.questionNumber === toNumeric(q.questionNumber) || eq.questionNumber === q.questionNumber);
@@ -172,16 +175,17 @@ export default function ATCGrading({ school, onBack }) {
           });
         }
       }
- 
+
       // Update approval status on school profile
       await updateApprovalStatus(school.id, approvalStatus);
- 
+
       setAlert({ type: "success", message: `School ${approvalStatus} successfully!` });
       setTimeout(() => onBack?.(), 1500);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setSubmitLoading(false);
     }
   };
  
@@ -189,6 +193,11 @@ export default function ATCGrading({ school, onBack }) {
  
   return (
     <div style={styles.page}>
+      {/* Loader overlay during submit */}
+      {submitLoading && <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: "#1a2a5e" }}><Loader /></div>
+      </div>}
+      
       <button onClick={onBack} style={{ ...styles.btn("#6c757d"), marginBottom: 16 }}>← Back to List</button>
  
       <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#1a2a5e" }}>School Profile Grading</h2>

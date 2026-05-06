@@ -636,6 +636,7 @@ function ATCApp({ role }) {
             onGrading={(school) => { setSelectedSchool(school); }}
             onViewDetails={(id) => window.open(`/?schoolId=${id}`, "_blank")}
             selectedSchool={selectedSchool}
+            onBack={() => setSelectedSchool(null)}
           />
         );
       case "billGeneration": return <BillGeneration />;

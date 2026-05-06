@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import { apiPost, getGRDetails } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
 import { Alert } from "../components/FormFields";
+import { fetchATCMasters } from "../api/fetch-masters";
 import { validateGRDetails } from "../utils/validate";
 import { today } from "../utils/dates";
 import { getSchoolDetails } from "../api/schoolDetails";
@@ -24,6 +25,7 @@ export default function ScheduleMeeting() {
     const [uploadedFiles, setUploadedFiles] = useState({ grFile: null, momFile: null });
     const [selectedMeeting, setSelectedMeeting] = useState(null);
     const [isSearchSchools,setIsSearchSchools] = useState(false);
+    const [atcMasters, setAtcMasters] = useState([]);
 
     // sample meeting data — replace with API data as needed
     const [meetings, setMeetings] = useState([]);
@@ -83,6 +85,19 @@ export default function ScheduleMeeting() {
     // Load meetings on component mount
     React.useEffect(() => {
         loadMeetings();
+    }, []);
+
+    // Load ATC masters on component mount
+    React.useEffect(() => {
+        const loadATCMasters = async () => {
+            try {
+                const masters = await fetchATCMasters();
+                setAtcMasters(masters);
+            } catch (error) {
+                console.error("Error loading ATC masters:", error);
+            }
+        };
+        loadATCMasters();
     }, []);
     React.useEffect(() => {
         console.log('isSearchSchools', isSearchSchools);
@@ -538,9 +553,11 @@ export default function ScheduleMeeting() {
                                     disabled ={selectedMeeting ? true : false}
                                     >
                                         <option value="">---Select---</option>
-                                        <option>Thane</option>
-                                        <option>Amravati</option>
-
+                                        {atcMasters.map((atc) => (
+                                            <option key={atc.value} value={atc.label}>
+                                                {atc.label}
+                                            </option>
+                                        ))}
                                     </select>
                                     {errors.atcName && <div style={{ color: "#cc0000", fontSize: 12, marginTop: 6 }}>{errors.atcName}</div>}
                                 </div>

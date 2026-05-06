@@ -5,7 +5,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
- 
+import Loader from "../components/Loader";
+
 // ── All 28 questions with criteria ───────────────────────────
 const QUESTIONS = [
   {
@@ -162,7 +163,7 @@ const TDD_FEES = 425; // preset by department
  
 // ── Styles ────────────────────────────────────────────────────
 const styles = {
-  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh" },
+  page: { padding: "20px 32px", background: "#f5f5f5", minHeight: "100vh",position: "relative" },
   card: { background: "#fff", border: "1px solid #dee2e6", borderRadius: 4, marginBottom: 16, overflow: "hidden" },
   cardHeader: { background: "#4a90d9", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 600 },
   cardBody: { padding: "14px 16px" },
@@ -197,6 +198,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
   );
   const [poRemarksSummary, setPoRemarksSummary] = useState("");
   const [saving, setSaving] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
  
@@ -247,6 +249,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
       return;
     }
     setSaving(true);
+    setSubmitLoading(true);
     setAlert(null);
     try {
       // Sanitize marks so no question exceeds its max before sending to API
@@ -256,11 +259,11 @@ export default function POGrading({ school, onBack, selectedSchool }) {
         const marks = Math.min(Number(q.poMarks) || 0, max);
         return { ...q, poMarks: marks };
       });
- 
+
       const sanitizedTotal = sanitizedQuestions.reduce((s, q) => s + (Number(q.poMarks) || 0), 0);
       const sanitizedAssignedFees = getAssignedFees(sanitizedTotal);
       const sanitizedFinalFees = sanitizedAssignedFees + TDD_FEES;
- 
+
       await submitGrading({
         schoolProfileId: school.id,
         questions: sanitizedQuestions,
@@ -280,6 +283,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
+      setSubmitLoading(false);
     }
   };
  
@@ -287,6 +291,11 @@ export default function POGrading({ school, onBack, selectedSchool }) {
  
   return (
     <div style={styles.page}>
+      {/* Loader overlay during submit */}
+      {submitLoading && <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: "#1a2a5e" }}><Loader /></div>
+      </div>}
+      
       {/* Back button */}
       <button onClick={onBack} style={{ ...styles.btn("#6c757d"), marginBottom: 16 }}>← Back to List</button>
  

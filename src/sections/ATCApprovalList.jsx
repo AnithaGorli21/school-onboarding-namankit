@@ -26,7 +26,7 @@ const getStatus = (s) =>
     ? (s.approvalStatus.key || s.approvalStatus.name || "")
     : (s.approvalStatus === 'PO Recommended for Approval' ? s.approvalStatus : "PO Approval Pending");
  
-export default function ATCApprovalList({ onGrading, onViewDetails, selectedSchool }) {
+export default function ATCApprovalList({ onGrading, onViewDetails, selectedSchool, onBack }) {
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -125,7 +125,7 @@ export default function ATCApprovalList({ onGrading, onViewDetails, selectedScho
           (<div>
             {
               selectedSchool ? (<div style={{ width: "100%" }}>
-                <ATCGrading school={selectedSchool} />
+                <ATCGrading school={selectedSchool} onBack={onBack} />
               </div>) : (
                 <div style={{ padding: "24px 32px" }}>
                   <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" }}>School Approval List</h2>
