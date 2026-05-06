@@ -42,8 +42,8 @@ export default function SchoolIntake({
   errors = {}, 
   schoolProfileId, 
   onApiLoadingChange,
-  isDisabled = false ,
-  setSchoolIntakeData
+  isDisabled = false,
+  setSchoolIntakeData 
 }) {
   const [loadingData, setLoadingData] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -77,28 +77,13 @@ export default function SchoolIntake({
       });
   }, [schoolProfileId, setIntake, onApiLoadingChange]);
 
-  // ── Submit function for external use ───────────────────────────────
-  const handleSubmit = async () => {
-    if (!schoolProfileId) {
-      throw new Error("schoolProfileId is required for saving intake data");
-    }
-    
-    try {
-      const result = await submitSchoolIntakeStudents({ intake, schoolProfileId });
-      console.log('[SchoolIntake] Save successful:', result);
-      return result;
-    } catch (err) {
-      console.error('[SchoolIntake] Save error:', err);
-      throw err;
-    }
-  };
-
-  // Expose submit function to parent component
+  // ── Pass intake data to parent component whenever it changes ────────
   useEffect(() => {
-    if (setIntake && typeof setIntake === 'function') {
-      setIntake((prev) => ({ ...prev, _submitIntake: handleSubmit }));
+    if (setSchoolIntakeData && typeof setSchoolIntakeData === 'function') {
+      console.log('[SchoolIntake] Passing intake data to parent:', intake);
+      setSchoolIntakeData(intake);
     }
-  }, [schoolProfileId, setIntake]);
+  }, [intake, setSchoolIntakeData]);
 
   // ── Auto-calculated totals (rows 29–35) ──────────────────
   const namankit_res_boys    = toNum(intake.namankit_boys_residential);
@@ -135,9 +120,7 @@ export default function SchoolIntake({
     <td style={td({ verticalAlign: "top" })}>
       <TextInput
         value={intake[fieldKey]}
-        onChange={()=>{
-          set(fieldKey)
-        }}
+        onChange={set(fieldKey)}
         type="number"
         hasError={!!errors[fieldKey]}
       />

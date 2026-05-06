@@ -16,6 +16,7 @@ import {
   getSchoolProfileById,
 } from "../api/liferay";
 import { uploadFileToFolder } from "../api/upload";
+import { submitSchoolIntakeStudents } from "../api/schoolIntakeStudents";
 import Loader from "../components/Loader";
  
 const emptyProfile = {
@@ -240,11 +241,13 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         ? await patchSchoolBasicDetails(recordId, payload)
         : await saveSchoolBasicDetails(payload);
 
-      // Save intake data if schoolProfileId is available
+      // Save intake data using the new approach
       if (response?.id || schoolProfileId) {
         try {
-          const intakeResponse = await intake._submitIntake?.();
-          console.log('[SchoolBasicDetails] Intake data saved:', intakeResponse);
+          console.log('[SchoolBasicDetails] Saving intake data:', intake);
+          const effectiveSchoolProfileId = response?.id || schoolProfileId;
+          const intakeResponse = await submitSchoolIntakeStudents({ intake, schoolProfileId: effectiveSchoolProfileId });
+          console.log('[SchoolBasicDetails] Intake data saved successfully:', intakeResponse);
         } catch (intakeErr) {
           console.error('[SchoolBasicDetails] Intake save error:', intakeErr);
           // Don't fail the entire save if intake fails, but show a warning
