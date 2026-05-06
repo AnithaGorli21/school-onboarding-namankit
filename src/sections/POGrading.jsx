@@ -459,14 +459,14 @@ export default function POGrading({ school, onBack, selectedSchool }) {
           style={styles.btn("#28a745")}>
           {saving ? "Saving..." : "Approve"}
         </button>
-        <button onClick={() => handleSubmit("Rejected by PO")} disabled={saving}
+        {/* <button onClick={() => handleSubmit("Rejected by PO")} disabled={saving}
           style={styles.btn("#dc3545")}>
           Reject
         </button>
         <button onClick={() => handleSubmit("SendBack by PO")} disabled={saving}
           style={styles.btn("#ffc107", "#333")}>
           Send Back
-        </button>
+        </button> */}
         <button onClick={onBack} style={styles.btn("#6c757d")}>
           Cancel
         </button>
@@ -477,7 +477,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
         <div style={{ color: "#e74c3c", fontWeight: 600, marginBottom: 8, fontSize: 13 }}>Important Note !!!</div>
         <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: "#555", lineHeight: 1.8 }}>
           <li><strong>Approve</strong> : School will be approved and enrolment of new students is proposed.</li>
-          <li><strong>Reject</strong> : School will be rejected and new students enrolment in the school is not proposed.</li>
+          {/* <li><strong>Reject</strong> : School will be rejected and new students enrolment in the school is not proposed.</li> */}
           <li><strong>Cancel</strong> : School is proposed to be cancelled and existing students are proposed to be shifted to other schools.</li>
         </ul>
       </div>
