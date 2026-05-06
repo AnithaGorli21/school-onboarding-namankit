@@ -8,7 +8,8 @@
 //  - Pagination bottom right
 // ============================================================
 import { useState, useEffect } from "react";
-import { getAllSchools, getSchoolByEmail  } from "../api/liferay";
+import { getAllSchools, getSchoolByEmail } from "../api/liferay";
+import { loadRestrictEntry, fromISO } from "../api/RestrictEntryMaster";
 
 export default function SchoolListPage({ onEdit }) {
   const [schools, setSchools] = useState([]);
@@ -18,16 +19,51 @@ export default function SchoolListPage({ onEdit }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
-  // AFTER
-useEffect(() => {
-  setLoading(true);
-  const email = window.Liferay?.ThemeDisplay?.getUserEmailAddress?.();
-  const fetcher = email ? getSchoolByEmail(email) : getAllSchools();
-  fetcher
-    .then(setSchools)
-    .catch((e) => setError(e.message))
-    .finally(() => setLoading(false));
-}, []);
+  // ✅ NEW — registration date window state
+  const [registrationAllowed, setRegistrationAllowed] = useState(null);
+  const [registrationMsg, setRegistrationMsg] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    const email = window.Liferay?.ThemeDisplay?.getUserEmailAddress?.();
+    const fetcher = email ? getSchoolByEmail(email) : getAllSchools();
+    fetcher
+      .then(setSchools)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // ✅ NEW — fetch restrict entry dates and check if today is within window
+  useEffect(() => {
+    loadRestrictEntry()
+      .then(({ record }) => {
+        if (!record || !record.billstudent || !record.billarrear) {
+          setRegistrationAllowed(false);
+          setRegistrationMsg("School registration dates have not been configured by the Controller.");
+          return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const fromDate = new Date(fromISO(record.billstudent));
+        const toDate = new Date(fromISO(record.billarrear));
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(0, 0, 0, 0);
+
+        if (today >= fromDate && today <= toDate) {
+          setRegistrationAllowed(true);
+          setRegistrationMsg("");
+        } else {
+          setRegistrationAllowed(false);
+          setRegistrationMsg(
+            `School registration is only allowed from ${fromDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} to ${toDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}.`
+          );
+        }
+      })
+      .catch(() => {
+        setRegistrationAllowed(false);
+        setRegistrationMsg("Unable to verify registration dates. Please try again later.");
+      });
+  }, []);
 
   const filtered = schools.filter((s) => {
     const q = search.toLowerCase();
@@ -37,28 +73,30 @@ useEffect(() => {
       (s.address || "").toLowerCase().includes(q)
     );
   });
-useEffect(()=>{
-  filtered.forEach((school) => {
-    console.log(school.approvalStatus);
-  });
-}, [filtered]);
+
+  useEffect(() => {
+    filtered.forEach((school) => {
+      console.log(school.approvalStatus);
+    });
+  }, [filtered]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-
   const goTo = (p) => setPage(Math.min(Math.max(1, p), totalPages));
 
   // Generate page numbers to show
   const pageNums = [];
   for (let i = 1; i <= totalPages; i++) pageNums.push(i);
-  const isDisabled = (status)=>{
-    return status === "Approved" || status === "ATC Recommended for Approval" || 
-    status === "PO Recommended for Approval" ||
-    status === "Sendback by ATC" ||
-    status === "Rejected by ATC" || status === "School Profile Request";
+
+  const isDisabled = (status) => {
+    return status === "Approved" || status === "ATC Recommended for Approval" ||
+      status === "PO Recommended for Approval" ||
+      status === "Sendback by ATC" ||
+      status === "Rejected by ATC" || status === "School Profile Request";
   };
+
   return (
     <div style={{ padding: "24px 32px", fontFamily: "Arial, sans-serif" }}>
-
       {/* ── Title row ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
@@ -93,6 +131,17 @@ useEffect(()=>{
       {error && (
         <div style={{ background: "#f8d7da", color: "#721c24", padding: "10px 14px", borderRadius: 4, marginBottom: 16, fontSize: 13 }}>
           Failed to load schools — {error}
+        </div>
+      )}
+
+      {/* ✅ NEW — Registration date banner */}
+      {registrationAllowed === false && registrationMsg && (
+        <div style={{
+          background: "#fff3cd", border: "1px solid #ffc107",
+          borderRadius: 4, padding: "10px 14px",
+          fontSize: 13, color: "#856404", marginBottom: 16
+        }}>
+          ⚠️ <strong>Registration not available:</strong> {registrationMsg}
         </div>
       )}
 
@@ -156,9 +205,10 @@ useEffect(()=>{
                         padding: "6px 16px", fontSize: 13,
                         fontWeight: 500,
                         display: "inline-flex", alignItems: "center", gap: 6,
-                        opacity: isDisabled(school.approvalStatus) ? 0.5 : 1,
-                        pointerEvents: isDisabled(school.approvalStatus) ? "none" : "auto",
-                        cursor: isDisabled(school.approvalStatus) ? "not-allowed" : "pointer"
+                        // ✅ NEW — also disabled when registration window is closed
+                        opacity: isDisabled(school.approvalStatus) || !registrationAllowed ? 0.5 : 1,
+                        pointerEvents: isDisabled(school.approvalStatus) || !registrationAllowed ? "none" : "auto",
+                        cursor: isDisabled(school.approvalStatus) || !registrationAllowed ? "not-allowed" : "pointer"
                       }}
                     >
                       ✎ Edit
@@ -174,7 +224,6 @@ useEffect(()=>{
       {/* ── Footer: rows per page + pagination ── */}
       {!loading && filtered.length > 0 && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, fontSize: 13, color: "#555" }}>
-
           {/* Rows per page */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span>Rows per page:</span>
@@ -186,7 +235,6 @@ useEffect(()=>{
               {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
-
           {/* Pagination */}
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <PagBtn label="Previous" onClick={() => goTo(page - 1)} disabled={page === 1} />
