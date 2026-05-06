@@ -17,13 +17,38 @@ export async function loadDiningDetails(schoolProfileId) {
 // ── Map Liferay response → form state ────────────────────────
 export function mapRecordToForm(record) {
   if (!record) return null;
+
+  // Map Dining Hall Photo if exists
+  let diningHallPhotoFile = null;
+  if (record.uploadDinningHallPhoto) {
+    diningHallPhotoFile = {
+      existingFile: true,
+      id: record.uploadDinningHallPhoto.id,
+      name: record.uploadDinningHallPhoto.name,
+      downloadURL: record.uploadDinningHallPhoto.link?.href || record.uploadDinningHallPhoto.link,
+      contentUrl: record.uploadDinningHallPhoto.link?.href || record.uploadDinningHallPhoto.link,
+    };
+  }
+
+  // Map Menu Photo if exists
+  let menuPhotoFile = null;
+  if (record.uploadMenu) {
+    menuPhotoFile = {
+      existingFile: true,
+      id: record.uploadMenu.id,
+      name: record.uploadMenu.name,
+      downloadURL: record.uploadMenu.link?.href || record.uploadMenu.link,
+      contentUrl: record.uploadMenu.link?.href || record.uploadMenu.link,
+    };
+  }
+
   return {
     SeparateDiningHallforBoysandGirls: record.separateDinningHallForBoysAndGirls ? "Yes" : "No",
     DiningHallAreainSqft:              record.dinningHallInAreaInSqft || "",
     DiningTable:                       record.dinningTable            ? "Yes" : "No",
     FoodServedAsPerMenu:               record.foodServedAsPerMenu     ? "Yes" : "No",
-    DiningHallPhoto:                   null,  // file input — can't pre-fill
-    MenuPhoto:                         null,
+    DiningHallPhoto:                   diningHallPhotoFile,
+    MenuPhoto:                         menuPhotoFile,
   };
 }
 

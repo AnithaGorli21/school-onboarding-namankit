@@ -17,6 +17,19 @@ export async function loadLabDetails(schoolProfileId) {
 // ── Map Liferay response → form state ────────────────────────
 export function mapRecordToForm(record) {
   if (!record) return null;
+
+  // Map Lab Photo if exists
+  let photoFile = null;
+  if (record.uploadLapPhoto) {
+    photoFile = {
+      existingFile: true,
+      id: record.uploadLapPhoto.id,
+      name: record.uploadLapPhoto.name,
+      downloadURL: record.uploadLapPhoto.link?.href || record.uploadLapPhoto.link,
+      contentUrl: record.uploadLapPhoto.link?.href || record.uploadLapPhoto.link,
+    };
+  }
+
   return {
     isComputerLabAvailable:        record.wellEquipmentCompLab                  ? "Yes" : "No",
     computersWithPeripheralsCount: record.noOfCompInWorkingCondition            || "",
@@ -31,6 +44,7 @@ export function mapRecordToForm(record) {
     isPhysicsLabAreaSufficient:    record.areaOfPhysicsLabmin150Sqft            ? "Yes" : "No",
     physicsLabAreaSqft:            record.physicsLabAvailableAreaSqft           || "",
     digitalClassroomCount:         record.numberOfDigitalClassroomInSchool      || "",
+    photoFile: photoFile,
   };
 }
 

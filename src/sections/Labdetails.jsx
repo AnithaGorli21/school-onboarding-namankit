@@ -38,6 +38,7 @@ const emptyForm = {
 export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
   const [form,        setForm]        = useState(emptyForm);
   const [photoFile,   setPhotoFile]   = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [saving,      setSaving]      = useState(false);
   const [alert,       setAlert]       = useState(null);
   const [errors,      setErrors]      = useState({});
@@ -56,13 +57,35 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
       .then(({ record, recordId: rid }) => {
         setRecordId(rid);
         const formData = mapRecordToForm(record);
-        if (formData) setForm(formData);
+        if (formData) {
+          setForm(formData);
+          // Set photo file if exists in the mapped data
+          if (formData.photoFile) {
+            setPhotoFile(formData.photoFile);
+          }
+        }
       })
       .catch((err) => console.error("[LabDetails] load error:", err))
       .finally(() => setLoadingData(false));
   }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
+
+  // ── Handle photo preview for existing and new photos ───────────────────────
+  useEffect(() => {
+    if (photoFile) {
+      console.log('[LabDetails] Setting photo preview:', photoFile);
+      // For existing files, use the downloadURL or contentUrl
+      if (photoFile.existingFile) {
+        setPhotoPreview(photoFile.downloadURL || photoFile.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setPhotoPreview(URL.createObjectURL(photoFile));
+      }
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [photoFile]);
 
   // ── Clear computer fields when Computer Lab = No ──────────
   const onComputerLabChange = (v) => {
@@ -190,6 +213,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
   const handleReset = () => {
     setForm(emptyForm);
     setPhotoFile(null);
+    setPhotoPreview(null);
     setErrors({});
     setAlert(null);
   };
@@ -300,13 +324,43 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
           <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14 }}>
             Note:- The size of the photograph should fall between 5KB to 100KB.
           </p>
-          <Row3>
-            {/* Row 104 — Lab Photo: Mandatory */}
-            <Field label="Upload Lab Photo" required error={errors.photo}>
-              <input type="file" accept="image/*" onChange={handlePhotoChange}
-                style={{ fontSize: 13, padding: "4px 0" }} />
-            </Field>
-          </Row3>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
+            <div>
+              {/* Row 104 — Lab Photo: Mandatory */}
+              <Field label="Upload Lab Photo" required error={errors.photo}>
+                <input type="file" accept="image/*" onChange={handlePhotoChange}
+                  style={{ fontSize: 13, padding: "4px 0" }} />
+              </Field>
+            </div>
+            {photoPreview && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+                  <img src={photoPreview} alt="Lab Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoFile(null);
+                    setPhotoPreview(null);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: "#cc0000",
+                    background: "none",
+                    border: "1px solid #cc0000",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Remove Photo
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

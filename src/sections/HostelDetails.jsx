@@ -68,13 +68,35 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
       .then(({ record, recordId: rid }) => {
         setRecordId(rid);
         const formData = mapRecordToForm(record);
-        if (formData) setForm(formData);
+        if (formData) {
+          setForm(formData);
+          // Set photo file if exists in the mapped data
+          if (formData.photoFile) {
+            setPhotoFile(formData.photoFile);
+          }
+        }
       })
       .catch((err) => console.error("[HostelDetails] load error:", err))
       .finally(() => setLoadingData(false));
   }, [schoolProfileId]);
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
+
+  // ── Handle photo preview for existing and new photos ───────────────────────
+  useEffect(() => {
+    if (photoFile) {
+      console.log('[HostelDetails] Setting photo preview:', photoFile);
+      // For existing files, use the downloadURL or contentUrl
+      if (photoFile.existingFile) {
+        setPhotoPreview(photoFile.downloadURL || photoFile.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setPhotoPreview(URL.createObjectURL(photoFile));
+      }
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [photoFile]);
 
   // ── Auto-calculated values ────────────────────────────────
   // Row 75 — Grand Total Number of Hostels
@@ -378,8 +400,31 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
           </Field>
         </div>
         {photoPreview && (
-          <div style={{ width: 120, height: 90, border: "1px solid #ccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
-            <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+              <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+            <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+              {photoFile?.existingFile ? "Current Photo" : "New Photo"}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPhotoFile(null);
+                setPhotoPreview(null);
+              }}
+              style={{
+                fontSize: 11,
+                color: "#cc0000",
+                background: "none",
+                border: "1px solid #cc0000",
+                borderRadius: 3,
+                padding: "2px 6px",
+                cursor: "pointer"
+              }}
+            >
+              Remove Photo
+            </button>
           </div>
         )}
       </div>

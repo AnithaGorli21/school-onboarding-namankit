@@ -29,6 +29,8 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
   const [errors,      setErrors]      = useState({});
   const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+  const [diningPhotoPreview, setDiningPhotoPreview] = useState(null);
+  const [menuPhotoPreview, setMenuPhotoPreview] = useState(null);
 
   // ── Load existing record on mount ────────────────────────
   useEffect(() => {
@@ -50,6 +52,37 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // ── Handle photo preview for existing and new photos ───────────────────────
+  useEffect(() => {
+    if (form.DiningHallPhoto) {
+      console.log('[DiningDetails] Setting dining photo preview:', form.DiningHallPhoto);
+      // For existing files, use the downloadURL or contentUrl
+      if (form.DiningHallPhoto.existingFile) {
+        setDiningPhotoPreview(form.DiningHallPhoto.downloadURL || form.DiningHallPhoto.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setDiningPhotoPreview(URL.createObjectURL(form.DiningHallPhoto));
+      }
+    } else {
+      setDiningPhotoPreview(null);
+    }
+  }, [form.DiningHallPhoto]);
+
+  useEffect(() => {
+    if (form.MenuPhoto) {
+      console.log('[DiningDetails] Setting menu photo preview:', form.MenuPhoto);
+      // For existing files, use the downloadURL or contentUrl
+      if (form.MenuPhoto.existingFile) {
+        setMenuPhotoPreview(form.MenuPhoto.downloadURL || form.MenuPhoto.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setMenuPhotoPreview(URL.createObjectURL(form.MenuPhoto));
+      }
+    } else {
+      setMenuPhotoPreview(null);
+    }
+  }, [form.MenuPhoto]);
+
   // ── Clear Dining Hall Area when Separate Dining Hall = No
   const onSeparateDiningChange = (v) => {
     setForm((p) => ({
@@ -61,6 +94,16 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
 
   const handleFileChange = (k) => (e) => {
     const file = e.target.files[0] || null;
+    if (!file) return;
+    
+    // Validate file size (5KB to 100KB)
+    const sizeKB = file.size / 1024;
+    if (sizeKB < 5 || sizeKB > 100) {
+      setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
+      e.target.value = "";
+      return;
+    }
+    
     setForm((p) => ({ ...p, [k]: file }));
     // Clear file error on selection
     setErrors((p) => ({ ...p, [k]: "" }));
@@ -117,6 +160,8 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
     setForm(emptyForm);
     setErrors({});
     setAlert(null);
+    setDiningPhotoPreview(null);
+    setMenuPhotoPreview(null);
   };
 
   return (
@@ -170,34 +215,92 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
         </p>
         <Row2>
           {/* Row 88 — Dining Hall Photo: Mandatory */}
-          <Field label="Upload Dining Hall Photo" required error={errors.DiningHallPhoto}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange("DiningHallPhoto")}
-              style={{ fontSize: 13, padding: "4px 0" }}
-            />
-            {form.DiningHallPhoto && (
-              <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
-                {form.DiningHallPhoto.name}
-              </span>
+          <div>
+            <Field label="Upload Dining Hall Photo" required error={errors.DiningHallPhoto}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange("DiningHallPhoto")}
+                style={{ fontSize: 13, padding: "4px 0" }}
+              />
+            </Field>
+            {diningPhotoPreview && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginTop: 12 }}>
+                <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+                  <img src={diningPhotoPreview} alt="Dining Hall Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                  {form.DiningHallPhoto?.existingFile ? "Current Photo" : "New Photo"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm((p) => ({ ...p, DiningHallPhoto: null }));
+                    setDiningPhotoPreview(null);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: "#cc0000",
+                    background: "none",
+                    border: "1px solid #cc0000",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Remove Photo
+                </button>
+              </div>
             )}
-          </Field>
+          </div>
 
           {/* Row 89 — Upload Menu: Mandatory */}
-          <Field label="Upload Menu" required error={errors.MenuPhoto}>
-            <input
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleFileChange("MenuPhoto")}
-              style={{ fontSize: 13, padding: "4px 0" }}
-            />
-            {form.MenuPhoto && (
-              <span style={{ fontSize: 12, color: "#555", marginTop: 4, display: "block" }}>
-                {form.MenuPhoto.name}
-              </span>
+          <div>
+            <Field label="Upload Menu" required error={errors.MenuPhoto}>
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileChange("MenuPhoto")}
+                style={{ fontSize: 13, padding: "4px 0" }}
+              />
+            </Field>
+            {menuPhotoPreview && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginTop: 12 }}>
+                <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+                  {form.MenuPhoto?.name?.toLowerCase().endsWith('.pdf') ? (
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8f9fa" }}>
+                      <div style={{ textAlign: "center", color: "#666", fontSize: 12, padding: 8 }}>
+                        📄 PDF Menu
+                      </div>
+                    </div>
+                  ) : (
+                    <img src={menuPhotoPreview} alt="Menu Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                  {form.MenuPhoto?.existingFile ? "Current Menu" : "New Menu"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm((p) => ({ ...p, MenuPhoto: null }));
+                    setMenuPhotoPreview(null);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: "#cc0000",
+                    background: "none",
+                    border: "1px solid #cc0000",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Remove Menu
+                </button>
+              </div>
             )}
-          </Field>
+          </div>
         </Row2>
       </div>
     </SectionWrapper>

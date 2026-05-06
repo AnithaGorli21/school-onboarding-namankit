@@ -20,6 +20,19 @@ export function mapRecordToForm(record) {
 
   // Parse hot water string back to checkboxes
   const hotWater = record.availibilityOfHotWater || "";
+  
+  // Map photo file if exists
+  let photoFile = null;
+  if (record.uploadHostelPhoto) {
+    photoFile = {
+      existingFile: true,
+      id: record.uploadHostelPhoto.id,
+      name: record.uploadHostelPhoto.name,
+      downloadURL: record.uploadHostelPhoto.link?.href || record.uploadHostelPhoto.link,
+      contentUrl: record.uploadHostelPhoto.link?.href || record.uploadHostelPhoto.link,
+    };
+  }
+
   return {
     studentsClass1to4:           record.totalNoOfStdntsStudyngCls1To4   || "",
     femaleCaretakers1to4:        record.totalNoOfFemaleCaretaker1To4    || "",
@@ -38,6 +51,7 @@ export function mapRecordToForm(record) {
     capacityGirlsHostels:        record.ttlCapacityOfGirlsHstl         || "",
     actualBathrooms:             record.actualBathrooms                 || "",
     actualWashrooms:             record.actualWashrooms                 || "",
+    photoFile: photoFile,
   };
 }
 
