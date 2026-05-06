@@ -94,6 +94,20 @@ export default function SchoolBankDetails({
         const formData = mapRecordToForm(record);
         if (formData) {
           setForm(formData);
+          // Set image preview from existing cancelled cheque image
+          if (formData.uploadCancelledChequeImage) {
+            // For existing files, use the downloadURL or contentUrl
+            if (formData.uploadCancelledChequeImage.existingFile) {
+              setImagePreviewUrl(formData.uploadCancelledChequeImage.downloadURL || formData.uploadCancelledChequeImage.contentUrl);
+            } else {
+              // For newly selected files, create object URL (only for images)
+              setImagePreviewUrl(
+                formData.uploadCancelledChequeImage.type?.startsWith("image/") 
+                  ? URL.createObjectURL(formData.uploadCancelledChequeImage) 
+                  : null
+              );
+            }
+          }
           // If record already has IFSC, treat as fetched so fields are disabled
           if (formData.bankIFSCCode) setIfscFetched(true);
         }

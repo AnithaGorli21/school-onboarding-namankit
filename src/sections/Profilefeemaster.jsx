@@ -108,7 +108,20 @@ export default function ProfileFeeMaster({ onTabChange, onSave, schoolProfileId,
     loadFeemaster(schoolProfileId)
       .then(({ records }) => {
         const mapped = mapRecordsToRows(records);
-        if (mapped.length > 0) setRows(mapped);
+        if (mapped.length > 0) {
+          setRows(mapped);
+          // Set receipt preview from first row that has a photo
+          const firstRowWithPhoto = mapped.find(row => row.receiptPhotoFile);
+          if (firstRowWithPhoto) {
+            setReceiptFile(firstRowWithPhoto.receiptPhotoFile);
+            // For existing files, use the downloadURL
+            if (firstRowWithPhoto.receiptPhotoFile.existingFile) {
+              setReceiptPreview(firstRowWithPhoto.receiptPhotoFile.downloadURL || firstRowWithPhoto.receiptPhotoFile.contentUrl);
+            } else {
+              setReceiptPreview(URL.createObjectURL(firstRowWithPhoto.receiptPhotoFile));
+            }
+          }
+        }
       })
       .catch((err) => console.error("[ProfileFeeMaster] load error:", err))
       .finally(() => setLoadingData(false));

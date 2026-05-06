@@ -17,11 +17,25 @@ export async function loadLibraryDetails(schoolProfileId) {
 // ── Map Liferay response → form state ────────────────────────
 export function mapRecordToForm(record) {
   if (!record) return null;
+
+  // Map Library Photo if exists
+  let photoFile = null;
+  if (record.uploadLibraryPhoto) {
+    photoFile = {
+      existingFile: true,
+      id: record.uploadLibraryPhoto.id,
+      name: record.uploadLibraryPhoto.name,
+      downloadURL: record.uploadLibraryPhoto.link?.href || record.uploadLibraryPhoto.link,
+      contentUrl: record.uploadLibraryPhoto.link?.href || record.uploadLibraryPhoto.link,
+    };
+  }
+
   return {
     separateLibrary:           record.separateLibrary           ? "Yes" : "No",
     areamin200FtWithFurniture: record.areamin200FtWithFurniture ? "Yes" : "No",
     actualArea:                record.actualArea                || "",
     noOfBooks:                 record.noOfBooks                 || "",
+    photoFile: photoFile,
   };
 }
 

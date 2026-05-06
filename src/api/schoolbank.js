@@ -17,13 +17,26 @@ export async function loadBankDetails(schoolProfileId) {
 // ── Map Liferay response → form state ────────────────────────
 export function mapRecordToForm(record) {
   if (!record) return null;
+
+  // Map Cancelled Cheque Image if exists
+  let uploadCancelledChequeImage = null;
+  if (record.uploadCancelledChequeImage) {
+    uploadCancelledChequeImage = {
+      existingFile: true,
+      id: record.uploadCancelledChequeImage.id,
+      name: record.uploadCancelledChequeImage.name,
+      downloadURL: record.uploadCancelledChequeImage.link?.href || record.uploadCancelledChequeImage.link,
+      contentUrl: record.uploadCancelledChequeImage.link?.href || record.uploadCancelledChequeImage.link,
+    };
+  }
+
   return {
     bankName:                   record.bankName          || "",
     bankBranchName:             record.bankBranchName    || "",
     bankIFSCCode:               record.bankIFSCCode      || "",
     bankAccountNo:              record.bankAccountNo     || "",
     bankBranchAddress:          record.bankBranchAddress || "",
-    uploadCancelledChequeImage: null,  // file input — can't pre-fill
+    uploadCancelledChequeImage: uploadCancelledChequeImage,
   };
 }
 

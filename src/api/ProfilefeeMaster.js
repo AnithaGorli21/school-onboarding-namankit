@@ -19,15 +19,30 @@ export async function loadFeemaster(schoolProfileId) {
 // ── Map Liferay records → table rows ─────────────────────────
 export function mapRecordsToRows(records) {
   if (!records || records.length === 0) return [];
-  return records.map((r) => ({
-    id:                  r.id,
-    liferayId:           r.id,
-    feesItemId:          r.feesItemId          || "",
-    itemFeesTDD:         r.itemFeesTDD         || "",
-    itemFeesGeneral:     r.itemFeesGeneral      || "",
-    feesPerStudentST:    r.feesPerStudentST     || 0,
-    feesPerStudentGeneral: r.feesPerStudentGeneral || 0,
-  }));
+  return records.map((r) => {
+    // Map receipt photo if exists
+    let receiptPhotoFile = null;
+    if (r.uploadReceiptProfileFee) {
+      receiptPhotoFile = {
+        existingFile: true,
+        id: r.uploadReceiptProfileFee.id,
+        name: r.uploadReceiptProfileFee.name,
+        downloadURL: r.uploadReceiptProfileFee.link?.href || r.uploadReceiptProfileFee.link,
+        contentUrl: r.uploadReceiptProfileFee.link?.href || r.uploadReceiptProfileFee.link,
+      };
+    }
+
+    return {
+      id:                  r.id,
+      liferayId:           r.id,
+      feesItemId:          r.feesItemId          || "",
+      itemFeesTDD:         r.itemFeesTDD         || "",
+      itemFeesGeneral:     r.itemFeesGeneral      || "",
+      feesPerStudentST:    r.feesPerStudentST     || 0,
+      feesPerStudentGeneral: r.feesPerStudentGeneral || 0,
+      receiptPhotoFile: receiptPhotoFile,
+    };
+  });
 }
 
 // ── Build single row payload ──────────────────────────────────
