@@ -18,6 +18,8 @@ import {
 import { uploadFileToFolder } from "../api/upload";
 import { submitSchoolIntakeStudents } from "../api/schoolIntakeStudents";
 import Loader from "../components/Loader";
+import { fetchPOByATC } from "../api/fetch-masters";
+import { saveSchoolDetails } from "../api/schoolDetails";
  
 const emptyProfile = {
   trusteeName: "",
@@ -69,13 +71,31 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   const [loadingData, setLoadingData] = useState(false);
   const [childrenLoading, setChildrenLoading] = useState(false);
   const [schoolIntakeData, setSchoolIntakeData] = useState([]);
+  const [poNames, setPoNames] = useState([]);
  
   useEffect(() => {
     onLoadingChange?.(loadingData || childrenLoading);
   }, [loadingData, childrenLoading, onLoadingChange]);
- useEffect(() => {
-  console.log('schoolIntakeData,,,,,,', schoolIntakeData);
- }, [schoolIntakeData]);
+  useEffect(() => {
+     let cancelled = false;
+ 
+     fetchPOByATC()
+           .then((data) => {
+             console.log("fetch PO masters...", data);
+     
+             if (!cancelled) setPoNames(Array.isArray(data) ? data : []);
+           })
+     
+           .catch((err) => {
+             console.error("[SchoolMasterForm] PO Names load failed:", err);
+     
+             if (!cancelled) setPoNames([]);
+           })
+     
+           .finally(() => {
+             //if (!cancelled) setLoadingPO(false);
+           });
+   }, []);
   // ── Helper functions to map API IDs to dropdown values ───────────
   const mapSchoolBoardIdToValue = (boardId) => {
     const boardMappings = {
@@ -199,7 +219,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
       const uploadedPhoto = profile.schoolPhoto && !profile.schoolPhoto.existingFile
         ? await uploadFileToFolder(profile.schoolPhoto, "School Documents")
         : profile.schoolPhoto;
- console.log('Profile school borad id:', profile)
+ console.log('Profile school......', profile)
       const payload = {
         address: profile.address || "",
         districtId: Number(profile.district) || 0,
@@ -212,7 +232,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         mobileNumberTrustee: profile.mobileNumber || "",
         noOfToiletsOnEachFloorInSchlBuilding: Number(profile.toiletsPerFloorCount) || 0,
         pincode: profile.pincode || "",
-        poName: "",
+        poName: poNames[profile.poName]?.label || "",
         poNameId: Number(profile.poName) || 0,
         primaryUDISECode: profile.udiseCode || "",
         schoolBoardId: Number(profile.schoolBoard) || 0,
@@ -252,7 +272,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
         websiteLink: profile.websiteLink || "",
         yearOfEstablishment: Number(profile.yearOfEstablishment) || 0,
       };
-
+console.log('payload:::::::', payload);
       const response = recordId
         ? await patchSchoolBasicDetails(recordId, payload)
         : await saveSchoolBasicDetails(payload);
@@ -264,6 +284,14 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           const effectiveSchoolProfileId = response?.id || schoolProfileId;
           const intakeResponse = await submitSchoolIntakeStudents({ intake, schoolProfileId: effectiveSchoolProfileId });
           console.log('[SchoolBasicDetails] Intake data saved successfully:', intakeResponse);
+          // Update school details
+                 const schoolDetailsPayLoad = {
+                    schoolProfileId: Number(schoolProfileId),                   
+                    schoolName: profile.schoolName,
+                    pOName: poNames[profile.poName]?.label || "",
+                    noOfGeneralStudents: intakeResponse.totalStudents
+                 }
+                await saveSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
         } catch (intakeErr) {
           console.error('[SchoolBasicDetails] Intake save error:', intakeErr);
           // Don't fail the entire save if intake fails, but show a warning
@@ -317,6 +345,8 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
           errors={errors}
           isDisabled={isDisabled}
           onApiLoadingChange={setChildrenLoading}
+          poNames={poNames}
+          setPoNames={setPoNames}
         />
  
         {/* School Intake table with errors */}

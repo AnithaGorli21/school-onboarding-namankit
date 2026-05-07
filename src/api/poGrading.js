@@ -153,7 +153,8 @@ export async function submitGrading({
     await patchSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
   } else {
     await saveSchoolGrading(gradingPayload);
-    await saveSchoolDetails(schoolDetailsPayLoad);
+    await patchSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
+
   }
  
   // 2. Save or update each question

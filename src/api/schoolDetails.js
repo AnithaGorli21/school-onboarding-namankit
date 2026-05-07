@@ -5,7 +5,7 @@ export const getSchoolDetails = (schoolProfileId) =>
     `/o/c/schooldetailses`,
   ).then((d) => (d.items || []) || null);
 
-  export const saveSchoolDetails = (payload) =>
+  export const saveSchoolDetails = (schoolProfileId,payload) =>
     apiPost("/o/c/schooldetailses", payload);
   export const patchSchoolDetails  = (id, payload) =>
-    apiPost(`/o/c/schooldetailses`, payload);
+    apiPatch(`/o/c/schooldetailses/${id}`, payload);

@@ -18,12 +18,12 @@ const SELECTION_YEAR_OPTIONS = [
   "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
 ];
 
-export default function SchoolProfile({ form, setForm, errors }) {
+export default function SchoolProfile({ form, setForm, errors ,poNames = [],setPoNames=()=>{}}) {
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [talukas, setTalukas] = useState([]);
   const [villages, setVillages] = useState([]);
-  const [poNames, setPoNames] = useState([]);
+  //const [poNames, setPoNames] = useState([]);
   const [boardOpts, setBoardOpts] = useState([]);
   const [areaOpts, setAreaOpts] = useState([]);
   const [yearOpts, setYearOpts] = useState([]);
@@ -60,26 +60,6 @@ export default function SchoolProfile({ form, setForm, errors }) {
   // }, [form.village]);
 
   // ✅ Temporary — load all states as PO options
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchPOByATC()
-          .then((data) => {
-            console.log("fetch PO masters...", data);
-    
-            if (!cancelled) setPoNames(Array.isArray(data) ? data : []);
-          })
-    
-          .catch((err) => {
-            console.error("[SchoolMasterForm] PO Names load failed:", err);
-    
-            if (!cancelled) setPoNames([]);
-          })
-    
-          .finally(() => {
-            //if (!cancelled) setLoadingPO(false);
-          });
-  }, []);
 
   useEffect(() => {
     getPicklist("DBT-NAMANKIT-SCHOOL-PROFILE-BOARDS")

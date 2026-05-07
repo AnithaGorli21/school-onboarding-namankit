@@ -5,9 +5,10 @@
 //  ATC fills: ATC Marks, ATC Remarks, No. of Proposed Students
 // ============================================================
 import { useState, useEffect, useMemo } from "react";
-import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
+import { getSchoolGrading, getGradingQuestions } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
 import Loader from "../components/Loader";
+import { patchSchoolDetails } from "../api/schoolDetails";
 
 // ── Same 28 questions as POGrading ───────────────────────────
 const QUESTIONS = [
@@ -178,6 +179,20 @@ export default function ATCGrading({ school, onBack }) {
 
       // Update approval status on school profile
       await updateApprovalStatus(school.id, approvalStatus);
+      // Update school details
+       const schoolDetailsPayLoad = {
+          schoolProfileId: Number(school.id),
+          atcRemarks:atcRemarksSummary,
+          aTCVerificationStatus: approvalStatus,
+          aTCMarks: sanitizedTotal,
+          systemCalculatedMarks: sanitizedTotal,
+          schoolName: school.name,
+          sanctionedAdmissionscurrentAcademicYear: Number(proposedStudents) || 0,
+          assignedFees: sanitizedAssignedFees,
+          finalFees: sanitizedFinalFees,
+          schoolProposedFees:sanitizedAssignedFees,
+       }
+      await patchSchoolDetails(school.id, schoolDetailsPayLoad);
 
       setAlert({ type: "success", message: `School ${approvalStatus} successfully!` });
       setTimeout(() => onBack?.(), 1500);
