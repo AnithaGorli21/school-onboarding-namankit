@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getSchoolGrading, getGradingQuestions, submitGrading } from "../api/poGrading";
 import { getSchoolProfileById } from "../api/liferay";
 import Loader from "../components/Loader";
+import { getSchoolDetails } from "../api/schoolDetails";
 
 // ── All 28 questions with criteria ───────────────────────────
 const QUESTIONS = [
@@ -201,6 +202,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [schoolDetailsId, setSchoolDetailsId] = useState(null);
  
   // ── Load existing data on mount ───────────────────────────
   useEffect(() => {
@@ -209,7 +211,18 @@ export default function POGrading({ school, onBack, selectedSchool }) {
       getSchoolProfileById(school.id),
       getSchoolGrading(school.id),
       getGradingQuestions(school.id),
-    ]).then(([profile, grading, qRecords]) => {
+      getSchoolDetails(school.id)
+    ]).then(([profile, grading, qRecords, schoolDetails]) => {
+      if(schoolDetails) {
+        console.log('School details...for gr.....', schoolDetails);
+       const matchedSchool = schoolDetails.find(
+          sch => sch.schoolProfileId === school.id
+        );
+
+        if (matchedSchool) {
+          setSchoolDetailsId(matchedSchool.id);
+        }
+      }
       if (profile) setSchoolData(profile);
       if (grading) {
         setGradingRecordId(grading.id);
@@ -276,6 +289,7 @@ export default function POGrading({ school, onBack, selectedSchool }) {
         gradingRecordId,
         existingQuestions: existingQs,
         schoolName: school.schoolName,
+        schoolDetailsId,
       });
       setAlert({ type: "success", message: `School ${approvalStatus} successfully!` });
       setTimeout(() => onBack?.(), 1500);

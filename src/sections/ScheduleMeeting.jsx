@@ -7,7 +7,7 @@ import { Alert } from "../components/FormFields";
 import { fetchATCMasters } from "../api/fetch-masters";
 import { validateGRDetails } from "../utils/validate";
 import { today } from "../utils/dates";
-import { getSchoolDetails, patchSchoolDetails } from "../api/schoolDetails";
+import { getSchoolDetails, patchSchoolDetails,getAllSchoolDetails } from "../api/schoolDetails";
 import Loader from "../components/Loader";
 import MeetingRemarksPopup from "../components/MeetingRemarksPopup";
 
@@ -102,10 +102,10 @@ export default function ScheduleMeeting() {
     }, []);
     React.useEffect(() => {
         console.log('isSearchSchools', isSearchSchools);
-        if (isSearchSchools) {
+        if (isSearchSchools || selectedMeeting) {
             console.log('Fetching school details...');
             setLoadingSchoolDetails(true);
-            getSchoolDetails().then((res) => {
+            getAllSchoolDetails().then((res) => {
                 console.log('School Details.....',res);
                 console.log('School Details length:', res?.length);
                 console.log('School Details type:', typeof res);
@@ -120,7 +120,7 @@ export default function ScheduleMeeting() {
                 setLoadingSchoolDetails(false);
             });
         }
-    }, [isSearchSchools]);
+    }, [isSearchSchools,selectedMeeting]);
 
     // pagination state
     const [page, setPage] = useState(1);
@@ -771,17 +771,17 @@ export default function ScheduleMeeting() {
                                                             View
                                                         </button>
                                                     </td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poName}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.pOName}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.schoolName}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.pOVerificationStatus}</td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcVerificationStatus}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.aTCVerificationStatus}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.systemCalculatedMarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.atcMarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poRemarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcRemarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.noOfGeneralStudents}</td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissions}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissionscurrentAcademicYear}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeDecision}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeRemarks}</td>
                                                 </tr>
@@ -799,7 +799,7 @@ export default function ScheduleMeeting() {
                                 
                                 {/* Pagination */}
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, fontSize: 13 }}>
-                                    <div><strong>Total Records {schoolData.length}</strong></div>
+                                    <div><strong>Total Records {schoolDetails.length}</strong></div>
                                     <div>Page: 1 of 1</div>
                                     <div style={{ display: "flex", gap: 4 }}>
                                         <button style={{ padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" }}>First</button>
@@ -817,10 +817,10 @@ export default function ScheduleMeeting() {
                             schoolProfileId={selectedSchool.schoolProfileId}
                             handleSaveMeetingRemarks={handleSaveMeetingRemarks}
                             setShowMeetingRemarks={() => setShowMeetingRemarks(false)}
-                            studentsRegistered={selectedSchool.studentsRegistered || 0}
+                            studentsRegistered={selectedSchool.noOfGeneralStudents || 0}
                             studentsTransferred={selectedSchool.studentsTransferred || 0}
                             finalApprovalStatus={selectedSchool.aTCVerificationStatus || 'approved'}
-                            sanctionedSeats={selectedSchool.sanctionedSeats || 0}
+                            sanctionedSeats={selectedSchool.sanctionedAdmissionscurrentAcademicYear || 0}
                             samayojan={selectedSchool.samayojan || 0}
                             assignedMarks={selectedSchool.assignedMarks || 0}
                             assignedFees={selectedSchool.assignedFees || 0}

@@ -19,7 +19,7 @@ import { uploadFileToFolder } from "../api/upload";
 import { submitSchoolIntakeStudents } from "../api/schoolIntakeStudents";
 import Loader from "../components/Loader";
 import { fetchPOByATC } from "../api/fetch-masters";
-import { saveSchoolDetails } from "../api/schoolDetails";
+import { getSchoolDetails, patchSchoolDetails, saveSchoolDetails } from "../api/schoolDetails";
  
 const emptyProfile = {
   trusteeName: "",
@@ -72,6 +72,7 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
   const [childrenLoading, setChildrenLoading] = useState(false);
   const [schoolIntakeData, setSchoolIntakeData] = useState([]);
   const [poNames, setPoNames] = useState([]);
+  const [schoolDetailsId,setSchoolDetailsId] = useState(null)
  
   useEffect(() => {
     onLoadingChange?.(loadingData || childrenLoading);
@@ -130,6 +131,23 @@ export default function SchoolBasicDetails({ onTabChange, onSave, schoolProfileI
     if (!schoolProfileId) return;
     setLoadingData(true);
     console.log('Loading school details for ID:', schoolProfileId);
+     Promise.all([
+          getSchoolDetails(schoolProfileId)
+        ]).then(([schoolDetails]) => {
+          if(schoolDetails) {
+            console.log('School details...for SchoolBasic.....', schoolDetails);
+            const matchedSchool = schoolDetails.find(
+          sch => sch.schoolProfileId === school.id
+        );
+
+        if (matchedSchool) {
+          setSchoolDetailsId(matchedSchool.id);
+        }
+          }
+        }).catch(err=>{
+
+        });
+
     getSchoolProfileById(schoolProfileId)
       .then((record) => {
         if (!record) return;
@@ -291,7 +309,13 @@ console.log('payload:::::::', payload);
                     pOName: poNames[profile.poName]?.label || "",
                     noOfGeneralStudents: intakeResponse.totalStudents
                  }
-                await saveSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
+                 if(schoolDetailsId === null || schoolDetailsId === undefined || schoolDetailsId === '') {
+                    console.log('Saving school details.....',schoolDetailsId);
+                  await saveSchoolDetails(schoolDetailsPayLoad);
+                 }else{
+                  console.log('Updating school details.....');
+                  await patchSchoolDetails(schoolDetailsId, schoolDetailsPayLoad);
+                 }
         } catch (intakeErr) {
           console.error('[SchoolBasicDetails] Intake save error:', intakeErr);
           // Don't fail the entire save if intake fails, but show a warning
