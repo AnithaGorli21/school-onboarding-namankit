@@ -1016,17 +1016,13 @@ console.log("Saved screenName in DB:", saved?.screenName);
         setErrors((prev) => ({
           ...prev,
 
-          schoolEmail: "This email is already registered.",
-
-          submit:
-            "Email already exists in Liferay. Please use a unique email address.",
+         emailId: "This email is already registered. Please use a different email.", 
+         submit: "Email already exists. Please use a unique email address.",
         }));
 
-        showToast(
-          "Email already exists in Liferay. Please use a unique email address.",
-        );
+        showToast("Email already registered. Please use a different email.", "error");
 
-        setStep(1);
+        setStep(STEP_FORM);
       } else if (String(error?.status || "") === "400") {
         const badRequestMessage =
           "Failed to create login id. Please check the generated screen name, email, and role assignment.";
