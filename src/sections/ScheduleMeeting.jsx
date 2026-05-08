@@ -7,8 +7,9 @@ import { Alert } from "../components/FormFields";
 import { fetchATCMasters } from "../api/fetch-masters";
 import { validateGRDetails } from "../utils/validate";
 import { today } from "../utils/dates";
-import { getSchoolDetails } from "../api/schoolDetails";
+import { getSchoolDetails, patchSchoolDetails,getAllSchoolDetails } from "../api/schoolDetails";
 import Loader from "../components/Loader";
+import MeetingRemarksPopup from "../components/MeetingRemarksPopup";
 
 export default function ScheduleMeeting() {
     const emptyForm = { committeeDate: "", grDate: "", atcName: "", schoolType: "", grFile: null, momFile: null, description: "" };
@@ -101,10 +102,10 @@ export default function ScheduleMeeting() {
     }, []);
     React.useEffect(() => {
         console.log('isSearchSchools', isSearchSchools);
-        if (isSearchSchools) {
+        if (isSearchSchools || selectedMeeting) {
             console.log('Fetching school details...');
             setLoadingSchoolDetails(true);
-            getSchoolDetails().then((res) => {
+            getAllSchoolDetails().then((res) => {
                 console.log('School Details.....',res);
                 console.log('School Details length:', res?.length);
                 console.log('School Details type:', typeof res);
@@ -119,7 +120,7 @@ export default function ScheduleMeeting() {
                 setLoadingSchoolDetails(false);
             });
         }
-    }, [isSearchSchools]);
+    }, [isSearchSchools,selectedMeeting]);
 
     // pagination state
     const [page, setPage] = useState(1);
@@ -397,9 +398,11 @@ export default function ScheduleMeeting() {
     };
 
     // Handle saving meeting remarks
-    const handleSaveMeetingRemarks = () => {
+    const handleSaveMeetingRemarks = async (schoolProfileId, payload) => {
         // Update the school data with new remarks
-        setSchoolData(prevData => 
+        try{
+            await patchSchoolDetails(schoolProfileId,payload);
+            setSchoolData(prevData => 
             prevData.map(school => 
                 school.id === selectedSchool.id 
                     ? { ...school, committeeRemarks: meetingRemark }
@@ -409,6 +412,10 @@ export default function ScheduleMeeting() {
         setShowMeetingRemarks(false);
         setSelectedSchool(null);
         setMeetingRemark("");
+
+        }catch{
+
+        }
     };
 
     return (
@@ -764,17 +771,17 @@ export default function ScheduleMeeting() {
                                                             View
                                                         </button>
                                                     </td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poName}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.pOName}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.schoolName}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.existingStudents}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.pOVerificationStatus}</td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcVerificationStatus}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.aTCVerificationStatus}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.systemCalculatedMarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "right" }}>{school.atcMarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.poRemarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.atcRemarks}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.noOfGeneralStudents}</td>
-                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissions}</td>
+                                                    <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", textAlign: "center" }}>{school.sanctionedAdmissionscurrentAcademicYear}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeDecision}</td>
                                                     <td style={{ minWidth: "50px", maxWidth: "110px", padding: "10px 8px", border: "1px solid #ddd", verticalAlign: "top", wordWrap: "break-word" }}>{school.committeeRemarks}</td>
                                                 </tr>
@@ -792,7 +799,7 @@ export default function ScheduleMeeting() {
                                 
                                 {/* Pagination */}
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, fontSize: 13 }}>
-                                    <div><strong>Total Records {schoolData.length}</strong></div>
+                                    <div><strong>Total Records {schoolDetails.length}</strong></div>
                                     <div>Page: 1 of 1</div>
                                     <div style={{ display: "flex", gap: 4 }}>
                                         <button style={{ padding: "5px 16px", fontSize: 13, background: "#1a3a5c", color: "#fff", border: "1px solid #1a3a5c", borderRadius: 3, cursor: "pointer" }}>First</button>
@@ -805,261 +812,21 @@ export default function ScheduleMeeting() {
                         )}
 
                         {/* Meeting Remarks Popup */}
-                        {showMeetingRemarks && (
-                            <div style={{ 
-                                position: "fixed", 
-                                top: 0, 
-                                left: 0, 
-                                right: 0, 
-                                bottom: 0, 
-                                background: "rgba(0,0,0,0.5)", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center", 
-                                zIndex: 1000 
-                            }}>
-                                <div style={{ 
-                                    background: "#fff", 
-                                    borderRadius: 4, 
-                                    width: 800, 
-                                    boxShadow: "0 4px 24px rgba(0,0,0,0.25)" 
-                                }}>
-                                    {/* Header */}
-                                    <div style={{ 
-                                        background: "#f8d7da", 
-                                        padding: "12px 18px", 
-                                        borderRadius: "4px 4px 0 0", 
-                                        fontSize: 15, 
-                                        fontWeight: 700, 
-                                        color: "#c0392b", 
-                                        borderBottom: "1px solid #f5c6cb" ,
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center"
-                                    }}>
-                                        <div>Meeting Remarks</div>
-                                        <button 
-                                            onClick={() => setShowMeetingRemarks(false)}
-                                            style={{ 
-                                                background: "none", 
-                                                border: "none", 
-                                                fontSize: 20, 
-                                                cursor: "pointer", 
-                                                color: "#c0392b",
-                                                fontWeight: 700
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                    
-                                    {/* Body */}
-                                    <div style={{ padding: "22px 18px", fontSize: 14, color: "#333" }}>
-                                        {/* First Row: Two inputs */}
-                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Actual Students Registered <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter actual students registered"
-                                                />
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Actual Students Transferred <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter actual students transferred"
-                                                />
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Second Row: One select */}
-                                        <div style={{ marginBottom: 16 }}>
-                                            <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                Final Decision <span style={{ color: "#d9534f" }}>*</span>
-                                            </label>
-                                            <select 
-                                                style={{ 
-                                                    width: "100%", 
-                                                    padding: 8, 
-                                                    borderRadius: 4, 
-                                                    border: "1px solid #ddd", 
-                                                    fontSize: 14
-                                                }}
-                                            >
-                                                <option value="">-- Select --</option>
-                                                <option value="approved">Approved</option>
-                                                <option value="rejected">Rejected</option>
-                                                <option value="pending">Pending</option>
-                                            </select>
-                                        </div>
-                                        
-                                        {/* Third Row: Two inputs */}
-                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Sanctioned admissions (current academic year)<span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter sanctioned number"
-                                                />
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Samayojan <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter samayojan number"
-                                                />
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Fourth Row: Two inputs */}
-                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Assigned Marks <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter assigned marks"
-                                                />
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Assigned Fees <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter assigned fees"
-                                                />
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Fifth Row: Two inputs */}
-                                        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    School Proposed Fees <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter school proposed fees"
-                                                />
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                    Final Fees <span style={{ color: "#d9534f" }}>*</span>
-                                                </label>
-                                                <input 
-                                                    type="number"
-                                                    style={{ 
-                                                        width: "100%", 
-                                                        padding: 8, 
-                                                        borderRadius: 4, 
-                                                        border: "1px solid #ddd", 
-                                                        fontSize: 14
-                                                    }}
-                                                    placeholder="Enter final fees"
-                                                />
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Sixth Row: One text input */}
-                                        <div style={{ marginBottom: 16 }}>
-                                            <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-                                                Final Remarks <span style={{ color: "#d9534f" }}>*</span>
-                                            </label>
-                                            <textarea 
-                                                rows={3}
-                                                style={{ 
-                                                    width: "100%", 
-                                                    padding: 8, 
-                                                    borderRadius: 4, 
-                                                    border: "1px solid #ddd", 
-                                                    resize: "vertical",
-                                                    fontSize: 14
-                                                }}
-                                                placeholder="Enter final remarks..."
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Footer */}
-                                    <div style={{ padding: "10px 18px 18px", textAlign: "center", borderTop: "1px solid #eee" }}>
-                                        <button 
-                                            onClick={handleSaveMeetingRemarks}
-                                            style={{ 
-                                                background: "rgb(44, 164, 74)", 
-                                                color: "#fff", 
-                                                border: "none", 
-                                                borderRadius: 4, 
-                                                padding: "8px 36px", 
-                                                fontSize: 14, 
-                                                fontWeight: 600, 
-                                                cursor: "pointer"
-                                            }}
-                                        >
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                        {showMeetingRemarks && selectedSchool && (
+                            <MeetingRemarksPopup 
+                            schoolProfileId={selectedSchool.schoolProfileId}
+                            handleSaveMeetingRemarks={handleSaveMeetingRemarks}
+                            setShowMeetingRemarks={() => setShowMeetingRemarks(false)}
+                            studentsRegistered={selectedSchool.noOfGeneralStudents || 0}
+                            studentsTransferred={selectedSchool.studentsTransferred || 0}
+                            finalApprovalStatus={selectedSchool.aTCVerificationStatus || 'approved'}
+                            sanctionedSeats={selectedSchool.sanctionedAdmissionscurrentAcademicYear || 0}
+                            samayojan={selectedSchool.samayojan || 0}
+                            assignedMarks={selectedSchool.assignedMarks || 0}
+                            assignedFees={selectedSchool.assignedFees || 0}
+                            schoolProposedFees={selectedSchool.schoolProposedFees || 0}
+                            finalFees={selectedSchool.finalFees || 0}
+                            />
                         )}
                     </div>
                 )}

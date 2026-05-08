@@ -127,6 +127,7 @@ export async function submitGrading({
   gradingRecordId,
   existingQuestions,
   schoolName,
+  schoolDetailsId
 }) {
   // 1. Save or update main grading record
   const gradingPayload = {
@@ -150,10 +151,11 @@ export async function submitGrading({
  }
   if (gradingRecordId) {
     await patchSchoolGrading(gradingRecordId, gradingPayload);
-    await patchSchoolDetails(schoolProfileId, schoolDetailsPayLoad);
+    await patchSchoolDetails(schoolDetailsId, schoolDetailsPayLoad);
   } else {
     await saveSchoolGrading(gradingPayload);
-    await saveSchoolDetails(schoolDetailsPayLoad);
+    await patchSchoolDetails(schoolDetailsId, schoolDetailsPayLoad);
+
   }
  
   // 2. Save or update each question
