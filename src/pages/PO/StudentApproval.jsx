@@ -3,35 +3,49 @@ import Header from '../../components/Header';
 import Footer from '../../sections/Footer';
 import ExcelJS from 'exceljs';
 import { getAllSchools, getStudentApprovalList } from '../../api/liferay';
+import { apiPatch } from '../../api/liferay';
 
 export default function StudentApproval() {
-    const [school, setSchool] = useState('');
+    const [schoolId, setSchoolId] = useState(''); // ✅ store just the ID
     const [rows, setRows] = useState([]);
+    const [approvals, setApprovals] = useState({}); // ✅ track checkbox state { [id]: bool }
+    const [remarks, setRemarks] = useState({});     // ✅ track remarks { [id]: string }
     const [schoolError, setSchoolError] = useState('');
     const [schools, setSchools] = useState([]);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
+    const [saving, setSaving] = useState(false);
 
     const handleSearch = async () => {
-        // Validate school selection
-        if (!school) {
+        if (!schoolId) {
             setSchoolError('Please select a school');
             setRows([]);
             return;
         }
         setSchoolError('');
         try {
-            const items = await getStudentApprovalList(school.id);
+            // ✅ FIX 1: pass schoolId directly (it's already the ID string)
+            const items = await getStudentApprovalList(schoolId);
             const mapped = (items || []).map((it) => ({
+                id: it.id,
                 unique: it.uniqueNumber || it.aadharNumberUID || '',
                 renewal: it.renewal || it.renewalStatus || '',
                 name: it.studentName || `${it.firstName || ''} ${it.lastName || ''}`.trim(),
                 aadhar: it.aadharNumberUID || '',
                 income: it.familyIncome || '',
                 class: it.currentClass || '',
-                status: (it.status && it.status.label) || '',
+                status: (it.approvalStatus) || (it.status && it.status.label) || '',
             }));
             setRows(mapped);
+            // ✅ Initialize approvals state from existing status
+            const initApprovals = {};
+            const initRemarks = {};
+            mapped.forEach(r => {
+                initApprovals[r.id] = r.status === 'approved';
+                initRemarks[r.id] = '';
+            });
+            setApprovals(initApprovals);
+            setRemarks(initRemarks);
             setPage(1);
         } catch (err) {
             console.error('Failed to fetch student approvals', err);
@@ -50,16 +64,39 @@ export default function StudentApproval() {
             .catch((e) => console.error('Failed loading schools', e));
         return () => (mounted = false);
     }, []);
+
     useEffect(() => {
         console.log('Schools.....Approved..', schools)
-    }, [schools])
+    }, [schools]);
 
     const totalPages = Math.max(1, Math.ceil((rows || []).length / pageSize));
     const paged = (rows || []).slice((page - 1) * pageSize, page * pageSize);
 
-    const handleSave = () => {
-        // Placeholder: save approvals
-        alert('Please select School');
+    // ✅ FIX 2: Working save — PATCH each student with approval status
+    const handleSave = async () => {
+        if (!schoolId) {
+            setSchoolError('Please select a school');
+            return;
+        }
+        setSaving(true);
+        try {
+            for (const row of rows) {
+                const isApproved = approvals[row.id] || false;
+                const remark = remarks[row.id] || '';
+                await apiPatch(`/o/c/studentregistarions/${row.id}`, {
+                    approvalStatus: isApproved ? 'approved' : 'rejected',
+                    poRemarks: remark,
+                });
+            }
+            alert('Students approval saved successfully!');
+            // Refresh list
+            handleSearch();
+        } catch (err) {
+            console.error('Save failed', err);
+            alert('Save failed: ' + (err?.message || 'Please try again.'));
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleExport = () => {
@@ -67,13 +104,11 @@ export default function StudentApproval() {
             alert('No data to export');
             return;
         }
-
         (async () => {
             try {
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = 'School Onboarding';
                 const sheet = workbook.addWorksheet('Student Approvals');
-
                 sheet.columns = [
                     { header: 'Sr No', key: 'sr', width: 8 },
                     { header: 'Unique No', key: 'unique', width: 20 },
@@ -84,12 +119,9 @@ export default function StudentApproval() {
                     { header: 'Class', key: 'class', width: 10 },
                     { header: 'Approval Status', key: 'status', width: 20 },
                 ];
-
                 rows.forEach((r, i) => {
                     sheet.addRow({ sr: i + 1, unique: r.unique, renewal: r.renewal, name: r.name, aadhar: r.aadhar, income: r.income, class: r.class, status: r.status });
                 });
-
-                // apply styling to header row to match UI
                 const headerRow = sheet.getRow(1);
                 headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
                 headerRow.alignment = { vertical: 'middle', horizontal: 'left' };
@@ -102,11 +134,9 @@ export default function StudentApproval() {
                         right: { style: 'thin', color: { argb: 'FFDADFE6' } },
                     };
                 });
-
-                // style data rows: alternating background and borders, alignment
                 (rows || []).forEach((_, idx) => {
                     const excelRow = sheet.getRow(idx + 2);
-                    const isAlt = idx % 2 === 1; // match UI: odd index -> alt color
+                    const isAlt = idx % 2 === 1;
                     excelRow.eachCell((cell) => {
                         cell.border = {
                             top: { style: 'thin', color: { argb: 'FFF1F5F8' } },
@@ -117,12 +147,10 @@ export default function StudentApproval() {
                         if (isAlt) {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
                         }
-                        // default alignment: center except name column (4th col)
                         const colIndex = cell.col;
                         cell.alignment = (colIndex === 4) ? { horizontal: 'left', vertical: 'middle' } : { horizontal: 'center', vertical: 'middle' };
                     });
                 });
-
                 const buf = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = URL.createObjectURL(blob);
@@ -144,15 +172,15 @@ export default function StudentApproval() {
         <div style={{ minHeight: "100vh", background: "#f8fbfb", fontFamily: "var(--font-main)", display: "flex", flexDirection: "column" }}>
             <Header />
             <div style={{ padding: 18 }}>
-
                 <h6 style={{ margin: 0 }}>Student's Approval</h6>
                 <hr style={{ margin: "0px 0px 1rem 0px" }} />
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 14 }}>
                     <div>
                         <div style={{ fontSize: 13, marginBottom: 6 }}>Select School <span style={{ color: '#e53935' }}>*</span></div>
                         <select
-                            value={school}
-                            onChange={e => { setSchool(e.target.value); setSchoolError(''); }}
+                            value={schoolId}
+                            // ✅ FIX 1: store just the ID string
+                            onChange={e => { setSchoolId(e.target.value); setSchoolError(''); }}
                             aria-invalid={!!schoolError}
                             style={{ padding: 8, minWidth: 240, borderColor: schoolError ? '#e53935' : undefined }}
                         >
@@ -163,19 +191,14 @@ export default function StudentApproval() {
                         </select>
                         {schoolError && <div style={{ color: '#e53935', fontSize: 12, marginTop: 6 }}>{schoolError}</div>}
                     </div>
-
                     <button onClick={handleSearch} style={{ background: '#28a745', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 4, cursor: 'pointer' }}>Search</button>
                 </div>
-
                 <div style={{ overflow: 'auto' }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 8 }}>
                         <thead style={{ background: '#fafafa' }}>
-                            <th style={thStyle}></th>
                             <tr>{["Sr. No.", "Student Unq. No.", "Renewal Status", "Student Name", "Aadhar Number", "Family Income", "Class", "View Student Details", "Approve", "Remarks", "Approval Status"].map(title => (
-                                <th style={{ padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" }}>{title}</th>
-
+                                <th key={title} style={{ padding: "12px 16px", background: "#1a2a5e", color: "#fff", fontWeight: 600, fontSize: 13, textAlign: "left", borderRight: "1px solid #2d3d6e", whiteSpace: "nowrap" }}>{title}</th>
                             ))}
-
                             </tr>
                         </thead>
                         <tbody>
@@ -184,7 +207,7 @@ export default function StudentApproval() {
                                     <td colSpan={11} style={{ padding: 20, textAlign: 'center', color: '#666' }}>No records found</td>
                                 </tr>
                             ) : paged.map((r, i) => (
-                                <tr key={i}>
+                                <tr key={r.id || i}>
                                     <td style={tdStyle}>{(page - 1) * pageSize + i + 1}</td>
                                     <td style={tdStyle}>{r.unique}</td>
                                     <td style={tdStyle}>{r.renewal}</td>
@@ -193,15 +216,28 @@ export default function StudentApproval() {
                                     <td style={tdStyle}>{r.income}</td>
                                     <td style={tdStyle}>{r.class}</td>
                                     <td style={tdStyle}><button style={linkBtn}>View</button></td>
-                                    <td style={tdStyle}><input type="checkbox" /></td>
-                                    <td style={tdStyle}><input style={{ width: '100%' }} /></td>
+                                    {/* ✅ FIX 2: tracked checkbox */}
+                                    <td style={tdStyle}>
+                                        <input
+                                            type="checkbox"
+                                            checked={approvals[r.id] || false}
+                                            onChange={e => setApprovals(prev => ({ ...prev, [r.id]: e.target.checked }))}
+                                        />
+                                    </td>
+                                    {/* ✅ FIX 2: tracked remarks */}
+                                    <td style={tdStyle}>
+                                        <input
+                                            style={{ width: '100%' }}
+                                            value={remarks[r.id] || ''}
+                                            onChange={e => setRemarks(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                        />
+                                    </td>
                                     <td style={tdStyle}>{r.status}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-
                 {/* Pagination controls */}
                 {rows.length > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, fontSize: 13, color: '#555' }}>
@@ -221,9 +257,10 @@ export default function StudentApproval() {
                         </div>
                     </div>
                 )}
-
                 <div style={{ marginTop: 14, display: 'flex', gap: 8 }}>
-                    <button onClick={handleSave} style={{ background: '#28a745', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Save</button>
+                    <button onClick={handleSave} disabled={saving} style={{ background: saving ? '#6cbe89' : '#28a745', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 4, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                        {saving ? 'Saving...' : 'Save'}
+                    </button>
                     <button onClick={handleExport} style={{ background: '#f0ad4e', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Export to Excel</button>
                 </div>
             </div>
@@ -236,7 +273,7 @@ function PBtn({ label, onClick, disabled, active }) {
         <button onClick={!disabled ? onClick : undefined} style={{
             padding: "5px 12px", fontSize: 13, borderRadius: 4, cursor: disabled ? "default" : "pointer",
             border: `1px solid ${active ? "#1a2a5e" : "#dee2e6"}`,
-            background: active ? "#1a2a5e" : disabled ? "#fff" : "#fff",
+            background: active ? "#1a2a5e" : "#fff",
             color: active ? "#fff" : disabled ? "#aaa" : "#333",
             fontWeight: active ? 600 : 400,
         }}>{label}</button>

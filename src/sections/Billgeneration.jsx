@@ -729,15 +729,15 @@ import {
 
 // ── Hardcoded PO list (replace with API when master is ready) ─
 const PO_LIST = [
-  { po_id: 2,     po_name: "Kalwan" },
-  { po_id: 3,     po_name: "Shahapur" },
-  { po_id: 4,     po_name: "Kinvat" },
-  { po_id: 5,     po_name: "Dharni" },
-  { po_id: 6,     po_name: "Aheri" },
-  { po_id: 7,     po_name: "Gadchiroli" },
-  { po_id: 8,     po_name: "Bhamragad" },
-  { po_id: 9,     po_name: "Chandrapur" },
-  { po_id: 10,    po_name: "Taloda" },
+  { po_id: 2, po_name: "Kalwan" },
+  { po_id: 3, po_name: "Shahapur" },
+  { po_id: 4, po_name: "Kinvat" },
+  { po_id: 5, po_name: "Dharni" },
+  { po_id: 6, po_name: "Aheri" },
+  { po_id: 7, po_name: "Gadchiroli" },
+  { po_id: 8, po_name: "Bhamragad" },
+  { po_id: 9, po_name: "Chandrapur" },
+  { po_id: 10, po_name: "Taloda" },
   { po_id: 10004, po_name: "Rajur" },
   { po_id: 10005, po_name: "Dahanu" },
   { po_id: 10006, po_name: "Jawhar" },
@@ -763,20 +763,23 @@ const PO_LIST = [
 
 // ── API helpers ───────────────────────────────────────────────
 const getTransactions = () =>
-  apiFetch("/o/c/transactionmasters?pageSize=200&sort=dateCreated:desc")
-    .then((d) => d.items || []);
+  apiFetch("/o/c/transactionmasters?pageSize=200&sort=dateCreated:desc").then(
+    (d) => d.items || [],
+  );
 
 const getAllSchools = () =>
-  apiFetch("/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc")
-    .then((d) => d.items || []);
+  apiFetch(
+    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
+  ).then((d) => d.items || []);
 
 const getSchoolGrading = (schoolProfileId) =>
-  apiFetch(`/o/c/schoolgradings?filter=schoolProfileId eq ${schoolProfileId}&pageSize=1`)
-    .then((d) => (d.items || [])[0] || null);
+  apiFetch(
+    `/o/c/schoolgradings?filter=schoolProfileId eq ${schoolProfileId}&pageSize=1`,
+  ).then((d) => (d.items || [])[0] || null);
 
 const getExistingBill = (transactionId, schoolId) =>
   apiFetch(
-    `/o/c/billgenerations?filter=transactionId eq ${transactionId} and schoolId eq ${schoolId}&pageSize=1&sort=dateCreated:desc`
+    `/o/c/billgenerations?filter=transactionId eq ${transactionId} and schoolId eq ${schoolId}&pageSize=1&sort=dateCreated:desc`,
   ).then((d) => (d.items || [])[0] || null);
 
 const patchBillGeneration = (id, payload) =>
@@ -784,65 +787,209 @@ const patchBillGeneration = (id, payload) =>
 
 // ── Styles ────────────────────────────────────────────────────
 const s = {
-  page:       { padding: "20px 24px", fontFamily: "'Segoe UI', Roboto, sans-serif", fontSize: 13, color: "#333", background: "#fff" },
-  heading:    { fontSize: 18, fontWeight: 600, color: "#222", paddingBottom: 10, borderBottom: "1px solid #ddd", marginBottom: 20 },
-  subHeading: { fontSize: 15, fontWeight: 600, color: "#17a2b8", borderBottom: "2px solid #e8c84a", paddingBottom: 4, marginBottom: 16, marginTop: 28 },
-  label:      { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
-  req:        { color: "#e53935", marginLeft: 2 },
-  input:      { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none" },
-  inputGrey:  { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#e9ecef", outline: "none" },
-  select:     { width: "100%", boxSizing: "border-box", border: "1px solid #ced4da", borderRadius: 3, padding: "6px 10px", fontSize: 13, color: "#333", background: "#fff", outline: "none", cursor: "pointer" },
-  grid2:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 18px", marginBottom: 14 },
-  grid4:      { display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: "12px 10px", alignItems: "flex-end", marginBottom: 10 },
-  btnGreen:   { background: "#28a745", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnOrange:  { background: "#fd7e14", color: "#fff", border: "none", borderRadius: 3, padding: "7px 18px", fontSize: 13, cursor: "pointer", fontWeight: 600 },
-  btnCapture: { background: "#17a2b8", color: "#fff", border: "none", borderRadius: 20, padding: "7px 24px", fontSize: 13, cursor: "pointer", fontWeight: 500 },
-  btnDelete:  { background: "#dc3545", color: "#fff", border: "none", borderRadius: 3, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
-  table:      { width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 12 },
-  th:         { padding: "9px 12px", background: "#fff", border: "1px solid #dee2e6", fontWeight: 600, textAlign: "left", color: "#222" },
-  td:         { padding: "8px 12px", border: "1px solid #dee2e6", color: "#333", verticalAlign: "middle" },
-  summaryRow: { display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap", marginTop: 18, marginBottom: 14 },
-  finalAmt:   { fontSize: 22, fontWeight: 700, color: "#e53935" },
-  uidBox:     { background: "#fffbea", border: "1px solid #e8c84a", borderRadius: 3, padding: "10px 14px", marginBottom: 10, fontSize: 13, color: "#555" },
-  captureBox: { background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 3, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  alert:      { padding: "10px 14px", borderRadius: 3, fontSize: 13, marginBottom: 14 },
-  err:        { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
-  suc:        { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
+  page: {
+    padding: "20px 24px",
+    fontFamily: "'Segoe UI', Roboto, sans-serif",
+    fontSize: 13,
+    color: "#333",
+    background: "#fff",
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 600,
+    color: "#222",
+    paddingBottom: 10,
+    borderBottom: "1px solid #ddd",
+    marginBottom: 20,
+  },
+  subHeading: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#17a2b8",
+    borderBottom: "2px solid #e8c84a",
+    paddingBottom: 4,
+    marginBottom: 16,
+    marginTop: 28,
+  },
+  label: { display: "block", fontSize: 12, color: "#333", marginBottom: 4 },
+  req: { color: "#e53935", marginLeft: 2 },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid #ced4da",
+    borderRadius: 3,
+    padding: "6px 10px",
+    fontSize: 13,
+    color: "#333",
+    background: "#fff",
+    outline: "none",
+  },
+  inputGrey: {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid #ced4da",
+    borderRadius: 3,
+    padding: "6px 10px",
+    fontSize: 13,
+    color: "#333",
+    background: "#e9ecef",
+    outline: "none",
+  },
+  select: {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid #ced4da",
+    borderRadius: 3,
+    padding: "6px 10px",
+    fontSize: 13,
+    color: "#333",
+    background: "#fff",
+    outline: "none",
+    cursor: "pointer",
+  },
+  grid2: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px 18px",
+    marginBottom: 14,
+  },
+  grid4: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr 1fr auto",
+    gap: "12px 10px",
+    alignItems: "flex-end",
+    marginBottom: 10,
+  },
+  btnGreen: {
+    background: "#28a745",
+    color: "#fff",
+    border: "none",
+    borderRadius: 3,
+    padding: "7px 18px",
+    fontSize: 13,
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+  btnOrange: {
+    background: "#fd7e14",
+    color: "#fff",
+    border: "none",
+    borderRadius: 3,
+    padding: "7px 18px",
+    fontSize: 13,
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+  btnCapture: {
+    background: "#17a2b8",
+    color: "#fff",
+    border: "none",
+    borderRadius: 20,
+    padding: "7px 24px",
+    fontSize: 13,
+    cursor: "pointer",
+    fontWeight: 500,
+  },
+  btnDelete: {
+    background: "#dc3545",
+    color: "#fff",
+    border: "none",
+    borderRadius: 3,
+    padding: "4px 12px",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: 13,
+    marginBottom: 12,
+  },
+  th: {
+    padding: "9px 12px",
+    background: "#fff",
+    border: "1px solid #dee2e6",
+    fontWeight: 600,
+    textAlign: "left",
+    color: "#222",
+  },
+  td: {
+    padding: "8px 12px",
+    border: "1px solid #dee2e6",
+    color: "#333",
+    verticalAlign: "middle",
+  },
+  summaryRow: {
+    display: "flex",
+    gap: 24,
+    alignItems: "flex-end",
+    flexWrap: "wrap",
+    marginTop: 18,
+    marginBottom: 14,
+  },
+  finalAmt: { fontSize: 22, fontWeight: 700, color: "#e53935" },
+  uidBox: {
+    background: "#fffbea",
+    border: "1px solid #e8c84a",
+    borderRadius: 3,
+    padding: "10px 14px",
+    marginBottom: 10,
+    fontSize: 13,
+    color: "#555",
+  },
+  captureBox: {
+    background: "#e8f5e9",
+    border: "1px solid #a5d6a7",
+    borderRadius: 3,
+    padding: "10px 14px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  alert: {
+    padding: "10px 14px",
+    borderRadius: 3,
+    fontSize: 13,
+    marginBottom: 14,
+  },
+  err: { background: "#f8d7da", color: "#721c24", border: "1px solid #f5c6cb" },
+  suc: { background: "#d4edda", color: "#155724", border: "1px solid #c3e6cb" },
 };
 
-const emptyArrear    = { amount: "", billNo: "", date: "", remarks: "" };
+const emptyArrear = { amount: "", billNo: "", date: "", remarks: "" };
 const emptyDeduction = { amount: "", billNo: "", date: "", remarks: "" };
 
 export default function BillGeneration() {
   // ── Dropdown data ─────────────────────────────────────────
   const [transactions, setTransactions] = useState([]);
-  const [schoolList,   setSchoolList]   = useState([]);   // schools filtered by PO
-  const [allSchools,   setAllSchools]   = useState([]);   // all schools (loaded once)
+  const [schoolList, setSchoolList] = useState([]); // schools filtered by PO
+  const [allSchools, setAllSchools] = useState([]); // all schools (loaded once)
 
   // ── Header filters ────────────────────────────────────────
   const [transaction, setTransaction] = useState("");
-  const [po,          setPo]          = useState("");
-  const [school,      setSchool]      = useState("");
-  const [billDate,    setBillDate]    = useState("");
+  const [po, setPo] = useState("");
+  const [school, setSchool] = useState("");
+  const [billDate, setBillDate] = useState("");
 
   // ── Search result data ────────────────────────────────────
-  const [searched,          setSearched]          = useState(false);
-  const [loading,           setLoading]           = useState(false);
-  const [summaryRows,       setSummaryRows]       = useState([]);
-  const [studentsList,      setStudentsList]      = useState([]);
+  const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [summaryRows, setSummaryRows] = useState([]);
+  const [studentsList, setStudentsList] = useState([]);
   const [totalStudentCount, setTotalStudentCount] = useState(0);
-  const [totalFees,         setTotalFees]         = useState(0);
+  const [totalFees, setTotalFees] = useState(0);
 
   // ── Saved bill id (after first save / if existing) ───────
   const [billId, setBillId] = useState(null);
 
   // ── Arrears ────────────────────────────────────────────────
   const [arrearInput, setArrearInput] = useState(emptyArrear);
-  const [arrearRows,  setArrearRows]  = useState([]);
+  const [arrearRows, setArrearRows] = useState([]);
 
   // ── Deductions ────────────────────────────────────────────
   const [deductInput, setDeductInput] = useState(emptyDeduction);
-  const [deductRows,  setDeductRows]  = useState([]);
+  const [deductRows, setDeductRows] = useState([]);
 
   // ── PO Deductions (read-only from Liferay) ────────────────
   const [poDeductions, setPoDeductions] = useState([]);
@@ -851,14 +998,24 @@ export default function BillGeneration() {
   const [billRemarks, setBillRemarks] = useState("");
 
   // ── UI state ─────────────────────────────────────────────
-  const [saving,  setSaving]  = useState(false);
-  const [alert,   setAlert]   = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   // ── Auto-calc ────────────────────────────────────────────
-  const totalArrears    = arrearRows.reduce((s, r)   => s + (Number(r.amount) || 0), 0);
-  const totalDeductions = deductRows.reduce((s, r)   => s + (Number(r.amount) || 0), 0);
-  const totalPODed      = poDeductions.reduce((s, r) => s + (Number(r.deductionsAmount) || 0), 0);
-  const finalTotalFees  = totalFees + totalArrears - totalDeductions - totalPODed;
+  const totalArrears = arrearRows.reduce(
+    (s, r) => s + (Number(r.amount) || 0),
+    0,
+  );
+  const totalDeductions = deductRows.reduce(
+    (s, r) => s + (Number(r.amount) || 0),
+    0,
+  );
+  const totalPODed = poDeductions.reduce(
+    (s, r) => s + (Number(r.deductionsAmount) || 0),
+    0,
+  );
+  const finalTotalFees =
+    totalFees + totalArrears - totalDeductions - totalPODed;
 
   // ── Load transactions + all schools on mount ──────────────
   useEffect(() => {
@@ -874,18 +1031,25 @@ export default function BillGeneration() {
   }, []);
 
   // ── Filter schools when PO changes ───────────────────────
-useEffect(() => {
-  if (!po) { setSchoolList([]); setSchool(""); return; }
-  // TODO: filter by poNameId when PO master IDs are mapped to Liferay IDs
-  // For now show all schools so bill generation can be tested
-  setSchoolList(allSchools);
-  setSchool("");
-}, [po, allSchools]);
+  useEffect(() => {
+    if (!po) {
+      setSchoolList([]);
+      setSchool("");
+      return;
+    }
+    // TODO: filter by poNameId when PO master IDs are mapped to Liferay IDs
+    // For now show all schools so bill generation can be tested
+    setSchoolList(allSchools);
+    setSchool("");
+  }, [po, allSchools]);
 
   // ── Search ────────────────────────────────────────────────
   const handleSearch = async () => {
     if (!transaction || !po || !school) {
-      setAlert({ type: "err", message: "Please select Transaction, PO and School." });
+      setAlert({
+        type: "err",
+        message: "Please select Transaction, PO and School.",
+      });
       return;
     }
     setLoading(true);
@@ -897,13 +1061,15 @@ useEffect(() => {
 
       // 2. Get approved students for this school
       const students = await apiFetch(
-        `/o/c/namankitstudents?filter=schoolProfileId eq ${school}&pageSize=200&sort=dateCreated:desc`
-      ).then((d) => d.items || []).catch(() => []);
+        `/o/c/studentregistarions?filter=schoolProfileId eq ${school} and approvalStatus eq 'approved'&pageSize=200&sort=dateCreated:desc`,
+      )
+        .then((d) => d.items || [])
+        .catch(() => []);
 
       // 3. Group by admission year for summary table
       const grouped = {};
       students.forEach((st) => {
-        const yr = st.admissionYear || st.currentClass || "2025-2026";
+        const yr = st.admissionDate || st.currentAdmissionDate || "2025-2026";
         if (!grouped[yr]) {
           grouped[yr] = {
             admissionYear: yr,
@@ -919,15 +1085,15 @@ useEffect(() => {
       const summary = Object.values(grouped);
       const totalFeesCal = summary.reduce((s, r) => s + r.totalFeesYear, 0);
 
-      // 4. Build students list with distributed fees
-      const studentsWithFees = students.map((st) => ({
-        id:          st.id,
-        studentPO:   po,
-        uniqueNumber: st.uniqueNumber || st.id,
-        studentName: `${st.firstName || ""} ${st.middleName || ""} ${st.lastName || ""}`.trim(),
-        feesYear:    st.admissionYear || "2025-2026",
-        feesAmount:  feesPerStudent,
-      }));
+      // AFTER
+const studentsWithFees = students.map((st) => ({
+  id:           st.id,
+  studentPO:    po,
+  uniqueNumber: st.uniqueNumber || st.aadharNumberUID || st.id,
+  studentName:  st.studentName || `${st.firstName || ""} ${st.middleName || ""} ${st.lastName || ""}`.trim(),
+  feesYear:     st.admissionDate || st.currentAdmissionDate || "2025-2026",
+  feesAmount:   feesPerStudent,
+}));
 
       setSummaryRows(summary);
       setStudentsList(studentsWithFees);
@@ -965,10 +1131,14 @@ useEffect(() => {
       setAlert({ type: "err", message: "Arrear amount is required." });
       return;
     }
-    setArrearRows((p) => [...p, { ...arrearInput, id: Date.now(), _saved: false }]);
+    setArrearRows((p) => [
+      ...p,
+      { ...arrearInput, id: Date.now(), _saved: false },
+    ]);
     setArrearInput(emptyArrear);
   };
-  const deleteArrear = (id) => setArrearRows((p) => p.filter((r) => r.id !== id));
+  const deleteArrear = (id) =>
+    setArrearRows((p) => p.filter((r) => r.id !== id));
 
   // ── Add Deduction ─────────────────────────────────────────
   const handleAddDeduction = () => {
@@ -976,15 +1146,25 @@ useEffect(() => {
       setAlert({ type: "err", message: "Deduction amount is required." });
       return;
     }
-    setDeductRows((p) => [...p, { ...deductInput, id: Date.now(), _saved: false }]);
+    setDeductRows((p) => [
+      ...p,
+      { ...deductInput, id: Date.now(), _saved: false },
+    ]);
     setDeductInput(emptyDeduction);
   };
-  const deleteDeduction = (id) => setDeductRows((p) => p.filter((r) => r.id !== id));
+  const deleteDeduction = (id) =>
+    setDeductRows((p) => p.filter((r) => r.id !== id));
 
   // ── Save ──────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!billDate)    { setAlert({ type: "err", message: "Bill Date is required." }); return; }
-    if (!billRemarks) { setAlert({ type: "err", message: "Bill Remarks is required." }); return; }
+    if (!billDate) {
+      setAlert({ type: "err", message: "Bill Date is required." });
+      return;
+    }
+    if (!billRemarks) {
+      setAlert({ type: "err", message: "Bill Remarks is required." });
+      return;
+    }
 
     setSaving(true);
     setAlert(null);
@@ -992,9 +1172,9 @@ useEffect(() => {
     try {
       // 1. Save / update main bill record
       const billPayload = {
-        transactionId:     Number(transaction),
+        transactionId: Number(transaction),
         po,
-        schoolId:          Number(school),
+        schoolId: Number(school),
         billDate,
         totalStudentCount,
         totalFees,
@@ -1003,7 +1183,7 @@ useEffect(() => {
         totalPODeductions: totalPODed,
         finalTotalFees,
         billRemarks,
-        billStatus:        "Draft",
+        billStatus: "Draft",
       };
 
       let currentBillId = billId;
@@ -1019,10 +1199,10 @@ useEffect(() => {
       for (const row of summaryRows) {
         await saveBillAdmissionSummary({
           billGenerationId: currentBillId,
-          admissionYear:    row.admissionYear,
-          noOfStudents:     row.noOfStudents,
-          feesPerYear:      row.feesPerYear,
-          totalFeesYear:    row.totalFeesYear,
+          admissionYear: row.admissionYear,
+          noOfStudents: row.noOfStudents,
+          feesPerYear: row.feesPerYear,
+          totalFeesYear: row.totalFeesYear,
         });
       }
 
@@ -1030,12 +1210,12 @@ useEffect(() => {
       for (const st of studentsList) {
         await saveBillStudent({
           billGenerationId: currentBillId,
-          schoolId:         Number(school),
-          studentId:        st.id,
-          studentName:      st.studentName,
-          uniqueNumber:     st.uniqueNumber,
-          feesYear:         st.feesYear,
-          feesAmount:       st.feesAmount,
+          schoolId: Number(school),
+          studentId: st.id,
+          studentName: st.studentName,
+          uniqueNumber: st.uniqueNumber,
+          feesYear: st.feesYear,
+          feesAmount: st.feesAmount,
           po,
         });
       }
@@ -1045,10 +1225,10 @@ useEffect(() => {
       for (const row of newArrears) {
         await saveBillArrear({
           billGenerationId: currentBillId,
-          amount:           Number(row.amount),
-          billNo:           row.billNo,
-          date:             row.date,
-          remarks:          row.remarks,
+          amount: Number(row.amount),
+          billNo: row.billNo,
+          date: row.date,
+          remarks: row.remarks,
         });
       }
       setArrearRows((p) => p.map((r) => ({ ...r, _saved: true })));
@@ -1058,10 +1238,10 @@ useEffect(() => {
       for (const row of newDeductions) {
         await saveBillDeduction({
           billGenerationId: currentBillId,
-          amount:           Number(row.amount),
-          billNo:           row.billNo,
-          date:             row.date,
-          remarks:          row.remarks,
+          amount: Number(row.amount),
+          billNo: row.billNo,
+          date: row.date,
+          remarks: row.remarks,
         });
       }
       setDeductRows((p) => p.map((r) => ({ ...r, _saved: true })));
@@ -1077,17 +1257,30 @@ useEffect(() => {
 
   // ── Reset ─────────────────────────────────────────────────
   const handleReset = () => {
-    setTransaction(""); setPo(""); setSchool(""); setBillDate("");
-    setSearched(false); setSummaryRows([]); setStudentsList([]);
-    setTotalStudentCount(0); setTotalFees(0); setBillId(null);
-    setArrearInput(emptyArrear); setArrearRows([]);
-    setDeductInput(emptyDeduction); setDeductRows([]);
-    setPoDeductions([]); setBillRemarks(""); setAlert(null);
+    setTransaction("");
+    setPo("");
+    setSchool("");
+    setBillDate("");
+    setSearched(false);
+    setSummaryRows([]);
+    setStudentsList([]);
+    setTotalStudentCount(0);
+    setTotalFees(0);
+    setBillId(null);
+    setArrearInput(emptyArrear);
+    setArrearRows([]);
+    setDeductInput(emptyDeduction);
+    setDeductRows([]);
+    setPoDeductions([]);
+    setBillRemarks("");
+    setAlert(null);
   };
 
   // ── Field setter helpers ──────────────────────────────────
-  const setA = (k) => (e) => setArrearInput((p) => ({ ...p, [k]: e.target.value }));
-  const setD = (k) => (e) => setDeductInput((p) => ({ ...p, [k]: e.target.value }));
+  const setA = (k) => (e) =>
+    setArrearInput((p) => ({ ...p, [k]: e.target.value }));
+  const setD = (k) => (e) =>
+    setDeductInput((p) => ({ ...p, [k]: e.target.value }));
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -1098,15 +1291,34 @@ useEffect(() => {
       {alert && (
         <div style={{ ...s.alert, ...s[alert.type] }}>
           {alert.message}
-          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
+          <span
+            onClick={() => setAlert(null)}
+            style={{ float: "right", cursor: "pointer", fontWeight: 700 }}
+          >
+            ×
+          </span>
         </div>
       )}
 
       {/* ── Row 1: Transaction | PO | School | Search ────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: "12px 18px", alignItems: "flex-end", marginBottom: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr auto",
+          gap: "12px 18px",
+          alignItems: "flex-end",
+          marginBottom: 14,
+        }}
+      >
         <div>
-          <label style={s.label}>Transaction <span style={s.req}>*</span></label>
-          <select style={s.select} value={transaction} onChange={(e) => setTransaction(e.target.value)}>
+          <label style={s.label}>
+            Transaction <span style={s.req}>*</span>
+          </label>
+          <select
+            style={s.select}
+            value={transaction}
+            onChange={(e) => setTransaction(e.target.value)}
+          >
             <option value="">--Select--</option>
             {transactions.map((t) => (
               <option key={t.id} value={t.id}>
@@ -1116,17 +1328,32 @@ useEffect(() => {
           </select>
         </div>
         <div>
-          <label style={s.label}>PO <span style={s.req}>*</span></label>
-          <select style={s.select} value={po} onChange={(e) => setPo(e.target.value)}>
+          <label style={s.label}>
+            PO <span style={s.req}>*</span>
+          </label>
+          <select
+            style={s.select}
+            value={po}
+            onChange={(e) => setPo(e.target.value)}
+          >
             <option value="">--Select--</option>
             {PO_LIST.map((p) => (
-              <option key={p.po_id} value={p.po_id}>{p.po_name}</option>
+              <option key={p.po_id} value={p.po_id}>
+                {p.po_name}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label style={s.label}>School <span style={s.req}>*</span></label>
-          <select style={s.select} value={school} onChange={(e) => setSchool(e.target.value)} disabled={!po}>
+          <label style={s.label}>
+            School <span style={s.req}>*</span>
+          </label>
+          <select
+            style={s.select}
+            value={school}
+            onChange={(e) => setSchool(e.target.value)}
+            disabled={!po}
+          >
             <option value="">--Select--</option>
             {schoolList.map((sc) => (
               <option key={sc.id} value={sc.id}>
@@ -1149,12 +1376,25 @@ useEffect(() => {
       {/* ── Row 2: Bill Date | Total Student Count ────────── */}
       <div style={s.grid2}>
         <div>
-          <label style={s.label}>Bill Date <span style={s.req}>*</span></label>
-          <input style={s.input} type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} />
+          <label style={s.label}>
+            Bill Date <span style={s.req}>*</span>
+          </label>
+          <input
+            style={s.input}
+            type="date"
+            value={billDate}
+            onChange={(e) => setBillDate(e.target.value)}
+          />
         </div>
         <div>
-          <label style={s.label}>Total Student count <span style={s.req}>*</span></label>
-          <input style={s.inputGrey} value={searched ? totalStudentCount : ""} readOnly />
+          <label style={s.label}>
+            Total Student count <span style={s.req}>*</span>
+          </label>
+          <input
+            style={s.inputGrey}
+            value={searched ? totalStudentCount : ""}
+            readOnly
+          />
         </div>
       </div>
 
@@ -1163,8 +1403,16 @@ useEffect(() => {
         <table style={s.table}>
           <thead>
             <tr>
-              {["Sr No", "Admission Year", "No of Students", "Fees Per Year", "Total Fees Year"].map((h) => (
-                <th key={h} style={s.th}>{h}</th>
+              {[
+                "Sr No",
+                "Admission Year",
+                "No of Students",
+                "Fees Per Year",
+                "Total Fees Year",
+              ].map((h) => (
+                <th key={h} style={s.th}>
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -1189,8 +1437,17 @@ useEffect(() => {
           <table style={s.table}>
             <thead>
               <tr>
-                {["Sr No", "Student PO", "Unique Number", "Student Name", "Fees Year", "Fees Amount"].map((h) => (
-                  <th key={h} style={s.th}>{h}</th>
+                {[
+                  "Sr No",
+                  "Student PO",
+                  "Unique Number",
+                  "Student Name",
+                  "Fees Year",
+                  "Fees Amount",
+                ].map((h) => (
+                  <th key={h} style={s.th}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -1215,35 +1472,64 @@ useEffect(() => {
       <div style={s.grid4}>
         <div>
           <label style={s.label}>Amount</label>
-          <input style={s.input} type="number" value={arrearInput.amount} onChange={setA("amount")} />
+          <input
+            style={s.input}
+            type="number"
+            value={arrearInput.amount}
+            onChange={setA("amount")}
+          />
         </div>
         <div>
           <label style={s.label}>BillNo</label>
-          <input style={s.input} value={arrearInput.billNo} onChange={setA("billNo")} />
+          <input
+            style={s.input}
+            value={arrearInput.billNo}
+            onChange={setA("billNo")}
+          />
         </div>
         <div>
           <label style={s.label}>Date</label>
-          <input style={s.input} type="date" value={arrearInput.date} onChange={setA("date")} />
+          <input
+            style={s.input}
+            type="date"
+            value={arrearInput.date}
+            onChange={setA("date")}
+          />
         </div>
         <div>
           <label style={s.label}>Remarks</label>
-          <input style={s.input} value={arrearInput.remarks} onChange={setA("remarks")} />
+          <input
+            style={s.input}
+            value={arrearInput.remarks}
+            onChange={setA("remarks")}
+          />
         </div>
         <div>
-          <button style={s.btnGreen} onClick={handleAddArrear}>Add</button>
+          <button style={s.btnGreen} onClick={handleAddArrear}>
+            Add
+          </button>
         </div>
       </div>
       <table style={s.table}>
         <thead>
           <tr>
-            {["Sr No", "Amount", "Bill No", "Date", "Remarks", "Delete"].map((h) => (
-              <th key={h} style={s.th}>{h}</th>
-            ))}
+            {["Sr No", "Amount", "Bill No", "Date", "Remarks", "Delete"].map(
+              (h) => (
+                <th key={h} style={s.th}>
+                  {h}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody>
           {arrearRows.length === 0 ? (
-            <tr><td colSpan={6} style={{ ...s.td, textAlign: "center", color: "#aaa" }}></td></tr>
+            <tr>
+              <td
+                colSpan={6}
+                style={{ ...s.td, textAlign: "center", color: "#aaa" }}
+              ></td>
+            </tr>
           ) : (
             arrearRows.map((r, i) => (
               <tr key={r.id}>
@@ -1253,7 +1539,12 @@ useEffect(() => {
                 <td style={s.td}>{r.date}</td>
                 <td style={s.td}>{r.remarks}</td>
                 <td style={s.td}>
-                  <button style={s.btnDelete} onClick={() => deleteArrear(r.id)}>Delete</button>
+                  <button
+                    style={s.btnDelete}
+                    onClick={() => deleteArrear(r.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))
@@ -1266,35 +1557,64 @@ useEffect(() => {
       <div style={s.grid4}>
         <div>
           <label style={s.label}>Amount</label>
-          <input style={s.input} type="number" value={deductInput.amount} onChange={setD("amount")} />
+          <input
+            style={s.input}
+            type="number"
+            value={deductInput.amount}
+            onChange={setD("amount")}
+          />
         </div>
         <div>
           <label style={s.label}>BillNo</label>
-          <input style={s.input} value={deductInput.billNo} onChange={setD("billNo")} />
+          <input
+            style={s.input}
+            value={deductInput.billNo}
+            onChange={setD("billNo")}
+          />
         </div>
         <div>
           <label style={s.label}>Date</label>
-          <input style={s.input} type="date" value={deductInput.date} onChange={setD("date")} />
+          <input
+            style={s.input}
+            type="date"
+            value={deductInput.date}
+            onChange={setD("date")}
+          />
         </div>
         <div>
           <label style={s.label}>Remarks</label>
-          <input style={s.input} value={deductInput.remarks} onChange={setD("remarks")} />
+          <input
+            style={s.input}
+            value={deductInput.remarks}
+            onChange={setD("remarks")}
+          />
         </div>
         <div>
-          <button style={s.btnGreen} onClick={handleAddDeduction}>Add</button>
+          <button style={s.btnGreen} onClick={handleAddDeduction}>
+            Add
+          </button>
         </div>
       </div>
       <table style={s.table}>
         <thead>
           <tr>
-            {["Sr No", "Amount", "Bill No", "Date", "Remarks", "Delete"].map((h) => (
-              <th key={h} style={s.th}>{h}</th>
-            ))}
+            {["Sr No", "Amount", "Bill No", "Date", "Remarks", "Delete"].map(
+              (h) => (
+                <th key={h} style={s.th}>
+                  {h}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody>
           {deductRows.length === 0 ? (
-            <tr><td colSpan={6} style={{ ...s.td, textAlign: "center", color: "#aaa" }}></td></tr>
+            <tr>
+              <td
+                colSpan={6}
+                style={{ ...s.td, textAlign: "center", color: "#aaa" }}
+              ></td>
+            </tr>
           ) : (
             deductRows.map((r, i) => (
               <tr key={r.id}>
@@ -1304,7 +1624,12 @@ useEffect(() => {
                 <td style={s.td}>{r.date}</td>
                 <td style={s.td}>{r.remarks}</td>
                 <td style={s.td}>
-                  <button style={s.btnDelete} onClick={() => deleteDeduction(r.id)}>Delete</button>
+                  <button
+                    style={s.btnDelete}
+                    onClick={() => deleteDeduction(r.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))
@@ -1317,14 +1642,26 @@ useEffect(() => {
       <table style={s.table}>
         <thead>
           <tr>
-            {["Deductions Added By", "Deductions Amount", "Remarks", "Add/Remove Deductions"].map((h) => (
-              <th key={h} style={s.th}>{h}</th>
+            {[
+              "Deductions Added By",
+              "Deductions Amount",
+              "Remarks",
+              "Add/Remove Deductions",
+            ].map((h) => (
+              <th key={h} style={s.th}>
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {poDeductions.length === 0 ? (
-            <tr><td colSpan={4} style={{ ...s.td, textAlign: "center", color: "#aaa" }}></td></tr>
+            <tr>
+              <td
+                colSpan={4}
+                style={{ ...s.td, textAlign: "center", color: "#aaa" }}
+              ></td>
+            </tr>
           ) : (
             poDeductions.map((r, i) => (
               <tr key={i}>
@@ -1334,7 +1671,9 @@ useEffect(() => {
                 <td style={s.td}>
                   <button
                     style={s.btnDelete}
-                    onClick={() => setPoDeductions((p) => p.filter((_, j) => j !== i))}
+                    onClick={() =>
+                      setPoDeductions((p) => p.filter((_, j) => j !== i))
+                    }
                   >
                     Remove
                   </button>
@@ -1348,30 +1687,59 @@ useEffect(() => {
       {/* ── Summary totals row ────────────────────────────── */}
       <div style={s.summaryRow}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <label style={s.label}>Total Fees <span style={s.req}>*</span></label>
-          <input style={{ ...s.inputGrey, width: 160 }} value={totalFees ? totalFees.toFixed(2) : ""} readOnly />
+          <label style={s.label}>
+            Total Fees <span style={s.req}>*</span>
+          </label>
+          <input
+            style={{ ...s.inputGrey, width: 160 }}
+            value={totalFees ? totalFees.toFixed(2) : ""}
+            readOnly
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <label style={s.label}>Total Arrears</label>
-          <input style={{ ...s.inputGrey, width: 130 }} value={totalArrears || 0} readOnly />
+          <input
+            style={{ ...s.inputGrey, width: 130 }}
+            value={totalArrears || 0}
+            readOnly
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <label style={s.label}>Total Deductions</label>
-          <input style={{ ...s.inputGrey, width: 140 }} value={totalDeductions || ""} readOnly />
+          <input
+            style={{ ...s.inputGrey, width: 140 }}
+            value={totalDeductions || ""}
+            readOnly
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <label style={s.label}>Total PO Deductions</label>
-          <input style={{ ...s.inputGrey, width: 150 }} value={totalPODed || ""} readOnly />
+          <input
+            style={{ ...s.inputGrey, width: 150 }}
+            value={totalPODed || ""}
+            readOnly
+          />
         </div>
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <span style={{ fontSize: 13, color: "#333" }}>Final Total Fees</span>
-          <span style={s.finalAmt}>{finalTotalFees ? finalTotalFees.toFixed(2) : "0.00"}</span>
+          <span style={s.finalAmt}>
+            {finalTotalFees ? finalTotalFees.toFixed(2) : "0.00"}
+          </span>
         </div>
       </div>
 
       {/* ── Bill Remarks ──────────────────────────────────── */}
       <div style={{ marginBottom: 20 }}>
-        <label style={s.label}>Bill Remarks <span style={s.req}>*</span></label>
+        <label style={s.label}>
+          Bill Remarks <span style={s.req}>*</span>
+        </label>
         <input
           style={{ ...s.input, border: "1px solid #17a2b8" }}
           value={billRemarks}
@@ -1381,29 +1749,49 @@ useEffect(() => {
 
       {/* ── UID Verification ──────────────────────────────── */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#e53935", marginBottom: 8 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#e53935",
+            marginBottom: 8,
+          }}
+        >
           Steps for UID verification :-
         </div>
         <div style={s.uidBox}>
           <span style={{ marginRight: 8 }}>•</span>
-          For Capturing finger print and verifying press &apos;Capture&apos; button
+          For Capturing finger print and verifying press &apos;Capture&apos;
+          button
         </div>
         <div style={s.captureBox}>
           <span style={{ fontSize: 13, color: "#555" }}>
             Click here to capture Right Hand FingerPrint &amp; to verify UID
           </span>
-          <button style={s.btnCapture} onClick={() => alert("Capture fingerprint triggered")}>
+          <button
+            style={s.btnCapture}
+            onClick={() => alert("Capture fingerprint triggered")}
+          >
             Capture
           </button>
         </div>
       </div>
 
       {/* ── Save / Reset ──────────────────────────────────── */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", paddingBottom: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          justifyContent: "center",
+          paddingBottom: 32,
+        }}
+      >
         <button style={s.btnGreen} onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : "Save"}
         </button>
-        <button style={s.btnOrange} onClick={handleReset}>Reset</button>
+        <button style={s.btnOrange} onClick={handleReset}>
+          Reset
+        </button>
       </div>
     </div>
   );

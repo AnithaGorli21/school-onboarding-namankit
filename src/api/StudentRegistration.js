@@ -2,13 +2,13 @@ import { uploadFileToFolder } from "./upload";
 import { saveStudentRegistration, patchStudentRegistration } from "./liferay";
 
 // Submit student registration payload. If recordId is present, PATCH, else POST.
-export async function submitStudentRegistration({ form, recordId }) {
+export async function submitStudentRegistration({ form, recordId, schoolProfileId  }) {
   // upload photo if provided
   const uploadedPhoto = form.studentsPhoto
     ? await uploadFileToFolder(form.studentsPhoto, "School Documents")
     : null;
 
-  const payload = buildPayload({ form, uploadedPhoto });
+  const payload = buildPayload({ form, uploadedPhoto, schoolProfileId  });
 
   console.log(
     `[StudentRegistration] ${recordId ? "PATCH" : "POST"} →`,
@@ -24,8 +24,9 @@ export async function submitStudentRegistration({ form, recordId }) {
   return payload;
 }
 
-function buildPayload({ form, uploadedPhoto }) {
+function buildPayload({ form, uploadedPhoto, schoolProfileId  }) {
   return {
+    schoolProfileId: schoolProfileId || 0,
     externalReferenceCode: form.externalReferenceCode || "",
     keywords: form.keywords || [],
     permissions: form.permissions || [],

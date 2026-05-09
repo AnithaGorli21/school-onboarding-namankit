@@ -353,7 +353,7 @@ export default function DownloadUploadCancelBill() {
 
   const handleView = (bill) => {
     if (bill.uploadedFile) window.open(bill.uploadedFile, "_blank");
-    else alert("No file uploaded for this bill yet.");
+    else window.alert("No file uploaded for this bill yet.");
   };
 
   const handleCancel = async (bill) => {

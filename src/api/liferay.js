@@ -152,10 +152,16 @@ export const patchStudentRegistration = (id, p) =>
   apiPatch(`/o/c/studentregistarions/${id}`, p);
  
 // Fetch student registrations — used for approval list (filtered by schoolProfileId)
+// export const getStudentApprovalList = (id) =>
+//   apiFetch(`/o/c/studentregistarions${bySchoolMany(id)}`).then(
+//     (d) => d.items || [],
+//   );
+
+  // CHANGE TO — server-side filter by schoolProfileId
 export const getStudentApprovalList = (id) =>
-  apiFetch(`/o/c/studentregistarions${bySchoolMany(id)}`).then(
-    (d) => d.items || [],
-  );
+  apiFetch(
+    `/o/c/studentregistarions?filter=schoolProfileId eq ${id}&pageSize=200&sort=dateCreated:desc`,
+  ).then((d) => d.items || []);
  
 // ── Section GET endpoints (filtered by schoolProfileId) ───────
 // schoolProfileId = Liferay auto-generated id from namankitschoolprofiles
