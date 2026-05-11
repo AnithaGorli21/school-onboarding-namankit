@@ -202,8 +202,8 @@ export default function SchoolIntake({
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px 24px" }}>
           <div>Total Boys under Namankit: <strong>{total_namankit_boys}</strong></div>
           <div>Total Girls under Namankit: <strong>{total_namankit_girls}</strong></div>
-          <div>Total Boys not under Namankit: <strong>{total_other_boys}</strong></div>
-          <div>Total Girls not under Namankit: <strong>{total_other_girls}</strong></div>
+          <div>Total Boys Except Namankit: <strong>{total_other_boys}</strong></div>
+          <div>Total Girls Except Namankit: <strong>{total_other_girls}</strong></div>
           <div>Total Boys: <strong>{total_boys}</strong></div>
           <div>Total Girls: <strong>{total_girls}</strong></div>
           <div style={{ gridColumn: "span 3", fontWeight: 700, color: "#1a6070", fontSize: 14 }}>

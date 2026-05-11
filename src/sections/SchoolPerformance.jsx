@@ -1,9 +1,10 @@
 // ============================================================
 //  src/sections/SchoolPerformance.jsx
 //  Validations added:
-//  - Minimum 3 performance years required (Excel row 41)
+//  - Minimum performances based on establishment year
 //  - Students Passed cannot exceed Students Appeared
 //  - "Any Other" standard requires text in Others field
+//  - Duplicate year + standard combination prevented
 // ============================================================
 import React, { useState, useEffect } from "react";
 import {
@@ -13,10 +14,6 @@ import {
 import { validatePerformanceRow } from "../utils/validate";
 import { loadSchoolPerformanceIntake, submitSchoolPerformanceIntake, mapRecordsToRows } from "../api/schoolPerformanceIntake";
 import Loader from "../components/Loader";
-
-const YEAR_OPTIONS = [
-  "2020-2021","2021-2022","2022-2023","2023-2024","2024-2025",
-];
 
 // Excel row 37: DDL Value - HSC, SSC, Scholarship, MTS, NTS, Any Other
 const STANDARD_OPTIONS = ["SSC","HSC","Scholarship","MTS","NTS","Any Other"];
@@ -40,12 +37,14 @@ const th = {
   color: "#333",
   textAlign: "left",
 };
+
 const td = {
   padding: "8px 12px",
   borderBottom: "1px solid #eee",
   fontSize: 13,
   color: "#333",
 };
+
 const errStyle = {
   color: "#c0392b", fontSize: 12, marginTop: 4, display: "block",
 };
@@ -55,12 +54,42 @@ export default function SchoolPerformance({
   onSave, 
   schoolProfileId, 
   onLoadingChange,
+  yearOfEstablishment,  // ✅ used for dynamic year generation
   // Legacy props for backward compatibility
   rows: externalRows, 
   setRows: externalSetRows, 
   perfError: externalPerfError,
   isDisabled 
 }) {
+
+  // ── Generate years based on establishment year ──────────
+  // ✅ Only past years — no future years
+  // ✅ Start from establishment year
+  const generatePerformanceYears = () => {
+    const currentYear = new Date().getFullYear();
+    const startYear = yearOfEstablishment 
+      ? Number(yearOfEstablishment) 
+      : 2018;
+    const years = [];
+    for (let i = startYear; i < currentYear; i++) {
+      const label = `${i}-${i + 1}`;
+      years.push({ value: label, label });
+    }
+    return years;
+  };
+
+  const YEAR_OPTIONS = generatePerformanceYears();
+
+  // ── Min performances required based on establishment year ──
+  const getMinPerformances = () => {
+    if (!yearOfEstablishment) return 3;
+    const currentYear = new Date().getFullYear();
+    const availableYears = currentYear - Number(yearOfEstablishment);
+    return Math.min(3, Math.max(1, availableYears));
+  };
+
+  const minPerformances = getMinPerformances();
+
   const [newRow, setNewRow] = useState({
     year: "", standard: "", others: "", studentsAppeared: "", studentsPassed: "",
   });
@@ -100,12 +129,26 @@ export default function SchoolPerformance({
     onLoadingChange?.(loadingData || saving);
   }, [loadingData, saving, onLoadingChange]);
 
+  // ✅ handleAdd — with duplicate year + standard check (Bug 19)
   const handleAdd = () => {
     const errs = validatePerformanceRow(newRow);
     if (Object.keys(errs).length > 0) {
       setRowErrors(errs);
       return;
     }
+
+    // ✅ Prevent duplicate year + standard combination
+    const isDuplicate = rows.some(
+      (r) => r.year === newRow.year && r.standard === newRow.standard
+    );
+    if (isDuplicate) {
+      setRowErrors((prev) => ({
+        ...prev,
+        year: `Performance for ${newRow.year} - ${newRow.standard} already added.`,
+      }));
+      return;
+    }
+
     setRowErrors({});
     setRows((prev) => [...prev, { ...newRow, id: Date.now(), liferayId: null }]);
     setNewRow({ year: "", standard: "", others: "", studentsAppeared: "", studentsPassed: "" });
@@ -116,17 +159,15 @@ export default function SchoolPerformance({
 
   // ── Save ───────────────────────────────────
   const handleSave = async () => {
-    // Check minimum 3 performance years requirement
-    if (rows.length < 3) {
-      setPerfError("Minimum 3 performance years are required.");
+    // ✅ Dynamic minimum based on establishment year
+    if (rows.length < minPerformances) {
+      setPerfError(`Minimum ${minPerformances} performance year${minPerformances > 1 ? "s are" : " is"} required.`);
       return;
     }
-
     if (rows.length === 0) {
       setAlert({ type: "error", message: "Please add at least one performance entry." });
       return;
     }
-
     setSaving(true);
     setAlert(null);
     setPerfError("");
@@ -153,13 +194,11 @@ export default function SchoolPerformance({
 
   return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4, position: "relative" }}>
-
       {(loadingData || saving) && (
         <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Loader />
         </div>
       )}
-
       {alert && (
         <div style={{
           padding: "10px 14px", borderRadius: 4, fontSize: 13, marginBottom: 14,
@@ -172,7 +211,7 @@ export default function SchoolPerformance({
         </div>
       )}
 
-      {/* Min-3 performance years error — shown on Save attempt */}
+      {/* Min performance years error */}
       {perfError && (
         <div style={{
           background: "#fff5f5", border: "1px solid #f5c6cb",
@@ -239,14 +278,16 @@ export default function SchoolPerformance({
         <BtnAdd onClick={handleAdd}>Add</BtnAdd>
       </div>
 
-      {/* ── Minimum 3 indicator ── */}
+      {/* ✅ Dynamic minimum indicator */}
       <div style={{
-        fontSize: 12, color: rows.length >= 3 ? "#1a6b3a" : "#856404",
-        marginBottom: 12, fontWeight: 500,
+        fontSize: 12,
+        color: rows.length >= minPerformances ? "#1a6b3a" : "#856404",
+        marginBottom: 12,
+        fontWeight: 500,
       }}>
-        {rows.length >= 3
-          ? `✅ ${rows.length} performance years added (minimum 3 required)`
-          : `⚠️ ${rows.length}/3 performance years added — minimum 3 required`
+        {rows.length >= minPerformances
+          ? `✅ ${rows.length} performance years added (minimum ${minPerformances} required)`
+          : `⚠️ ${rows.length}/${minPerformances} performance years added — minimum ${minPerformances} required`
         }
       </div>
 

@@ -14,9 +14,18 @@ import {
 import { fetchPOByATC } from "../api/fetch-masters";
 
 const WEBSITE_OPTIONS = ["Yes", "No"];
-const SELECTION_YEAR_OPTIONS = [
-  "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
-];
+
+// ✅ Replace with this
+const generateSelectionYears = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let i = 2018; i <= currentYear + 1; i++) {
+    const label = `${i}-${String(i + 1).slice(-2)}`;
+    years.push({ value: label, label });
+  }
+  return years;
+};
+const SELECTION_YEAR_OPTIONS = generateSelectionYears();
 
 export default function SchoolProfile({ form, setForm, errors ,poNames = [],setPoNames=()=>{}}) {
   const [states, setStates] = useState([]);
@@ -162,15 +171,15 @@ export default function SchoolProfile({ form, setForm, errors ,poNames = [],setP
       <Row3>
         {/* Row 1 — Trustee Name: NOT mandatory per Excel */}
         <Field label="Trustee Name" error={errors.trusteeName}>
-          <TextInput value={form.trusteeName} onChange={set("trusteeName")} />
+          <TextInput value={form.trusteeName} onChange={set("trusteeName")} maxLength={100} />
         </Field>
         {/* Row 2 — School Name: Mandatory */}
         <Field label="School Name" required error={errors.schoolName}>
-          <TextInput value={form.schoolName} onChange={set("schoolName")} />
+          <TextInput value={form.schoolName} onChange={set("schoolName")} maxLength={200} />
         </Field>
         {/* Row 3 — Address: Mandatory */}
         <Field label="Address" required error={errors.address}>
-          <TextInput value={form.address} onChange={set("address")} />
+          <TextInput value={form.address} onChange={set("address")} maxLength={300}/>
         </Field>
       </Row3>
 
@@ -210,7 +219,7 @@ export default function SchoolProfile({ form, setForm, errors ,poNames = [],setP
       <Row3>
         {/* Row 9 — Email ID: Mandatory */}
         <Field label="Email ID" required error={errors.emailId}>
-          <TextInput value={form.emailId} onChange={set("emailId")} type="email" />
+          <TextInput value={form.emailId} onChange={set("emailId")} type="email" maxLength={150} />
         </Field>
         {/* Row 10 — PO Name: Mandatory */}
         <Field label="PO Name" required error={errors.poName}>
@@ -230,7 +239,7 @@ export default function SchoolProfile({ form, setForm, errors ,poNames = [],setP
         </Field>
         {/* Row 13 — School Registration Number: Mandatory */}
         <Field label="School Registration No" required error={errors.schoolRegistrationNumber}>
-          <TextInput value={form.schoolRegistrationNumber} onChange={set("schoolRegistrationNumber")} />
+          <TextInput value={form.schoolRegistrationNumber} onChange={set("schoolRegistrationNumber")} maxLength={50} />
         </Field>
         {/* Row 14 — School Board: Mandatory (DDL: CBSE Board, SCC Board, SSC Board) */}
         <Field label="School Board" required error={errors.schoolBoard}>
@@ -254,27 +263,39 @@ export default function SchoolProfile({ form, setForm, errors ,poNames = [],setP
         </Field>
       </Row3>
 
-      {/* Row 18-19-20 */}
-      <Row3>
-        {/* Row 18 — Website Link: NOT mandatory, only shown if Yes selected */}
-        {form.isWebsiteAvailable === "Yes" && (
-          <Field label="Website Link" error={errors.websiteLink}>
-            <TextInput
-              value={form.websiteLink}
-              onChange={set("websiteLink")}
-              placeholder="https://..."
-            />
-          </Field>
-        )}
-        {/* Row 19 — School Falls Under Which Area: Mandatory (Rural, Nagar Palika, Maha Nagar Palika) */}
-        <Field label="School Falls Under Which Area" required error={errors.schoolAreaType}>
-          <SelectInput value={getSchoolAreaValue(form.schoolAreaType)} onChange={e=>onSchoolAreaChange(e)} options={areaOpts} />
-        </Field>
-        {/* Row 20 — Number of Toilets: Mandatory + Numeric */}
-        <Field label="Number of Toilets On Each Floor In School Building" required error={errors.toiletsPerFloorCount}>
-          <TextInput value={form.toiletsPerFloorCount} onChange={set("toiletsPerFloorCount")} type="number" />
-        </Field>
-      </Row3>
+    {/* Row 18 — Website Link: conditional */}
+{form.isWebsiteAvailable === "Yes" && (
+  <Row3>
+    <Field label="Website Link" error={errors.websiteLink}>
+      <TextInput
+        value={form.websiteLink}
+        onChange={set("websiteLink")}
+        placeholder="https://..."
+      />
+    </Field>
+  </Row3>
+)}
+
+{/* Row 19-20 — Area + Toilets: always visible, separate row */}
+<Row3>
+  <Field label="School Falls Under Which Area" required error={errors.schoolAreaType}>
+    <SelectInput 
+      value={getSchoolAreaValue(form.schoolAreaType)} 
+      onChange={e => onSchoolAreaChange(e)} 
+      options={areaOpts} 
+    />
+  </Field>
+  <Field label="Number of Toilets On Each Floor In School Building" required error={errors.toiletsPerFloorCount}>
+    <TextInput 
+      value={form.toiletsPerFloorCount} 
+      onChange={set("toiletsPerFloorCount")} 
+      type="number" 
+    />
+  </Field>
+</Row3>
+
+      
+        
     </div>
   );
 }
