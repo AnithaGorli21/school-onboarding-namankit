@@ -1,3 +1,4 @@
+// Meeting Remark popup.jsx
 import React, { useState } from 'react'
 
 function MeetingRemarksPopup({
@@ -34,9 +35,22 @@ function MeetingRemarksPopup({
         }));
     };
 
-    const handleSave = () => {
-        handleSaveMeetingRemarks(schoolProfileId, formData);
+    // AFTER
+const handleSave = () => {
+    const payload = {
+        studentsRegistered: Number(formData.studentsRegistered) || 0,
+        studentsTransferred: Number(formData.studentsTransferred) || 0,
+        finalApprovalStatus: formData.finalApprovalStatus,
+        sanctionedSeats: Number(formData.sanctionedSeats) || 0,
+        samayojan: Number(formData.samayojan) || 0,
+        assignedMarks: Number(formData.assignedMarks) || 0,
+        assignedFees: Number(formData.assignedFees) || 0,
+        schoolProposedFees: Number(formData.schoolProposedFees) || 0,
+        finalFees: Number(formData.finalFees) || 0,
+        finalRemarks: formData.finalRemarks,
     };
+    handleSaveMeetingRemarks(schoolProfileId, payload);
+};
 
     return (
         <div style={{ 

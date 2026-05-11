@@ -401,7 +401,7 @@ export default function ScheduleMeeting() {
     const handleSaveMeetingRemarks = async (schoolProfileId, payload) => {
         // Update the school data with new remarks
         try{
-            await patchSchoolDetails(schoolProfileId,payload);
+           await patchSchoolDetails(selectedSchool.id, payload);
             setSchoolData(prevData => 
             prevData.map(school => 
                 school.id === selectedSchool.id 
