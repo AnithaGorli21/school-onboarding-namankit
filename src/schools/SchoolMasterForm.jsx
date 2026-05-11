@@ -533,9 +533,16 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
 
-    setForm((f) => ({ ...f, [name]: value }));
+   // Add all fields that should not accept special characters
+  const alphaOnlyFields = ["trusteeName", "schoolName"];
 
-    setErrors((err) => ({ ...err, [name]: validateField(name, value) }));
+  const sanitizedValue = alphaOnlyFields.includes(name)
+    ? value.replace(/[^a-zA-Z\s]/g, "")
+    : value;
+
+  setForm((f) => ({ ...f, [name]: sanitizedValue }));
+  setErrors((err) => ({ ...err, [name]: validateField(name, sanitizedValue) }));
+
   }, []);
 
   // ─── Location dropdown onChange wrappers ──────────────────────
