@@ -112,18 +112,18 @@ export default function SchoolPerformance({
   };
 
   // ── Load existing rows on mount ───────────────────────────
-  useEffect(() => {
-    if (!schoolProfileId) return;
-    console.log("[SchoolPerformance] loading for schoolProfileId →", schoolProfileId);
-    setLoadingData(true);
-    loadSchoolPerformanceIntake(schoolProfileId)
-      .then(({ records }) => {
-        const mapped = mapRecordsToRows(records);
-        if (mapped.length > 0) setRows(mapped);
-      })
-      .catch((err) => console.error("[SchoolPerformance] load error:", err))
-      .finally(() => setLoadingData(false));
-  }, [schoolProfileId, setRows]);
+ useEffect(() => {
+  if (!schoolProfileId) return;
+  if (rows.length > 0) return; // ← ADD THIS LINE
+  setLoadingData(true);
+  loadSchoolPerformanceIntake(schoolProfileId)
+    .then(({ records }) => {
+      const mapped = mapRecordsToRows(records);
+      if (mapped.length > 0) setRows(mapped);
+    })
+    .catch((err) => console.error("[SchoolPerformance] load error:", err))
+    .finally(() => setLoadingData(false));
+}, [schoolProfileId]); // ← remove setRows from here
 
   useEffect(() => {
     onLoadingChange?.(loadingData || saving);
