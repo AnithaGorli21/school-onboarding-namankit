@@ -1,20 +1,58 @@
-// vite.config.js
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()],
-  // When deployed inside Liferay, set the base path if needed:
-  // base: "/o/school-registration/",
+  base: '/o/namankit-scheme',
+  build: {
+    outDir: './vite-build',
+    rollupOptions: {
+      external: [
+        /^(?!@clayui\/css)@clayui.*$/,
+      ],
+    },
+  },
+  plugins: [
+    react(), // ← automatic JSX runtime, no need for React imports
+  ],
   server: {
-    port: 3000,
-    // Proxy Liferay API calls to avoid CORS during local dev
+    port: 5002,
+    historyApiFallback: true,
     proxy: {
-      "/o/c": {
-        target: "http://localhost:8080",  // ← your Liferay URL
+      '/o/c/pomasters': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
         changeOrigin: true,
-        credentials: true,
+        secure: false,
       },
+      '/o/c/atcmasters': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/o/c': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/o/headless-delivery': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/o/headless-admin-user': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/o/headless-admin-list-type': {
+        target: 'https://mahadbt2-qa-dashboard.quantela.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/o/notification': {
+  target: 'https://mahadbt2-qa-dashboard.quantela.com',
+  changeOrigin: true,
+  secure: false,
+},
     },
   },
 });

@@ -1,144 +1,102 @@
 // ============================================================
-//  src/sections/MedicalFacilities.jsx
+//  src/sections/Medicalfacilities.jsx
+//  UI only — API logic in src/api/medicalDetails.js
 // ============================================================
-import { useState } from "react";
-import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
+import { useState, useEffect } from "react";
+import { Field, TextInput, SelectInput, SectionHeading, Row3 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
+import { loadMedicalDetails, submitMedicalDetails, mapRecordToForm } from "../api/MedicalDetails";
 
 const YES_NO = ["Yes", "No"];
+// ⚠️ Replace value IDs with actual Liferay picklist IDs
+const TIME_OPTIONS = [
+  { value: 1, label: "Full Time" },
+  { value: 2, label: "Part Time" },
+  { value: 3, label: "Not Available" },
+];
 
 const emptyForm = {
-  firstAidBox: "", medicalRoomAvailable: "",
-  doctorVisit: "", doctorVisitFrequency: "",
-  nurseAvailable: "", nurseName: "", nurseMobile: "",
-  annualHealthCheckup: "", dentalCheckup: "", eyeCheckup: "",
-  weighingMachine: "", heightMeasurement: "",
-  deworming: "", ironFolicSupplementation: "",
-  midDayMeal: "", midDayMealType: "",
-  cleanToilets: "", separateToiletGirls: "",
-  handwashFacility: "", sanitizerAvailable: "",
-  medicalRemark: "",
+  availabilitOfMedicalSickRoom:    "",
+  availabilityOfDoctorsInSchoolId: "",
+  numberOfAmbulance:               "",
+  numberOfDoctors:                 "",
+  numberOfNurse:                   "",
 };
 
-export default function MedicalFacilities({ onTabChange }) {
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert]   = useState(null);
+export default function MedicalFacilities({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [form,        setForm]        = useState(emptyForm);
+  const [saving,      setSaving]      = useState(false);
+  const [alert,       setAlert]       = useState(null);
+  const [recordId,    setRecordId]    = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
 
-  const set = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
+  // ── Load existing record on mount ────────────────────────
+  useEffect(() => {
+    onLoadingChange?.(loadingData);
+  }, [loadingData, onLoadingChange]);
+
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[MedicalDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadMedicalDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) setForm(formData);
+      })
+      .catch((err) => console.error("[MedicalDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
+
+  const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
+  const isNotAvailable = Number(form.availabilityOfDoctorsInSchoolId) === 3;
 
   const handleSave = async () => {
-    setSaving(true); setAlert(null);
+    setSaving(true);
+    setAlert(null);
+    setLoadingData(true);
     try {
-      await fetch("/o/c/medicalfacilities", {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      setAlert({ type: "success", message: "Medical Facilities saved successfully!" });
+      await submitMedicalDetails({ form, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Medical Facilities ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(form);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+      setLoadingData(false);
+    }
   };
 
   const handleReset = () => { setForm(emptyForm); setAlert(null); };
 
   return (
-    <SectionWrapper alert={alert} onCloseAlert={() => setAlert(null)}
-      onSave={handleSave} onReset={handleReset} saving={saving}>
-
+    <SectionWrapper
+      alert={alert}
+      onCloseAlert={() => setAlert(null)}
+      onSave={handleSave}
+      onReset={handleReset}
+      saving={saving}
+      loading={loadingData}
+    >
       <SectionHeading title="Medical Facilities" />
-
       <Row3>
-        <Field label="First Aid Box Available" required>
-          <SelectInput value={form.firstAidBox} onChange={set("firstAidBox")} options={YES_NO} />
+        <Field label="Availability of Medical/Sick Room" required>
+          <SelectInput value={form.availabilitOfMedicalSickRoom} onChange={set("availabilitOfMedicalSickRoom")} options={YES_NO} />
         </Field>
-        <Field label="Medical Room Available" required>
-          <SelectInput value={form.medicalRoomAvailable} onChange={set("medicalRoomAvailable")} options={YES_NO} />
+        <Field label="Availability of Doctors in School" required>
+          <SelectInput value={form.availabilityOfDoctorsInSchoolId} onChange={set("availabilityOfDoctorsInSchoolId")} options={TIME_OPTIONS} />
         </Field>
-        <Field label="Doctor Visit Arranged" required>
-          <SelectInput value={form.doctorVisit} onChange={set("doctorVisit")} options={YES_NO} />
+        <Field label="Number of Doctors" required>
+          <TextInput value={form.numberOfDoctors} onChange={set("numberOfDoctors")} type="number" disabled={isNotAvailable} />
+        </Field>
+        <Field label="Number of Nurse" required>
+          <TextInput value={form.numberOfNurse} onChange={set("numberOfNurse")} type="number" disabled={isNotAvailable} />
+        </Field>
+        <Field label="Number of Ambulance" required>
+          <TextInput value={form.numberOfAmbulance} onChange={set("numberOfAmbulance")} type="number" disabled={isNotAvailable} />
         </Field>
       </Row3>
-
-      <Row3>
-        <Field label="Doctor Visit Frequency">
-          <SelectInput value={form.doctorVisitFrequency} onChange={set("doctorVisitFrequency")}
-            options={["Weekly","Fortnightly","Monthly","Quarterly","Yearly"]}
-            disabled={form.doctorVisit !== "Yes"} />
-        </Field>
-        <Field label="Nurse Available" required>
-          <SelectInput value={form.nurseAvailable} onChange={set("nurseAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Nurse Name">
-          <TextInput value={form.nurseName} onChange={set("nurseName")}
-            disabled={form.nurseAvailable !== "Yes"} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Nurse Mobile">
-          <TextInput value={form.nurseMobile} onChange={set("nurseMobile")} type="tel"
-            disabled={form.nurseAvailable !== "Yes"} />
-        </Field>
-        <Field label="Annual Health Checkup" required>
-          <SelectInput value={form.annualHealthCheckup} onChange={set("annualHealthCheckup")} options={YES_NO} />
-        </Field>
-        <Field label="Dental Checkup" required>
-          <SelectInput value={form.dentalCheckup} onChange={set("dentalCheckup")} options={YES_NO} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Eye Checkup" required>
-          <SelectInput value={form.eyeCheckup} onChange={set("eyeCheckup")} options={YES_NO} />
-        </Field>
-        <Field label="Weighing Machine Available" required>
-          <SelectInput value={form.weighingMachine} onChange={set("weighingMachine")} options={YES_NO} />
-        </Field>
-        <Field label="Height Measurement Available" required>
-          <SelectInput value={form.heightMeasurement} onChange={set("heightMeasurement")} options={YES_NO} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Deworming Done" required>
-          <SelectInput value={form.deworming} onChange={set("deworming")} options={YES_NO} />
-        </Field>
-        <Field label="Iron & Folic Acid Supplementation" required>
-          <SelectInput value={form.ironFolicSupplementation} onChange={set("ironFolicSupplementation")} options={YES_NO} />
-        </Field>
-        <Field label="Mid Day Meal Provided" required>
-          <SelectInput value={form.midDayMeal} onChange={set("midDayMeal")} options={YES_NO} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Mid Day Meal Type">
-          <SelectInput value={form.midDayMealType} onChange={set("midDayMealType")}
-            options={["Cooked Meal","Dry Ration","Both"]}
-            disabled={form.midDayMeal !== "Yes"} />
-        </Field>
-        <Field label="Clean Toilets Available" required>
-          <SelectInput value={form.cleanToilets} onChange={set("cleanToilets")} options={YES_NO} />
-        </Field>
-        <Field label="Separate Toilet for Girls" required>
-          <SelectInput value={form.separateToiletGirls} onChange={set("separateToiletGirls")} options={YES_NO} />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Hand Wash Facility" required>
-          <SelectInput value={form.handwashFacility} onChange={set("handwashFacility")} options={YES_NO} />
-        </Field>
-        <Field label="Sanitizer Available" required>
-          <SelectInput value={form.sanitizerAvailable} onChange={set("sanitizerAvailable")} options={YES_NO} />
-        </Field>
-        <Field label="Remark">
-          <TextInput value={form.medicalRemark} onChange={set("medicalRemark")} />
-        </Field>
-      </Row3>
-
     </SectionWrapper>
   );
 }

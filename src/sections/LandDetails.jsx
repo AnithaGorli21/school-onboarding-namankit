@@ -1,160 +1,253 @@
 // ============================================================
-//  src/sections/LandDetails.jsx  — 100% exact UI match
+//  src/sections/LandDetails.jsx
+//  Validations added per Excel spec:
+//  - Playground Area: shown ONLY if Playground = Yes (row 48)
+//  - Division must equal sum of classrooms with + without benches (row 56)
+//  - Photo upload: mandatory (row 61)
+//  - Area fields: numeric 2 decimal places
+//  - All mandatory fields marked with required prop
 // ============================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Field, TextInput, SelectInput,
   SectionHeading, Row3, Row2,
   Alert, BtnSave, BtnReset,
 } from "../components/FormFields";
-import Footer from "./Footer";
+import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/landdetails";
+import { loadLandSchoolClassroomDetails, submitLandSchoolClassroomDetails, mapRecordsToRows } from "../api/landSchoolClassroomDetails";
+import { getPicklist } from "../api/liferay";
+import Loader from "../components/Loader";
 
-const YES_NO        = ["Yes", "No"];
-const OWNERSHIP     = ["Owned", "Rented", "Government"];
-const SPORT_QUALITY = ["Excellent", "Good", "Average", "Poor"];
-const STANDARD_OPTS = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const YES_NO = ["Yes", "No"];
 
-// ── Exact styles from original ────────────────────────────────
 const TH = {
-  padding: "10px 12px",
-  background: "#ffffff",
-  borderBottom: "2px solid #dee2e6",
-  borderRight: "none",
-  fontSize: 13,
-  fontWeight: 400,
-  color: "#333",
-  textAlign: "left",
-  whiteSpace: "normal",
-  verticalAlign: "bottom",
+  padding: "10px 12px", background: "#ffffff",
+  borderBottom: "2px solid #dee2e6", fontSize: 13,
+  fontWeight: 400, color: "#333", textAlign: "left",
+  whiteSpace: "normal", verticalAlign: "bottom",
 };
 const TD = {
-  padding: "9px 12px",
-  borderBottom: "1px solid #dee2e6",
-  fontSize: 13,
-  color: "#333",
-  verticalAlign: "middle",
+  padding: "9px 12px", borderBottom: "1px solid #dee2e6",
+  fontSize: 13, color: "#333", verticalAlign: "middle",
 };
 
-// ── Pagination — pixel-exact match to original ───────────────
-// Original: [Total Records 1] [10 box]  [Page: 1 of 1]  [First][Previous][Next][Last]
-// First & Last = teal when navigable, Previous & Next = teal when navigable, grey border when not
 function Pagination({ total, pageSize, setPageSize, page, setPage }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
   const navBtn = (label, action, active) => (
-    <button
-      key={label}
-      onClick={active ? action : undefined}
-      style={{
-        padding: "5px 14px",
-        fontSize: 13,
-        fontFamily: "var(--font-main)",
-        fontWeight: 400,
-        border: active ? "1px solid #1a7a8a" : "1px solid #cccccc",
-        borderRadius: 3,
-        background: active ? "#1a7a8a" : "#ffffff",
-        color:      active ? "#ffffff"  : "#aaaaaa",
-        cursor:     active ? "pointer"  : "default",
-        lineHeight: "1.5",
-      }}
-    >
-      {label}
-    </button>
+    <button key={label} onClick={active ? action : undefined} style={{
+      padding: "5px 14px", fontSize: 13, fontFamily: "var(--font-main)", fontWeight: 400,
+      border: active ? "1px solid #1a7a8a" : "1px solid #cccccc", borderRadius: 3,
+      background: active ? "#1a7a8a" : "#ffffff",
+      color: active ? "#ffffff" : "#aaaaaa",
+      cursor: active ? "pointer" : "default", lineHeight: "1.5",
+    }}>{label}</button>
   );
-
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "10px 0",
-      fontSize: 13,
-      color: "#333",
-      flexWrap: "wrap",
-      gap: 8,
-    }}>
-      {/* LEFT: Total Records + rows-per-page input */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", fontSize: 13, color: "#333", flexWrap: "wrap", gap: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <span>Total Records <strong>{total}</strong></span>
-        <input
-          type="number"
-          value={pageSize}
-          min={1}
+        <input type="number" value={pageSize} min={1}
           onChange={(e) => { setPageSize(Number(e.target.value) || 10); setPage(1); }}
-          style={{
-            width: 55,
-            height: 30,
-            border: "1px solid #cccccc",
-            borderRadius: 3,
-            padding: "0 6px",
-            fontSize: 13,
-            color: "#333",
-            fontFamily: "var(--font-main)",
-            textAlign: "center",
-          }}
+          style={{ width: 55, height: 30, border: "1px solid #cccccc", borderRadius: 3, padding: "0 6px", fontSize: 13, color: "#333", textAlign: "center" }}
         />
       </div>
-
-      {/* CENTRE: Page info */}
       <span>Page: {page} of {totalPages}</span>
-
-      {/* RIGHT: First / Previous / Next / Last */}
       <div style={{ display: "flex", gap: 4 }}>
-        {navBtn("First",    () => setPage(1),                              page > 1)}
-        {navBtn("Previous", () => setPage(p => Math.max(1, p - 1)),        page > 1)}
-        {navBtn("Next",     () => setPage(p => Math.min(totalPages, p+1)), page < totalPages)}
-        {navBtn("Last",     () => setPage(totalPages),                     page < totalPages)}
+        {navBtn("First",    () => setPage(1),                                   page > 1)}
+        {navBtn("Previous", () => setPage((p) => Math.max(1, p - 1)),          page > 1)}
+        {navBtn("Next",     () => setPage((p) => Math.min(totalPages, p + 1)), page < totalPages)}
+        {navBtn("Last",     () => setPage(totalPages),                          page < totalPages)}
       </div>
     </div>
   );
 }
 
-// ── Empty states ──────────────────────────────────────────────
 const emptyLand = {
   ownership: "", totalAreaAcres: "", compoundWall: "",
   playground: "", playgroundAreaAcres: "", swimmingTank: "",
   runningTrack: "", basketballGround: "", khoKhokabaddiGround: "",
   sportsFacilityQuality: "", otherSports: "",
 };
+
 const emptyClassRow = {
   standard: "", division: "", separateClassroom: "",
   classroomWithBenches: "", classroomWithoutBenches: "",
 };
 
-const PAGE_SIZE_DEFAULT = 10;
+export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [land,         setLand]         = useState(emptyLand);
+  const [classRow,     setClassRow]     = useState(emptyClassRow);
+  const [classRows,    setClassRows]    = useState([]);
+  const [photoFile,    setPhotoFile]    = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [errors,       setErrors]       = useState({});
+  const [rowErrors,    setRowErrors]    = useState({});
+  const [saving,       setSaving]       = useState(false);
+  const [alert,        setAlert]        = useState(null);
+  const [page,         setPage]         = useState(1);
+  const [pageSize,     setPageSize]     = useState(10);
+  const [recordId,     setRecordId]     = useState(null);
+  const [loadingData,  setLoadingData]  = useState(false);
+  const [standardOpts,     setStandardOpts]     = useState([]);
+  const [ownershipOpts,    setOwnershipOpts]    = useState([]);
+  const [sportQualityOpts, setSportQualityOpts] = useState([]);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
 
-export default function LandDetails({ onTabChange }) {
-  const [land,        setLand]        = useState(emptyLand);
-  const [classRow,    setClassRow]    = useState(emptyClassRow);
-  const [classRows,   setClassRows]   = useState([]);
-  const [photoFile,   setPhotoFile]   = useState(null);
-  const [photoPreview,setPhotoPreview]= useState(null);
-  const [errors,      setErrors]      = useState({});
-  const [rowError,    setRowError]    = useState("");
-  const [saving,      setSaving]      = useState(false);
-  const [alert,       setAlert]       = useState(null);
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
 
-  // Pagination state
-  const [page,     setPage]     = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
+  useEffect(() => {
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
 
-  const setL  = (k) => (v) => setLand((p) => ({ ...p, [k]: v }));
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    setLoadingData(true);
+    loadLandDetails(schoolProfileId)
+      .then(({ record, recordId: rid }) => {
+        setRecordId(rid);
+        const formData = mapRecordToForm(record);
+        if (formData) {
+          setLand(formData);
+          // Set photo file if exists in the mapped data
+          if (formData.photoFile) {
+            setPhotoFile(formData.photoFile);
+          }
+        }
+      })
+      .catch((err) => console.error("[LandDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
+
+  // ── Handle photo preview for existing and new photos ───────────────────────
+  useEffect(() => {
+    if (photoFile) {
+      console.log('[LandDetails] Setting photo preview:', photoFile);
+      // For existing files, use the downloadURL or contentUrl
+      if (photoFile.existingFile) {
+        setPhotoPreview(photoFile.downloadURL || photoFile.contentUrl);
+      } else {
+        // For newly selected files, create object URL
+        setPhotoPreview(URL.createObjectURL(photoFile));
+      }
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [photoFile]);
+
+  // ── Load existing classroom data ──────────────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    loadLandSchoolClassroomDetails(schoolProfileId)
+      .then(({ records }) => {
+        console.log('[LandDetails] Loaded classroom records:', records);
+        if (records && records.length > 0) {
+          const mappedRows = mapRecordsToRows(records);
+          console.log('[LandDetails] Mapped classroom rows:', mappedRows);
+          setClassRows(mappedRows);
+        }
+      })
+      .catch((err) => console.error('[LandDetails] Failed to load classroom data:', err));
+  }, [schoolProfileId]);
+
+  useEffect(() => {
+    trackLookupCall(getPicklist("DBT-NAMANKIT-LAND-DETAILS-OWNERSHIP"))
+      .then(opts => setOwnershipOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
+      .catch(() => setOwnershipOpts([
+        { value: "Owned",  label: "Owned" },
+        { value: "Rented", label: "Rented" },
+      ]));
+  }, []);
+
+  useEffect(() => {
+    trackLookupCall(getPicklist("DBT-NAMANKIT-LAND-DETAILS-SPORTS-QUALITY"))
+      .then(opts => setSportQualityOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
+      .catch(() => setSportQualityOpts([
+        { value: "Best",         label: "Best" },
+        { value: "Good",         label: "Good" },
+        { value: "Average",      label: "Average" },
+        { value: "BelowAverage", label: "Below Average" },
+      ]));
+  }, []);
+
+  useEffect(() => {
+    trackLookupCall(getPicklist("dbt-standard-grade"))
+      .then(setStandardOpts)
+      .catch(() => setStandardOpts(
+        Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))
+      ));
+  }, []);
+
+  const setL  = (k) => (v) => setLand((p)     => ({ ...p, [k]: v }));
   const setCR = (k) => (v) => setClassRow((p) => ({ ...p, [k]: v }));
 
-  // ── Paginated rows ────────────────────────────────────────
+  // ── Clear playground area when playground = No ────────────
+  const onPlaygroundChange = (v) => {
+    setLand((p) => ({ ...p, playground: v, playgroundAreaAcres: v !== "Yes" ? "" : p.playgroundAreaAcres }));
+  };
+
   const pagedRows = classRows.slice((page - 1) * pageSize, page * pageSize);
 
-  // ── Add classroom row ─────────────────────────────────────
-  const handleAddRow = () => {
-    const { standard, division, separateClassroom, classroomWithBenches, classroomWithoutBenches } = classRow;
-    if (!standard || !division || !separateClassroom || !classroomWithBenches || !classroomWithoutBenches) {
-      setRowError("Please fill all classroom fields before clicking Add.");
+  // ── Validate classroom row ────────────────────────────────
+  const validateClassRow = () => {
+    const e = {};
+    if (!classRow.standard)              e.standard              = "Required";
+    if (!classRow.division)              e.division              = "Required";
+    if (!classRow.separateClassroom)     e.separateClassroom     = "Required";
+    if (!classRow.classroomWithBenches)  e.classroomWithBenches  = "Required";
+    if (!classRow.classroomWithoutBenches) e.classroomWithoutBenches = "Required";
+
+    // Row 56 — Division must equal sum of classrooms with + without benches
+    if (
+      classRow.division &&
+      classRow.classroomWithBenches &&
+      classRow.classroomWithoutBenches
+    ) {
+      const div  = Number(classRow.division);
+      const sum  = Number(classRow.classroomWithBenches) + Number(classRow.classroomWithoutBenches);
+      if (div !== sum) {
+        e.division = `Division (${div}) must equal Total With Benches + Without Benches (${sum}).`;
+      }
+    }
+
+    setRowErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleAddRow = async () => {
+    if (!validateClassRow()) return;
+    if (!schoolProfileId) {
+      setAlert({ type: "error", message: "School profile ID is required to add classroom details." });
       return;
     }
-    setRowError("");
-    setClassRows((prev) => [...prev, { ...classRow, id: Date.now() }]);
-    setClassRow(emptyClassRow);
-    setPage(1);
+
+    setRowErrors({});
+    setSaving(true);
+    
+    try {
+      console.log('[LandDetails] Adding classroom row:', classRow);
+      
+      // Create the new row with temporary ID
+      const newRow = { ...classRow, id: Date.now(), liferayId: null };
+      
+      // Call API to save the row
+      const savedRows = await submitLandSchoolClassroomDetails([newRow], schoolProfileId);
+      console.log('[LandDetails] Classroom row saved successfully:', savedRows);
+      
+      // Update state with saved row (now has liferayId)
+      setClassRows((prev) => [...prev, savedRows[0]]);
+      setClassRow(emptyClassRow);
+      setPage(1);
+      
+      setAlert({ type: "success", message: "Classroom details added successfully!" });
+    } catch (err) {
+      console.error('[LandDetails] Failed to save classroom row:', err);
+      setAlert({ type: "error", message: "Failed to add classroom details: " + err.message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteRow = (id) => {
@@ -162,7 +255,6 @@ export default function LandDetails({ onTabChange }) {
     setPage(1);
   };
 
-  // ── Photo upload ──────────────────────────────────────────
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -174,26 +266,74 @@ export default function LandDetails({ onTabChange }) {
     }
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+    // Clear photo error on selection
+    setErrors((p) => ({ ...p, photo: "" }));
   };
 
-  // ── Validation ────────────────────────────────────────────
+  // ── Validate decimal helper ───────────────────────────────
+  const isValidDecimal = (v) => v === "" || /^\d+(\.\d{0,2})?$/.test(v);
+
+  // ── Main validation ───────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!land.ownership)             e.ownership             = "Required";
-    if (!land.totalAreaAcres)        e.totalAreaAcres        = "Required";
-    if (!land.compoundWall)          e.compoundWall          = "Required";
-    if (!land.playground)            e.playground            = "Required";
-    if (!land.swimmingTank)          e.swimmingTank          = "Required";
-    if (!land.runningTrack)          e.runningTrack          = "Required";
-    if (!land.basketballGround)      e.basketballGround      = "Required";
-    if (!land.khoKhokabaddiGround)   e.khoKhokabaddiGround   = "Required";
-    if (!land.sportsFacilityQuality) e.sportsFacilityQuality = "Required";
-    if (!land.otherSports)           e.otherSports           = "Required";
+
+    // Row 44 — Ownership: Mandatory (Rented, Owned)
+    if (!land.ownership)
+      e.ownership = "Ownership is required.";
+
+    // Row 45 — Total Area: Mandatory, Numeric 2 decimal
+    if (!land.totalAreaAcres)
+      e.totalAreaAcres = "Total Area is required.";
+    else if (!isValidDecimal(land.totalAreaAcres))
+      e.totalAreaAcres = "Enter a valid number (max 2 decimal places).";
+
+    // Row 46 — School Compound Wall: Mandatory
+    if (!land.compoundWall)
+      e.compoundWall = "School Compound Wall is required.";
+
+    // Row 47 — Playground: Mandatory
+    if (!land.playground)
+      e.playground = "Playground is required.";
+
+    // Row 48 — Playground Area: Not mandatory, but if Playground=Yes it should be filled
+    // Numeric 2 decimal if provided
+    if (land.playground === "Yes" && !land.playgroundAreaAcres)
+      e.playgroundAreaAcres = "Playground Area is required when Playground is Yes.";
+    else if (land.playgroundAreaAcres && !isValidDecimal(land.playgroundAreaAcres))
+      e.playgroundAreaAcres = "Enter a valid number (max 2 decimal places).";
+
+    // Row 49 — Swimming Tank: Mandatory
+    if (!land.swimmingTank)
+      e.swimmingTank = "Swimming Tank is required.";
+
+    // Row 50 — Running Track: Mandatory
+    if (!land.runningTrack)
+      e.runningTrack = "Running Track is required.";
+
+    // Row 51 — Basketball Ground: Mandatory
+    if (!land.basketballGround)
+      e.basketballGround = "Basket Ball Ground is required.";
+
+    // Row 52 — Kho-Kho Kabaddi: Mandatory
+    if (!land.khoKhokabaddiGround)
+      e.khoKhokabaddiGround = "Kho-Kho, Kabaddi Ground is required.";
+
+    // Row 53 — Sport Facility Quality: Mandatory (Best, Good, Average, Below Average)
+    if (!land.sportsFacilityQuality)
+      e.sportsFacilityQuality = "Quality of Sport Facilities is required.";
+
+    // Row 54 — Others Sports: Mandatory
+    if (!land.otherSports?.trim())
+      e.otherSports = "Others Sports is required.";
+
+    // Row 61 — Photo: Mandatory
+    if (!photoFile && !land.existingPhoto)
+      e.photo = "School Land Photo is required.";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  // ── Save ──────────────────────────────────────────────────
   const handleSave = async () => {
     if (!validate()) {
       setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
@@ -203,19 +343,9 @@ export default function LandDetails({ onTabChange }) {
     setSaving(true);
     setAlert(null);
     try {
-      const payload = {
-        ...land,
-        totalAreaAcres:      parseFloat(land.totalAreaAcres) || 0,
-        playgroundAreaAcres: parseFloat(land.playgroundAreaAcres) || 0,
-        classroomData:       JSON.stringify(classRows),
-      };
-      await fetch("/o/c/schoollanddetails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      setAlert({ type: "success", message: "Land Details saved successfully!" });
+      await submitLandDetails({ land, photoFile, schoolProfileId, recordId });
+      setAlert({ type: "success", message: `Land Details ${recordId ? "updated" : "saved"} successfully!` });
+      onSave?.(land);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setAlert({ type: "error", message: "Save failed — " + (err.message || "Please try again.") });
@@ -231,164 +361,150 @@ export default function LandDetails({ onTabChange }) {
     setPhotoFile(null);
     setPhotoPreview(null);
     setErrors({});
+    setRowErrors({});
     setAlert(null);
     setPage(1);
   };
 
   return (
-    <div style={{ padding: "16px 20px 32px" }}>
-
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
+    <div style={{ padding: "16px 20px 32px", position: "relative" }}>
+      {(loadingData || lookupLoadingCount > 0) && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
       )}
 
-      <div style={{
-        background: "#ffffff",
-        border: "1px solid #d6e0e0",
-        borderRadius: 3,
-        padding: "18px 20px 22px",
-      }}>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-        {/* ── SECTION 1: School Land Details ──────────────── */}
+      <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
         <SectionHeading title="School Land Details" />
 
         <Row3>
+          {/* Row 44 — Ownership: Mandatory (Rented, Owned) */}
           <Field label="Ownership" required error={errors.ownership}>
-            <SelectInput value={land.ownership} onChange={setL("ownership")} options={OWNERSHIP} />
+            <SelectInput value={land.ownership} onChange={setL("ownership")} options={ownershipOpts} />
           </Field>
+          {/* Row 45 — Total Area: Mandatory, Numeric 2 decimal */}
           <Field label="Total Area(In Acres)[Building + Playground + Hostel etc]" required error={errors.totalAreaAcres}>
             <TextInput value={land.totalAreaAcres} onChange={setL("totalAreaAcres")} type="number" placeholder="e.g. 35.00" />
           </Field>
+          {/* Row 46 — Compound Wall: Mandatory */}
           <Field label="School Compound Wall" required error={errors.compoundWall}>
             <SelectInput value={land.compoundWall} onChange={setL("compoundWall")} options={YES_NO} />
           </Field>
         </Row3>
 
         <Row3>
+          {/* Row 47 — Playground: Mandatory */}
           <Field label="Playground" required error={errors.playground}>
-            <SelectInput value={land.playground} onChange={setL("playground")} options={YES_NO} />
+            <SelectInput value={land.playground} onChange={onPlaygroundChange} options={YES_NO} />
           </Field>
-          <Field label="Playground Area(In Acres)" error={errors.playgroundAreaAcres}>
-            <TextInput value={land.playgroundAreaAcres} onChange={setL("playgroundAreaAcres")} type="number" placeholder="e.g. 10.00" />
-          </Field>
+          {/* Row 48 — Playground Area: shown ONLY if Playground = Yes */}
+          {land.playground === "Yes" && (
+            <Field label="Playground Area (In Acres)" error={errors.playgroundAreaAcres}>
+              <TextInput value={land.playgroundAreaAcres} onChange={setL("playgroundAreaAcres")} type="number" placeholder="e.g. 10.00" />
+            </Field>
+          )}
+          {/* Row 49 — Swimming Tank: Mandatory */}
           <Field label="Swimming Tank" required error={errors.swimmingTank}>
             <SelectInput value={land.swimmingTank} onChange={setL("swimmingTank")} options={YES_NO} />
           </Field>
         </Row3>
 
         <Row3>
+          {/* Row 50 — Running Track: Mandatory */}
           <Field label="Running Track" required error={errors.runningTrack}>
             <SelectInput value={land.runningTrack} onChange={setL("runningTrack")} options={YES_NO} />
           </Field>
+          {/* Row 51 — Basketball: Mandatory */}
           <Field label="Basket ball Ground" required error={errors.basketballGround}>
             <SelectInput value={land.basketballGround} onChange={setL("basketballGround")} options={YES_NO} />
           </Field>
-          <Field label="Kho-Kho,Kabaddi Ground" required error={errors.khoKhokabaddiGround}>
+          {/* Row 52 — Kho-Kho: Mandatory */}
+          <Field label="Kho-Kho, Kabaddi Ground" required error={errors.khoKhokabaddiGround}>
             <SelectInput value={land.khoKhokabaddiGround} onChange={setL("khoKhokabaddiGround")} options={YES_NO} />
           </Field>
         </Row3>
 
         <Row2>
+          {/* Row 53 — Sport Quality: Mandatory (Best, Good, Average, Below Average) */}
           <Field label="Quality Of Sport Facilities / Infrastructure available" required error={errors.sportsFacilityQuality}>
-            <SelectInput value={land.sportsFacilityQuality} onChange={setL("sportsFacilityQuality")} options={SPORT_QUALITY} />
+            <SelectInput value={land.sportsFacilityQuality} onChange={setL("sportsFacilityQuality")} options={sportQualityOpts} />
           </Field>
+          {/* Row 54 — Others Sports: Mandatory */}
           <Field label="Others Sports" required error={errors.otherSports}>
-            <TextInput value={land.otherSports} onChange={setL("otherSports")} placeholder="e.g. cricket, horse riding, kabaddi, kho-ho, carrom, chess" />
+            <TextInput value={land.otherSports} onChange={setL("otherSports")} placeholder="e.g. cricket, horse riding" />
           </Field>
         </Row2>
 
-        {/* ── SECTION 2: Classroom Details ────────────────── */}
+        {/* ── Classroom Details ── */}
         <div style={{ marginTop: 28 }}>
-          {/* Section heading — font-weight 400 (normal) like original */}
-          <div style={{
-            fontSize: 16,
-            fontWeight: 400,
-            color: "#333",
-            paddingBottom: 8,
-            marginBottom: 16,
-            borderBottom: "1px solid #cccccc",
-          }}>
-            School Classroom details(RCC Constructed)
+          <div style={{ fontSize: 16, fontWeight: 400, color: "#333", paddingBottom: 8, marginBottom: 16, borderBottom: "1px solid #cccccc" }}>
+            School Classroom Details (RCC Constructed)
           </div>
 
-          {rowError && (
-            <Alert type="error" message={rowError} onClose={() => setRowError("")} />
-          )}
-
           <Row3>
-            <Field label="Standard" required>
-              <SelectInput value={classRow.standard} onChange={setCR("standard")} options={STANDARD_OPTS} />
+            {/* Row 55 — Standard: Mandatory (1 to 12) */}
+            <Field label="Standard" required error={rowErrors.standard}>
+              <SelectInput value={classRow.standard} onChange={setCR("standard")} options={standardOpts} />
             </Field>
-            <Field label="Division" required>
+            {/* Row 56 — Division: Mandatory, must = sum of classrooms */}
+            <Field label="Division" required error={rowErrors.division}>
               <TextInput value={classRow.division} onChange={setCR("division")} type="number" />
             </Field>
-            <Field label="Separate Classroom For Each Division" required>
+            {/* Row 57 — Separate Classroom: Mandatory */}
+            <Field label="Separate Classroom For Each Division" required error={rowErrors.separateClassroom}>
               <SelectInput value={classRow.separateClassroom} onChange={setCR("separateClassroom")} options={YES_NO} />
             </Field>
           </Row3>
 
-          {/* With Benches | Without Benches | Add button */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 24 }}>
             <div style={{ flex: 1 }}>
-              <Field label="Total Classroom With Benches" required>
+              {/* Row 58 — Total Classroom With Benches: Mandatory */}
+              <Field label="Total Classroom With Benches" required error={rowErrors.classroomWithBenches}>
                 <TextInput value={classRow.classroomWithBenches} onChange={setCR("classroomWithBenches")} type="number" />
               </Field>
             </div>
             <div style={{ flex: 1 }}>
-              <Field label="Total Classroom Without Benches" required>
+              {/* Row 59 — Total Classroom Without Benches: Mandatory */}
+              <Field label="Total Classroom Without Benches" required error={rowErrors.classroomWithoutBenches}>
                 <TextInput value={classRow.classroomWithoutBenches} onChange={setCR("classroomWithoutBenches")} type="number" />
               </Field>
             </div>
-            {/* Green Add button — exact match */}
-            <button onClick={handleAddRow} style={{
-              background: "#28a745",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              padding: "6px 20px",
-              fontSize: 14,
-              fontWeight: 400,
-              cursor: "pointer",
-              fontFamily: "var(--font-main)",
-              height: 32,
-              flexShrink: 0,
-            }}>
-              Add
+            <button 
+              onClick={handleAddRow} 
+              disabled={saving}
+              style={{ 
+                background: saving ? "#6c757d" : "#28a745", 
+                color: "#fff", 
+                border: "none", 
+                borderRadius: 4, 
+                padding: "6px 20px", 
+                fontSize: 14, 
+                cursor: saving ? "not-allowed" : "pointer", 
+                height: 32, 
+                flexShrink: 0 
+              }}
+            >
+              {saving ? "Adding..." : "Add"}
             </button>
           </div>
 
-          {/* ── Filled Details ── */}
+          {/* Division hint */}
+          {classRow.classroomWithBenches && classRow.classroomWithoutBenches && (
+            <div style={{ fontSize: 12, color: "#555", marginTop: -16, marginBottom: 12 }}>
+              ℹ️ Division should equal: {Number(classRow.classroomWithBenches) + Number(classRow.classroomWithoutBenches)} (With Benches + Without Benches)
+            </div>
+          )}
+
           {classRows.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {/* "Filled Details" heading — plain text, NO underline border, font-weight 400 */}
-              <div style={{
-                fontSize: 16,
-                fontWeight: 400,
-                color: "#333",
-                marginBottom: 12,
-              }}>
-                Filled Details
-              </div>
-
+              <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 12 }}>Filled Details</div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: 13,
-                  border: "1px solid #dee2e6",
-                }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, border: "1px solid #dee2e6" }}>
                   <thead>
                     <tr>
-                      {/* Full column names — exact match to original */}
-                      {[
-                        "Sr No",
-                        "Standard",
-                        "Division",
-                        "Separate Classroom For Each Division",
-                        "Total Classroom With Benches",
-                        "Total Classroom Without Benches",
-                        "Delete",
-                      ].map((h) => (
+                      {["Sr No","Standard","Division","Separate Classroom For Each Division","Total Classroom With Benches","Total Classroom Without Benches","Delete"].map((h) => (
                         <th key={h} style={TH}>{h}</th>
                       ))}
                     </tr>
@@ -403,17 +519,7 @@ export default function LandDetails({ onTabChange }) {
                         <td style={TD}>{row.classroomWithBenches}</td>
                         <td style={TD}>{row.classroomWithoutBenches}</td>
                         <td style={TD}>
-                          {/* Delete = plain black text, no colour */}
-                          <button onClick={() => handleDeleteRow(row.id)} style={{
-                            background: "none",
-                            border: "none",
-                            color: "#333333",
-                            cursor: "pointer",
-                            fontSize: 13,
-                            padding: 0,
-                            fontFamily: "var(--font-main)",
-                            fontWeight: 400,
-                          }}>
+                          <button onClick={() => handleDeleteRow(row.id)} style={{ background: "none", border: "none", color: "#c0392b", cursor: "pointer", fontSize: 13, padding: 0 }}>
                             Delete
                           </button>
                         </td>
@@ -422,69 +528,63 @@ export default function LandDetails({ onTabChange }) {
                   </tbody>
                 </table>
               </div>
-
-              {/* ── Pagination row — exact match ── */}
-              <Pagination
-                total={classRows.length}
-                pageSize={pageSize}
-                setPageSize={setPageSize}
-                page={page}
-                setPage={setPage}
-              />
+              <Pagination total={classRows.length} pageSize={pageSize} setPageSize={setPageSize} page={page} setPage={setPage} />
             </div>
           )}
         </div>
 
-        {/* ── SECTION 3: Upload Photo ────────────────────── */}
+        {/* ── Upload Photo ── */}
         <div style={{ marginTop: 28 }}>
-          {/* "Upload Photo" heading — font-weight 400, no underline */}
-          <div style={{
-            fontSize: 16,
-            fontWeight: 400,
-            color: "#333",
-            marginBottom: 14,
-          }}>
-            Upload Photo
-          </div>
-
-          {/* Red note */}
-          <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 14 }}>Upload Photo</div>
+          <p style={{ color: "#cc0000", fontSize: 13, marginBottom: 14, lineHeight: 1.5 }}>
             Note:- The size of the photograph should fall between 5KB to 100KB.
           </p>
-
           <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
             <div>
+              {/* Row 61 — Photo: Mandatory */}
               <Field label="Upload School Land Photo" required error={errors.photo}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }}
-                />
+                <input type="file" accept="image/*" onChange={handlePhotoChange}
+                  style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }} />
               </Field>
             </div>
             {photoPreview && (
-              <div style={{
-                width: 120, height: 90,
-                border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0,
-              }}>
-                <img src={photoPreview} alt="Preview"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
+                  <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoFile(null);
+                    setPhotoPreview(null);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: "#cc0000",
+                    background: "none",
+                    border: "1px solid #cc0000",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Remove Photo
+                </button>
               </div>
             )}
           </div>
         </div>
+      </div>
 
-      </div>{/* end white card */}
-
-      {/* Save / Reset buttons */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         <BtnReset onClick={handleReset} />
         <BtnSave onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
-
     </div>
   );
 }

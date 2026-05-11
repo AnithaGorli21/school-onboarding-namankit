@@ -23,7 +23,14 @@ export function Field({ label, required, error, children, style }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4, ...style }}>
       {label && (
-        <label style={{ fontSize: 13, color: "#333333", fontWeight: 400 }}>
+        <label style={{ 
+          fontSize: 13, 
+          color: "#333333", 
+          fontWeight: 400,
+          whiteSpace: "normal",    // allows wrapping
+          lineHeight: "1.4",       // better line spacing
+          minHeight: 18,           // consistent height
+        }}>
           {label}
           {required && <span style={{ color: "#cc0000", marginLeft: 2 }}>*</span>}
         </label>
@@ -37,7 +44,7 @@ export function Field({ label, required, error, children, style }) {
 }
 
 // ── TextInput ────────────────────────────────────────────────
-export function TextInput({ value, onChange, placeholder = "", type = "text", disabled = false, readOnly = false }) {
+export function TextInput({ value, onChange, placeholder = "", type = "text", disabled = false, readOnly = false, maxLength  }) {
   const [focused, setFocused] = useState(false);
   return (
     <input
@@ -46,6 +53,7 @@ export function TextInput({ value, onChange, placeholder = "", type = "text", di
       placeholder={placeholder}
       disabled={disabled}
       readOnly={readOnly}
+      maxLength={maxLength} 
       onChange={(e) => onChange && onChange(e.target.value)}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
@@ -77,8 +85,8 @@ export function SelectInput({ value, onChange, options = [], placeholder = "--Se
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => {
-        const val   = typeof opt === "object" ? opt.value : opt;
-        const label = typeof opt === "object" ? opt.label : opt;
+        const val   = typeof opt === "object" ? opt.value || opt.name : opt;
+        const label = typeof opt === "object" ? opt.label || opt.name : opt;
         return <option key={val} value={val}>{label}</option>;
       })}
     </select>

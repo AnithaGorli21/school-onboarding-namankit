@@ -1,189 +1,291 @@
 // ============================================================
-//  src/sections/TeachersDetails.jsx
+//  src/sections/Teachersdetails.jsx
+//  UI only — API logic in src/api/teacherDetails.js
+//
+//  On mount: loads existing teacher rows by schoolProfileId
+//  On save:  POST new rows, PATCH existing rows (by liferayId)
 // ============================================================
-import { useState } from "react";
-import { Field, TextInput, SelectInput, SectionHeading, Row3, Row2 } from "../components/FormFields";
-import SectionWrapper from "../components/SectionWrapper";
+import { useState, useEffect } from "react";
+import {
+  Field, TextInput, SelectInput,
+  SectionHeading, Row3,
+  Alert, BtnSave, BtnReset,
+} from "../components/FormFields";
+import { TH, TD, DELETE_BTN } from "../utils/Tablestyles";
 import Pagination from "../components/Pagination";
-import { TH, TD, DELETE_BTN, ADD_BTN } from "../utils/Tablestyles";
+import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/teacherDetails";
+import { getPicklist, getQualifications } from "../api/liferay";
+import Loader from "../components/Loader";
 
-const YES_NO      = ["Yes", "No"];
-const DESIGNATION = ["Principal","Vice Principal","Teacher","Assistant Teacher","PET Teacher","Art Teacher","Music Teacher","Other"];
-const SUBJECT     = ["Mathematics","Science","English","Marathi","Hindi","Social Science","Computer","Sanskrit","Other"];
-const MEDIUM      = ["Marathi","Hindi","English","Semi-English","Urdu"];
-const QUALIFICATION = ["B.Ed","M.Ed","B.A. B.Ed","B.Sc B.Ed","M.A. B.Ed","M.Sc B.Ed","D.Ed","Other"];
+// QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
-const emptyForm = {
-  totalSanctionedPosts: "", totalFilledPosts: "", totalVacantPosts: "",
-  principalAppointed: "", totalPermanentTeachers: "",
-  totalContractTeachers: "", totalGuestTeachers: "",
-  totalMaleTeachers: "", totalFemaleTeachers: "",
+const themeStyles = {
+  container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)", position: "relative" },
+  card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
+  radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
+  checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
+  addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
 };
 
 const emptyRow = {
-  teacherName: "", designation: "", subject: "",
-  medium: "", qualification: "", mobileNumber: "",
-  isPermanent: "", joiningDate: "",
+  name:                                    "",
+  highestQualification:                    "",
+  mediumOfEducationTillStd10thId:          "",
+  mediumOfEducationForDegreeId:            "",
+  mediumForEducationForBedDedBPedBedPhyId: "",
+  yearOfExperience:                        "",
+  subject1Id:                              "",
+  subject2Id:                              "",
+  isSportsBPed:                            false,
+  genderId:                                "",
+  teacherDetailStatus:                     "",
 };
 
-export default function TeachersDetails({ onTabChange }) {
-  const [form, setForm]     = useState(emptyForm);
-  const [rows, setRows]     = useState([]);
-  const [newRow, setNewRow] = useState(emptyRow);
-  const [rowErr, setRowErr] = useState("");
-  const [page, setPage]     = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [saving, setSaving] = useState(false);
-  const [alert, setAlert]   = useState(null);
+export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, onLoadingChange }) {
+  const [rows,        setRows]        = useState([]);
+  const [newRow,      setNewRow]      = useState(emptyRow);
+  const [page,        setPage]        = useState(1);
+  const [pageSize,    setPageSize]    = useState(10);
+  const [alert,       setAlert]       = useState(null);
+  const [saving,      setSaving]      = useState(false);
+  const [loadingData,  setLoadingData]  = useState(false);
+  const [qualificationOpts, setQualificationOpts] = useState([]);
+  const [mediumOpts,        setMediumOpts]        = useState([]);
+  const [subjectOpts,  setSubjectOpts]  = useState([]);
+  const [lookupLoadingCount, setLookupLoadingCount] = useState(0);
 
-  const set  = (k) => (v) => setForm(p => ({ ...p, [k]: v }));
-  const setR = (k) => (v) => setNewRow(p => ({ ...p, [k]: v }));
+  const trackLookupCall = (promise) => {
+    setLookupLoadingCount((count) => count + 1);
+    return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
+
+  useEffect(() => {
+    onLoadingChange?.(loadingData || lookupLoadingCount > 0);
+  }, [loadingData, lookupLoadingCount, onLoadingChange]);
+
+  // ── Load existing rows on mount ───────────────────────────
+  useEffect(() => {
+    if (!schoolProfileId) return;
+    console.log("[TeacherDetails] loading for schoolProfileId →", schoolProfileId);
+    setLoadingData(true);
+    loadTeacherDetails(schoolProfileId)
+      .then(({ records }) => {
+        const mapped = mapRecordsToRows(records);
+        if (mapped.length > 0) setRows(mapped);
+      })
+      .catch((err) => console.error("[TeacherDetails] load error:", err))
+      .finally(() => setLoadingData(false));
+  }, [schoolProfileId]);
+
+  // ── Load Qualifications from qualificationmasters object ─
+  useEffect(() => {
+    trackLookupCall(getQualifications())
+      .then(setQualificationOpts)
+      .catch(() => setQualificationOpts(
+        ["SSC","HSC","D.Ed","B.Ed","M.Ed","B.A","B.Sc","M.A","M.Sc","PhD"]
+        .map(q => ({ value: q, label: q }))
+      ));
+  }, []);
+
+  // ── Load Medium and Subject picklists ────────────────────
+  useEffect(() => {
+    trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM"))
+      .then(setMediumOpts)
+      .catch(() => setMediumOpts([
+        { value: "English", label: "English" },
+        { value: "Marathi", label: "Marathi" },
+        { value: "Hindi",   label: "Hindi" },
+        { value: "Urdu",    label: "Urdu" },
+        { value: "Other",   label: "Other" },
+      ]));
+  }, []);
+
+  useEffect(() => {
+    trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS"))
+      .then(setSubjectOpts)
+      .catch(() => setSubjectOpts([
+        { value: "Mathematics",   label: "Mathematics" },
+        { value: "Science",       label: "Science" },
+        { value: "English",       label: "English" },
+        { value: "Marathi",       label: "Marathi" },
+        { value: "Hindi",         label: "Hindi" },
+        { value: "Social Science",label: "Social Science" },
+        { value: "Sanskrit",      label: "Sanskrit" },
+        { value: "P.E.",          label: "P.E." },
+      ]));
+  }, []);
+
+  const setR = (k) => (v) => setNewRow((p) => ({ ...p, [k]: v }));
 
   const handleAdd = () => {
-    if (!newRow.teacherName || !newRow.designation || !newRow.subject || !newRow.qualification) {
-      setRowErr("Please fill Name, Designation, Subject and Qualification."); return;
+    if (!newRow.name || !newRow.highestQualification || !newRow.genderId) {
+      setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
+      return;
     }
-    setRowErr("");
-    setRows(p => [...p, { ...newRow, id: Date.now() }]);
-    setNewRow(emptyRow); setPage(1);
+    setRows((p) => [...p, { ...newRow, id: Date.now(), liferayId: null }]);
+    setNewRow(emptyRow);
   };
 
   const handleSave = async () => {
-    setSaving(true); setAlert(null);
+    if (rows.length === 0) {
+      setAlert({ type: "error", message: "Please add at least one teacher." });
+      return;
+    }
+    setSaving(true);
+    setAlert(null);
+    setLoadingData(true);
     try {
-      await fetch("/o/c/teacherdetails", {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, teachersData: JSON.stringify(rows) }),
-      });
-      setAlert({ type: "success", message: "Teachers Details saved successfully!" });
+      await submitTeacherDetails({ rows, schoolProfileId });
+      setAlert({ type: "success", message: "Teachers data saved successfully!" });
+      onSave?.(rows);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+      setLoadingData(false);
+    }
   };
 
-  const handleReset = () => {
-    setForm(emptyForm); setRows([]); setNewRow(emptyRow);
-    setAlert(null); setRowErr(""); setPage(1);
-  };
-
-  const paged = rows.slice((page-1)*pageSize, page*pageSize);
+  const getLabel = (options, value) => options.find((o) => o.value === Number(value))?.label || value;
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <SectionWrapper alert={alert} onCloseAlert={() => setAlert(null)}
-      onSave={handleSave} onReset={handleReset} saving={saving}>
+    <div style={themeStyles.container}>
+      {(loadingData || lookupLoadingCount > 0) && (
+        <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader />
+        </div>
+      )}
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-      <SectionHeading title="Teacher Summary" />
-
-      <Row3>
-        <Field label="Total Sanctioned Posts" required>
-          <TextInput value={form.totalSanctionedPosts} onChange={set("totalSanctionedPosts")} type="number" />
-        </Field>
-        <Field label="Total Filled Posts" required>
-          <TextInput value={form.totalFilledPosts} onChange={set("totalFilledPosts")} type="number" />
-        </Field>
-        <Field label="Total Vacant Posts">
-          <TextInput value={form.totalVacantPosts} onChange={set("totalVacantPosts")} type="number" readOnly />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Principal Appointed" required>
-          <SelectInput value={form.principalAppointed} onChange={set("principalAppointed")} options={YES_NO} />
-        </Field>
-        <Field label="Total Permanent Teachers" required>
-          <TextInput value={form.totalPermanentTeachers} onChange={set("totalPermanentTeachers")} type="number" />
-        </Field>
-        <Field label="Total Contract Teachers" required>
-          <TextInput value={form.totalContractTeachers} onChange={set("totalContractTeachers")} type="number" />
-        </Field>
-      </Row3>
-
-      <Row3>
-        <Field label="Total Guest Teachers">
-          <TextInput value={form.totalGuestTeachers} onChange={set("totalGuestTeachers")} type="number" />
-        </Field>
-        <Field label="Total Male Teachers" required>
-          <TextInput value={form.totalMaleTeachers} onChange={set("totalMaleTeachers")} type="number" />
-        </Field>
-        <Field label="Total Female Teachers" required>
-          <TextInput value={form.totalFemaleTeachers} onChange={set("totalFemaleTeachers")} type="number" />
-        </Field>
-      </Row3>
-
-      {/* Individual Teacher Entry */}
-      <div style={{ marginTop: 24 }}>
+      <div style={themeStyles.card}>
         <SectionHeading title="Teacher Details" />
-        {rowErr && <div style={{ color: "#cc0000", fontSize: 12, marginBottom: 8 }}>{rowErr}</div>}
 
         <Row3>
-          <Field label="Teacher Name" required>
-            <TextInput value={newRow.teacherName} onChange={setR("teacherName")} />
+          <Field label="Name" required>
+            <TextInput value={newRow.name} onChange={setR("name")} />
           </Field>
-          <Field label="Designation" required>
-            <SelectInput value={newRow.designation} onChange={setR("designation")} options={DESIGNATION} />
+          <Field label="Highest Qualification" required>
+            <SelectInput value={newRow.highestQualification} onChange={setR("highestQualification")} options={qualificationOpts} />
           </Field>
-          <Field label="Subject" required>
-            <SelectInput value={newRow.subject} onChange={setR("subject")} options={SUBJECT} />
+          <Field label="Medium of Education till Std. 10th" required>
+            <SelectInput value={newRow.mediumOfEducationTillStd10thId} onChange={setR("mediumOfEducationTillStd10thId")} options={mediumOpts} />
           </Field>
         </Row3>
-
         <Row3>
-          <Field label="Medium">
-            <SelectInput value={newRow.medium} onChange={setR("medium")} options={MEDIUM} />
+          <Field label="Medium of Education for Degree" required>
+            <SelectInput value={newRow.mediumOfEducationForDegreeId} onChange={setR("mediumOfEducationForDegreeId")} options={mediumOpts} />
           </Field>
-          <Field label="Qualification" required>
-            <SelectInput value={newRow.qualification} onChange={setR("qualification")} options={QUALIFICATION} />
+          <Field label="Medium for B.Ed/D.Ed/B.P.Ed" required>
+            <SelectInput value={newRow.mediumForEducationForBedDedBPedBedPhyId} onChange={setR("mediumForEducationForBedDedBPedBedPhyId")} options={mediumOpts} />
           </Field>
-          <Field label="Mobile Number">
-            <TextInput value={newRow.mobileNumber} onChange={setR("mobileNumber")} type="tel" />
+          <Field label="Years Of Experience" required>
+            <TextInput value={newRow.yearOfExperience} onChange={setR("yearOfExperience")} type="number" />
           </Field>
         </Row3>
+        <Row3>
+          <Field label="Subject 1" required>
+            <SelectInput value={newRow.subject1Id} onChange={setR("subject1Id")} options={subjectOpts} />
+          </Field>
+          <Field label="Subject 2">
+            <SelectInput value={newRow.subject2Id} onChange={setR("subject2Id")} options={subjectOpts} />
+          </Field>
+          <label style={themeStyles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={newRow.isSportsBPed}
+              onChange={(e) => setR("isSportsBPed")(e.target.checked)}
+            />
+            Is Sports B.P.ed
+          </label>
+        </Row3>
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1 }}>
-            <Field label="Permanent / Contract" required>
-              <SelectInput value={newRow.isPermanent} onChange={setR("isPermanent")}
-                options={["Permanent","Contract","Guest"]} />
-            </Field>
-          </div>
-          <div style={{ flex: 1 }}>
-            <Field label="Joining Date">
-              <TextInput value={newRow.joiningDate} onChange={setR("joiningDate")} type="date" />
-            </Field>
-          </div>
-          <button onClick={handleAdd} style={ADD_BTN}>Add</button>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", marginTop: "10px" }}>
+          <Field label="Gender" required>
+            <div style={themeStyles.radioGroup}>
+              {[{ value: 1, label: "Male" }, { value: 2, label: "Female" }, { value: 3, label: "Other" }].map((g) => (
+                <label key={g.value}>
+                  <input
+                    type="radio"
+                    checked={newRow.genderId === g.value}
+                    onChange={() => setR("genderId")(g.value)}
+                  /> {g.label}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Status" required>
+            <div style={themeStyles.radioGroup}>
+              {["Residential", "Non Residential"].map((s, i) => (
+                <label key={s}>
+                  <input
+                    type="radio"
+                    checked={newRow.teacherDetailStatus === (i === 0)}
+                    onChange={() => setR("teacherDetailStatus")(i === 0)}
+                  /> {s}
+                </label>
+              ))}
+            </div>
+          </Field>
         </div>
 
+        <button onClick={handleAdd} style={{ ...themeStyles.addBtn, marginTop: "20px" }}>Add</button>
+
+        {/* Table */}
         {rows.length > 0 && (
-          <>
-            <div style={{ fontSize: 16, fontWeight: 400, color: "#333", marginBottom: 10 }}>Filled Details</div>
+          <div style={{ marginTop: 30 }}>
+            <div style={{ fontSize: 16, fontWeight: 400, marginBottom: 12 }}>Filled Details</div>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead><tr>
-                  {["Sr No","Teacher Name","Designation","Subject","Qualification","Type","Joining Date","Delete"]
-                    .map(h => <th key={h} style={TH}>{h}</th>)}
-                </tr></thead>
+              <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
+                <thead>
+                  <tr>
+                    <th style={TH}>Teacher Name</th>
+                    <th style={TH}>Qualifications</th>
+                    <th style={TH}>Subject</th>
+                    <th style={TH}>Medium till 10th</th>
+                    <th style={TH}>Medium Degree</th>
+                    <th style={TH}>Gender</th>
+                    <th style={TH}>Exp.</th>
+                    <th style={TH}>Delete</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {paged.map((r, i) => (
+                  {paged.map((r) => (
                     <tr key={r.id}>
-                      <td style={TD}>{(page-1)*pageSize+i+1}</td>
-                      <td style={TD}>{r.teacherName}</td>
-                      <td style={TD}>{r.designation}</td>
-                      <td style={TD}>{r.subject}</td>
-                      <td style={TD}>{r.qualification}</td>
-                      <td style={TD}>{r.isPermanent}</td>
-                      <td style={TD}>{r.joiningDate}</td>
-                      <td style={TD}><button style={DELETE_BTN} onClick={() => setRows(p => p.filter(x => x.id !== r.id))}>Delete</button></td>
+                      <td style={TD}>{r.name}</td>
+                      <td style={TD}>{r.highestQualification}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.subject1Id)?.label || subjectOpts.find(o => o.value === String(r.subject1Id))?.label || r.subject1Id}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationTillStd10thId)?.label || r.mediumOfEducationTillStd10thId}</td>
+                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationForDegreeId)?.label || r.mediumOfEducationForDegreeId}</td>
+                      <td style={TD}>{r.genderId === 1 ? "Male" : r.genderId === 2 ? "Female" : "Other"}</td>
+                      <td style={TD}>{r.yearOfExperience}</td>
+                      <td style={TD}>
+                        <button style={DELETE_BTN} onClick={() => setRows((p) => p.filter((x) => x.id !== r.id))}>
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <Pagination total={rows.length} pageSize={pageSize} setPageSize={setPageSize} page={page} setPage={setPage} />
-          </>
+            <Pagination
+              total={rows.length}
+              pageSize={pageSize}
+              setPageSize={setPageSize}
+              page={page}
+              setPage={setPage}
+            />
+          </div>
         )}
       </div>
-    </SectionWrapper>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+        <BtnReset onClick={() => { setRows([]); setNewRow(emptyRow); setAlert(null); }} />
+        <BtnSave onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
+        </BtnSave>
+      </div>
+    </div>
   );
 }
