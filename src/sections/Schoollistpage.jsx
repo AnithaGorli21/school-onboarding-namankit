@@ -105,7 +105,7 @@ export default function SchoolListPage({ onEdit }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {/* Total count badge */}
           <div style={{ background: "#1a2a5e", color: "#fff", padding: "6px 16px", borderRadius: 4, fontSize: 14, fontWeight: 500 }}>
-            {filtered.length} Total Schools
+            {filtered.length} Total {filtered.length === 1 ? "School" : "Schools"}
           </div>
         </div>
       </div>

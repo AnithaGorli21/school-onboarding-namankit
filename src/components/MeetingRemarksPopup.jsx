@@ -40,14 +40,14 @@ const handleSave = () => {
     const payload = {
         studentsRegistered: Number(formData.studentsRegistered) || 0,
         studentsTransferred: Number(formData.studentsTransferred) || 0,
-        finalApprovalStatus: formData.finalApprovalStatus,
+        committeeDecision: formData.finalApprovalStatus,
         sanctionedSeats: Number(formData.sanctionedSeats) || 0,
         samayojan: Number(formData.samayojan) || 0,
         assignedMarks: Number(formData.assignedMarks) || 0,
         assignedFees: Number(formData.assignedFees) || 0,
         schoolProposedFees: Number(formData.schoolProposedFees) || 0,
         finalFees: Number(formData.finalFees) || 0,
-        finalRemarks: formData.finalRemarks,
+        committeeRemarks: formData.finalRemarks,
     };
     handleSaveMeetingRemarks(schoolProfileId, payload);
 };

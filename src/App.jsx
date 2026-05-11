@@ -805,7 +805,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
               </button>
               {isEditMode && schoolProfileId && (
                 <span style={{ fontSize: 13, color: "#888" }}>
-                  Editing School ID: <strong style={{ color: "#1a7a8a" }}>{schoolProfileId}</strong>
+                  School ID: <strong style={{ color: "#1a7a8a" }}>{schoolProfileId}</strong>
                 </span>
               )}
             </div>
