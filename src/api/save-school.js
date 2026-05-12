@@ -1,5 +1,6 @@
 import { getCsrfToken } from "../utils/liferay";
-import { buildHeaders, buildCreds } from "../config";
+import { buildHeaders, buildCreds, buildHeadersHeadLess, buildCredsHeadless, buildHeadersRegistration, buildCredsRegistration, buildHeadersRegistrationUpdate } from "../config";
+import { getAccessToken } from "./auth";
 
 const OBJECT_API_URL = "/o/c/universityotherfeeses/"; 
 const UPLOAD_API = "/o/headless-delivery/v1.0";
@@ -52,7 +53,7 @@ export async function updateSchoolEntry(schoolId, payload) {
 
   const response = await fetch(`/o/c/namankitschoolprofiles/${parsedSchoolId}`, {
     method: "PATCH",
-    headers: buildHeaders(),
+    headers: buildHeadersRegistrationUpdate(),
     credentials: buildCreds(),
     body: JSON.stringify(payload),
   });
@@ -76,8 +77,8 @@ export async function assignSchoolRoleToUserAccount(userId, roleId) {
     `/o/headless-admin-user/v1.0/roles/${parsedRoleId}/association/user-account/${userId}`,
     {
       method: "POST",
-     headers: buildHeaders(), 
-    credentials: buildCreds(),
+     headers: buildHeadersRegistration(), 
+     credentials: buildCreds(),
     }
   );
 
@@ -97,10 +98,24 @@ export async function assignSchoolRoleToUserAccount(userId, roleId) {
  
 
 export async function saveSchoolMasterEntry(payload) {
+
+      // const response = await fetch("/o/c/namankitschoolprofiles", {
+      //   method: "POST",
+      //   // headers: {
+      //   //   Accept: "application/json",
+      //   //   "Content-Type": "application/json",
+      //   //   "Authorization": `Bearer ${token}`,
+      //   // },
+      //   headers: buildHeadersRegistration(),
+
+      //   credentials: "include",
+      //   body: JSON.stringify(payload),
+      // });
+
   const response = await fetch("/o/c/namankitschoolprofiles", {
     method: "POST",
-    headers: buildHeaders(),
-   credentials: buildCreds(), 
+    headers: buildHeadersRegistration(),
+   credentials: buildCredsRegistration(), 
     body: JSON.stringify(payload),
   });
 
@@ -216,8 +231,8 @@ export async function fetchObjectName(objectDefinitionId) {
 export async function createSchoolLiferayUserAccount(payload) {
   const response = await fetch("/o/headless-admin-user/v1.0/user-accounts", {
     method: "POST",
-     headers: buildHeaders(), // ✅ fixed
-    credentials: buildCreds(), // ✅ fixed
+     headers: buildHeadersRegistration(), // ✅ fixed
+    credentials: buildCredsRegistration(), // ✅ fixed
     body: JSON.stringify(payload),
   });
 
@@ -240,8 +255,8 @@ export async function deleteSchoolLiferayUserAccount(userId) {
   }
   const response = await fetch(`/o/headless-admin-user/v1.0/user-accounts/${parsedUserId}`, {
     method: "DELETE",
-    headers: buildHeaders(), // ✅ fixed
-    credentials: buildCreds(), // ✅ fixed
+    headers: buildHeadersRegistration(), // ✅ fixed
+    credentials: buildCredsRegistration(), // ✅ fixed
   });
 
   if (response.status === 404) {
@@ -266,14 +281,16 @@ export async function fetchSchoolRoleByName(roleName) {
   const allRoles = [];
 
   while (true) {
+    const header = buildHeadersRegistration();
     const response = await fetch(
-      `/o/headless-admin-user/v1.0/roles?search='${normalizedName}'&page=${page}&pageSize=${pageSize}`,
+      `/o/headless-admin-user/v1.0/roles?search=${encodeURIComponent(normalizedName)}&page=${page}&pageSize=${pageSize}`,
       {
         method: "GET",
-       headers: buildHeaders(), 
-        credentials: buildCreds(), 
+        headers: header, 
+        credentials: "include"
       }
-    );
+    ); 
+ 
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -319,7 +336,7 @@ export async function checkUDISEExists(udiseCode) {
       filters.map((filter) =>
         fetch(
           `/o/c/namankitschoolprofiles/?filter=${encodeURIComponent(filter)}&pageSize=1`,
-           { headers: buildHeaders(), credentials: buildCreds() } // ✅ fixed
+           { headers: buildHeadersRegistration(), credentials: buildCredsRegistration() } // ✅ fixed
         ).then((res) => res.json())
       )
     );
