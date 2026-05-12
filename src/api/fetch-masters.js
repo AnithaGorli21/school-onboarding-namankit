@@ -1,4 +1,6 @@
 import { MOCK_STATES, simulateMockAPI } from "../schools/mockData";
+import { buildHeaders, buildCreds } from "../config";
+
 // import { getAccessToken } from "./auth";
 const useMockData = false; // Set to true to use mock data instead of real API calls
 export async function getDepartment() {
@@ -23,13 +25,13 @@ export async function getDepartment() {
     return [];
   }
 }
-const buildHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-  Authorization: "Basic " + btoa("prabhudasu:root"),
-  // "x-csrf-token": window.Liferay?.authToken || ""
-});
-const buildCreds = () => "include";
+// const buildHeaders = () => ({
+//   Accept: "application/json",
+//   "Content-Type": "application/json",
+//   Authorization: "Basic " + btoa("prabhudasu:root"),
+//   // "x-csrf-token": window.Liferay?.authToken || ""
+// });
+// const buildCreds = () => "include";
 export async function getStates() {
   try {
     let allItems = [];
@@ -239,10 +241,8 @@ export async function getPicklistByERC(erc) {
       `/o/headless-admin-list-type/v1.0/list-type-definitions/by-external-reference-code/${erc}/list-type-entries`,
       {
         method: "GET",
-        headers: {
-          Authorization: "Basic " + btoa("prabhudasu:root"),
-        },
-        credentials: "include",
+       headers: buildHeaders(),
+       credentials: buildCreds(),
       },
     );
     if (!response.ok) {
@@ -284,16 +284,10 @@ export async function creatingEntry(payload) {
 // ── Update function (PUT) ──────────────────────────────────────────────
 export async function updateEntry(id, payload) {
   try {
-    const username = "prabhudasu";
-    const password = "root";
     const response = await fetch(`/o/c/colleges/${id}`, {
       method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: "Basic " + btoa(`${username}:${password}`),
-      },
-      credentials: "include",
+      headers: buildHeaders(),
+credentials: buildCreds(),
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
@@ -318,11 +312,8 @@ export async function checkEmailExists(email) {
       //   "x-csrf-token": window.Liferay?.authToken || ""
       // },
       // credentials: "include"
-      headers: {
-        Authorization: "Basic " + btoa("prabhudasu:root"),
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: buildHeaders(),
+      credentials: buildCreds(),
     },
   );
   if (!res.ok) {

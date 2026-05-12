@@ -1,16 +1,9 @@
-// import { getAccessToken } from "./auth";
 import { getCsrfToken } from "../utils/liferay";
-// import { fetchObjectName } from "./save-update-api";
-const OBJECT_API_URL = "/o/c/universityotherfeeses/"; // your Object REST endpoint
-const UPLOAD_API = "/o/headless-delivery/v1.0"; // ✅ added missing constant
+import { buildHeaders, buildCreds } from "../config";
 
+const OBJECT_API_URL = "/o/c/universityotherfeeses/"; 
+const UPLOAD_API = "/o/headless-delivery/v1.0";
 
-
-const buildHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-   "Authorization": "Basic " + btoa("prabhudasu:root")
-});
 
 const safeApiErrorMessage = (errorText, fallbackMessage) => {
   const text = String(errorText || "").trim();
@@ -36,14 +29,10 @@ export async function fetchSchoolLiferayUserByEmail(email) {
       `emailAddress eq '${escapedEmail}'`
     )}`,
     {
-      method: "GET",
-       headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-      credentials: "omit",
-    }
+  method: "GET",
+  headers: buildHeaders(),
+  credentials: buildCreds(),
+}
   );
 
   if (!response.ok) {
@@ -64,7 +53,7 @@ export async function updateSchoolEntry(schoolId, payload) {
   const response = await fetch(`/o/c/namankitschoolprofiles/${parsedSchoolId}`, {
     method: "PATCH",
     headers: buildHeaders(),
-    credentials: "include",
+    credentials: buildCreds(),
     body: JSON.stringify(payload),
   });
 
@@ -87,10 +76,8 @@ export async function assignSchoolRoleToUserAccount(userId, roleId) {
     `/o/headless-admin-user/v1.0/roles/${parsedRoleId}/association/user-account/${userId}`,
     {
       method: "POST",
-      headers: {
-        "Authorization": "Basic " + btoa("prabhudasu:root"),
-        "Content-Type": "application/json"
-      }
+     headers: buildHeaders(), 
+    credentials: buildCreds(),
     }
   );
 
@@ -113,7 +100,7 @@ export async function saveSchoolMasterEntry(payload) {
   const response = await fetch("/o/c/namankitschoolprofiles", {
     method: "POST",
     headers: buildHeaders(),
-    credentials: "include",
+   credentials: buildCreds(), 
     body: JSON.stringify(payload),
   });
 
@@ -229,12 +216,8 @@ export async function fetchObjectName(objectDefinitionId) {
 export async function createSchoolLiferayUserAccount(payload) {
   const response = await fetch("/o/headless-admin-user/v1.0/user-accounts", {
     method: "POST",
-     headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-    credentials: "omit",
+     headers: buildHeaders(), // ✅ fixed
+    credentials: buildCreds(), // ✅ fixed
     body: JSON.stringify(payload),
   });
 
@@ -257,12 +240,8 @@ export async function deleteSchoolLiferayUserAccount(userId) {
   }
   const response = await fetch(`/o/headless-admin-user/v1.0/user-accounts/${parsedUserId}`, {
     method: "DELETE",
-    headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-    credentials: "omit",
+    headers: buildHeaders(), // ✅ fixed
+    credentials: buildCreds(), // ✅ fixed
   });
 
   if (response.status === 404) {
@@ -291,12 +270,8 @@ export async function fetchSchoolRoleByName(roleName) {
       `/o/headless-admin-user/v1.0/roles?page=${page}&pageSize=${pageSize}`,
       {
         method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-        credentials: "omit",
+       headers: buildHeaders(), // ✅ fixed
+        credentials: buildCreds(), // ✅ fixed
       }
     );
 
@@ -344,7 +319,7 @@ export async function checkUDISEExists(udiseCode) {
       filters.map((filter) =>
         fetch(
           `/o/c/namankitschoolprofiles/?filter=${encodeURIComponent(filter)}&pageSize=1`,
-          { headers: buildHeaders(), credentials: "include" }
+           { headers: buildHeaders(), credentials: buildCreds() } // ✅ fixed
         ).then((res) => res.json())
       )
     );

@@ -6,6 +6,7 @@
 // ============================================================
 import { useState, useEffect } from "react";
 import { apiFetch, apiPatch } from "../api/liferay";
+import { buildHeaders, buildCreds } from "../config";
 
 // ── Hardcoded PO list ─────────────────────────────────────────
 const PO_LIST = [
@@ -263,7 +264,7 @@ function UploadModal({ bill, onClose, onUploaded }) {
       form.append("file", file);
       const uploadRes = await fetch("/o/headless-delivery/v1.0/sites/guest/documents", {
         method: "POST",
-        headers: { Authorization: "Basic " + btoa("prabhudasu:root") },
+       headers: buildHeaders(),
         body: form,
       });
       const uploadData = await uploadRes.json();

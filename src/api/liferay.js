@@ -1,15 +1,9 @@
 // ============================================================
 //  src/api/liferay.js
 // ============================================================
-const buildHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-  Authorization: "Basic " + btoa("prabhudasu:root"),
-  // "x-csrf-token": window.Liferay?.authToken || "",
-});
- 
-const opts = { credentials: "include", headers: buildHeaders() };
- 
+import { buildHeaders, buildCreds } from "../config";
+
+const opts = { credentials: buildCreds(), headers: buildHeaders() };   
 // ── Reads Liferay error body and surfaces it clearly ──────────
 async function throwWithBody(res, method, path) {
   let body = "";

@@ -1,9 +1,20 @@
-const USE_HARDCODED_AUTH = false; // 👈 flip this one flag
-const USE_HARDCODED_USER = false; // 👈 flip this one flag
+// src/api/config.js
+// ─────────────────────────────────────────────────────────────
+// Single source of truth for auth across QA, UAT, and localhost
+// No credentials are hardcoded — all read from Liferay context
+// ─────────────────────────────────────────────────────────────
 
-export const AUTH_TOKEN = USE_HARDCODED_AUTH
+const IS_DEV = window.location.hostname === "localhost";
+
+// In dev (localhost), we use Basic auth with hardcoded creds.
+// In QA/UAT, we always use Liferay session (cookies + CSRF token).
+const AUTH_TOKEN = IS_DEV
   ? "Basic " + btoa("prabhudasu:root")
   : null;
+
+export { AUTH_TOKEN };
+
+// ── Headers ───────────────────────────────────────────────────
 
 export const buildHeaders = () => {
   if (AUTH_TOKEN) {
@@ -13,11 +24,10 @@ export const buildHeaders = () => {
       Authorization: AUTH_TOKEN,
     };
   }
-
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
-    "x-csrf-token": window.Liferay?.authToken || "",
+    "x-csrf-token": window.Liferay?.authToken ?? "",
   };
 };
 
@@ -28,34 +38,40 @@ export const buildHeadersDocument = () => {
       Authorization: AUTH_TOKEN,
     };
   }
-
   return {
     Accept: "application/json",
-    "x-csrf-token": window.Liferay?.authToken || "",
+    "x-csrf-token": window.Liferay?.authToken ?? "",
   };
 };
 
+// ── Credentials ───────────────────────────────────────────────
+// localhost: "omit" (Basic auth handles it)
+// QA/UAT:   "include" (send session cookies)
+
+export const buildCreds = () => (IS_DEV ? "omit" : "include");
+
+// ── User ID ───────────────────────────────────────────────────
+
 export const getLiferayUserId = () => {
   try {
-    return USE_HARDCODED_USER
-      ? 3230450//QA -3230450 : UAT - 8636963
-      : window.Liferay.ThemeDisplay.getUserId();
+    return window.Liferay.ThemeDisplay.getUserId();
   } catch (error) {
-    console.error("Error getting user ID:", error);
+    console.error("[config] Error getting Liferay user ID:", error);
     return null;
   }
 };
 
-export const buildCreds = () => "include"; // or "omit" based on your needs
+// ── Auth state ────────────────────────────────────────────────
 
-export const isSignedIn = ()=> { return  USE_HARDCODED_AUTH
-  ? true
-  : window.Liferay?.ThemeDisplay?.isSignedIn();
+export const isSignedIn = () => {
+  if (IS_DEV) return true;
+  return window.Liferay?.ThemeDisplay?.isSignedIn() ?? false;
 };
 
-export const getScopeGroupId = () => {
-  return USE_HARDCODED_AUTH
-    ? 20118
-    : window.Liferay?.ThemeDisplay?.getScopeGroupId();
-};
+// ── Scope Group ID ────────────────────────────────────────────
+// Always read from Liferay — never hardcode (differs per env)
+
+export const getScopeGroupId = () =>
+  window.Liferay?.ThemeDisplay?.getScopeGroupId() ?? null;
+
 export default AUTH_TOKEN;
