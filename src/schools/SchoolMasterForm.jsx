@@ -536,9 +536,14 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
    // Add all fields that should not accept special characters
   const alphaOnlyFields = ["trusteeName", "schoolName"];
 
+  const numericNoZeroStartFields = ["pincode"];
+
   const sanitizedValue = alphaOnlyFields.includes(name)
-    ? value.replace(/[^a-zA-Z\s]/g, "")
-    : value;
+  ? value.replace(/[^a-zA-Z\s]/g, "")
+  : numericNoZeroStartFields.includes(name)
+  ? value.replace(/[^0-9]/g, "")  // only digits
+  : value;
+
 
   setForm((f) => ({ ...f, [name]: sanitizedValue }));
   setErrors((err) => ({ ...err, [name]: validateField(name, sanitizedValue) }));
