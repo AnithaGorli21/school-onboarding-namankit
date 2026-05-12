@@ -1,7 +1,7 @@
 // ============================================================
 //  src/api/upload.js
 // ============================================================
-import { buildHeaders, buildCreds } from "../config";
+import { buildHeaders, buildHeadersDocument, buildCreds } from "../config";
 
 // ── Get site ID ───────────────────────────────────────────────
 let _cachedSiteId = null;
@@ -47,7 +47,7 @@ async function getSiteId() {
 async function getOrCreateFolder(siteId, folderName) {
   const searchRes = await fetch(
     `/o/headless-delivery/v1.0/sites/${siteId}/document-folders?search=${encodeURIComponent(folderName)}`,
-    { headers: buildHeaders(), credentials: buildCreds() } // ✅ fixed
+    { headers: buildHeadersDocument(), credentials: buildCreds() } 
   );
   if (!searchRes.ok) {
     const err = await searchRes.text();
@@ -66,8 +66,8 @@ async function getOrCreateFolder(siteId, folderName) {
     `/o/headless-delivery/v1.0/sites/${siteId}/document-folders`,
     {
       method: "POST",
-      headers: buildHeaders(), // ✅ fixed
-      credentials: buildCreds(), // ✅ fixed
+       headers: buildHeadersDocument(),
+      credentials: buildCreds(), 
       body: JSON.stringify({ name: folderName }),
     }
   );
