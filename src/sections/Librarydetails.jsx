@@ -139,7 +139,6 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, o
           <Loader />
         </div>
       )}
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={themeStyles.card}>
         <SectionHeading title="Library Details" />
@@ -207,6 +206,7 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, o
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }

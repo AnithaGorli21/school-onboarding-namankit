@@ -12,123 +12,122 @@ const toNum = (v) => parseInt(v || 0, 10);
 export function validateSchoolProfile(form) {
   const errors = {};
 
-  // Row 1 — Trustee Name: Mandatory + max 100 chars
+  // Helper for dropdown fields that store numeric IDs
+  const isEmptyField = (val) => 
+    val === "" || val === null || val === undefined;
+
+  // Row 1 — Trustee Name
   if (!form.trusteeName?.trim())
     errors.trusteeName = "Trustee Name is required.";
   else if (form.trusteeName.length > 100)
     errors.trusteeName = "Trustee Name must not exceed 100 characters.";
 
-  // Row 2 — School Name: Mandatory + max 200 chars
-  if (!form.schoolName?.trim()) errors.schoolName = "School Name is required.";
+  // Row 2 — School Name
+  if (!form.schoolName?.trim())
+    errors.schoolName = "School Name is required.";
   else if (form.schoolName.length > 200)
     errors.schoolName = "School Name must not exceed 200 characters.";
 
-  // Row 3 — Address: Mandatory + max 300 chars
-  if (!form.address?.trim()) errors.address = "Address is required.";
+  // Row 3 — Address
+  if (!form.address?.trim())
+    errors.address = "Address is required.";
   else if (form.address.length > 300)
     errors.address = "Address must not exceed 300 characters.";
 
-  // Row 4 — Mobile Number: Mandatory + 10-digit
+  // Row 4 — Mobile Number
   if (!form.mobileNumber?.trim())
     errors.mobileNumber = "Mobile Number is required.";
   else if (!/^\d{10}$/.test(form.mobileNumber))
     errors.mobileNumber = "Enter a valid 10-digit mobile number.";
 
-  // Row 5 — District: Mandatory
-  if (!form.district) errors.district = "Please select a District.";
+  // ✅ Fixed — use isEmptyField for all dropdown/ID fields
+  // Row 5 — District
+  if (isEmptyField(form.district))
+    errors.district = "Please select a District.";
 
-  // Row 6 — Taluka: Mandatory
-  if (!form.taluka) errors.taluka = "Please select a Taluka.";
+  // Row 6 — Taluka
+  if (isEmptyField(form.taluka))
+    errors.taluka = "Please select a Taluka.";
 
-  // Row 7 — Village: Mandatory
-  if (!form.village) errors.village = "Please select a Village.";
+  // Row 7 — Village
+  if (isEmptyField(form.village))
+    errors.village = "Please select a Village.";
 
-  // Row 8 — Pincode: Mandatory + 6 digits
-  if (!form.pincode?.trim()) errors.pincode = "Pincode is required.";
+  // Row 8 — Pincode
+  if (!form.pincode?.trim())
+    errors.pincode = "Pincode is required.";
   else if (!/^\d{6}$/.test(form.pincode))
     errors.pincode = "Pincode must be exactly 6 digits.";
 
-  // Row 9 — Email ID: Mandatory + valid format + max 150 chars
-  if (!form.emailId?.trim()) errors.emailId = "Email ID is required.";
+  // Row 9 — Email ID
+  if (!form.emailId?.trim())
+    errors.emailId = "Email ID is required.";
   else if (form.emailId.length > 150)
     errors.emailId = "Email ID must not exceed 150 characters.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.emailId))
     errors.emailId = "Enter a valid email address.";
 
-  // Row 10 — PO Name: Mandatory
-  if (!form.poName) errors.poName = "Please select a PO Name.";
+  // ✅ Fixed — PO Name stored as number
+  // Row 10 — PO Name
+  if (isEmptyField(form.poName))
+    errors.poName = "Please select a PO Name.";
 
-  // Row 11 — UDISE Code: Mandatory + exactly 11 digits
-  if (!form.udiseCode?.trim()) errors.udiseCode = "UDISE Code is required.";
+  // Row 11 — UDISE Code
+  if (!form.udiseCode?.trim())
+    errors.udiseCode = "UDISE Code is required.";
   else if (!/^\d{11}$/.test(form.udiseCode))
     errors.udiseCode = "UDISE Code must be exactly 11 digits.";
 
-  // Row 12 — School Selection Year: Mandatory
+  // Row 12 — School Selection Year
   if (!form.schoolSelectionYear?.trim())
     errors.schoolSelectionYear = "School Selection Year is required.";
 
-  // Row 13 — School Registration Number: Mandatory + max 50 chars
+  // Row 13 — Registration Number
   if (!form.schoolRegistrationNumber?.trim())
     errors.schoolRegistrationNumber = "School Registration Number is required.";
   else if (form.schoolRegistrationNumber.length > 50)
-    errors.schoolRegistrationNumber =
-      "Registration Number must not exceed 50 characters.";
+    errors.schoolRegistrationNumber = "Registration Number must not exceed 50 characters.";
 
-  // Row 14 — School Board: Mandatory
-  if (!form.schoolBoard) errors.schoolBoard = "Please select a School Board.";
+  // ✅ Fixed — School Board stored as number (can be 0)
+  // Row 14 — School Board
+  if (isEmptyField(form.schoolBoard))
+    errors.schoolBoard = "Please select a School Board.";
 
-  // Row 15 — Total SSC Batches: Mandatory + max 3 digits
-  if (
-    form.sscBatchesCompletedCount === "" ||
-    form.sscBatchesCompletedCount === null ||
-    form.sscBatchesCompletedCount === undefined
-  )
-    errors.sscBatchesCompletedCount =
-      "Total Number of SSC Batches Completed is required.";
-  else if (
-    isNaN(Number(form.sscBatchesCompletedCount)) ||
-    Number(form.sscBatchesCompletedCount) < 1
-  )
-   errors.sscBatchesCompletedCount = "Must be greater than 0.";
+  // Row 15 — SSC Batches
+  if (isEmptyField(form.sscBatchesCompletedCount))
+    errors.sscBatchesCompletedCount = "Total Number of SSC Batches Completed is required.";
+  else if (isNaN(Number(form.sscBatchesCompletedCount)) || Number(form.sscBatchesCompletedCount) < 1)
+    errors.sscBatchesCompletedCount = "Must be greater than 0.";
   else if (Number(form.sscBatchesCompletedCount) > 999)
     errors.sscBatchesCompletedCount = "Value cannot exceed 999.";
 
-  // Row 16 — Year Of Establishment: Mandatory
-  if (!form.yearOfEstablishment)
+  // Row 16 — Year Of Establishment
+  if (isEmptyField(form.yearOfEstablishment))
     errors.yearOfEstablishment = "Year of Establishment is required.";
 
-  // Row 17 — School Website Available: Mandatory
+  // Row 17 — School Website Available
   if (!form.isWebsiteAvailable)
-    errors.isWebsiteAvailable =
-      "Please select an option for School Website Available.";
+    errors.isWebsiteAvailable = "Please select an option for School Website Available.";
 
-  // Row 18 — Website Link: Mandatory only if Yes + max 200 chars
+  // Row 18 — Website Link
   if (form.isWebsiteAvailable === "Yes") {
     if (!form.websiteLink?.trim())
-      errors.websiteLink =
-        "Website Link is required when website is available.";
+      errors.websiteLink = "Website Link is required when website is available.";
     else if (form.websiteLink.length > 200)
       errors.websiteLink = "Website Link must not exceed 200 characters.";
     else if (!/^https?:\/\/.+/.test(form.websiteLink))
-      errors.websiteLink =
-        "Enter a valid URL starting with http:// or https://";
+      errors.websiteLink = "Enter a valid URL starting with http:// or https://";
   }
 
-  // Row 19 — School Area Type: Mandatory
-  if (!form.schoolAreaType)
+  // ✅ Fixed — School Area Type stored as number
+  // Row 19 — School Area Type
+  if (isEmptyField(form.schoolAreaType))
     errors.schoolAreaType = "Please select school Area Type";
 
-  // Row 20 — Toilets Per Floor: Mandatory + max 3 digits
-  if (
-    form.toiletsPerFloorCount === "" ||
-    form.toiletsPerFloorCount === null ||
-    form.toiletsPerFloorCount === undefined
-  )
+  // Row 20 — Toilets Per Floor
+  if (isEmptyField(form.toiletsPerFloorCount))
     errors.toiletsPerFloorCount = "Number of Toilets per Floor is required.";
-  else if (
-    isNaN(Number(form.toiletsPerFloorCount)) ||
-    Number(form.toiletsPerFloorCount) < 0
-  )
+  else if (isNaN(Number(form.toiletsPerFloorCount)) || Number(form.toiletsPerFloorCount) < 0)
     errors.toiletsPerFloorCount = "Must be a valid positive number.";
   else if (Number(form.toiletsPerFloorCount) > 5)
     errors.toiletsPerFloorCount = "Value cannot exceed 5.";

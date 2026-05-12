@@ -156,8 +156,6 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           <Loader />
         </div>
       )}
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
-
       <div style={themeStyles.card}>
         <SectionHeading title="Teacher Details" />
 
@@ -286,6 +284,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }

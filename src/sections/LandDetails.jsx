@@ -389,7 +389,6 @@ const handlePhotoChange = (e) => {
         </div>
       )}
 
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
         <SectionHeading title="School Land Details" />
@@ -567,9 +566,6 @@ const handlePhotoChange = (e) => {
                 <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
                   <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
-                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
-                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
-                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -600,6 +596,7 @@ const handlePhotoChange = (e) => {
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }

@@ -13,9 +13,6 @@ export default function SectionWrapper({ alert, onCloseAlert, onSave, onReset, s
           <Loader />
         </div>
       )}
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={onCloseAlert} />
-      )}
       <div style={{
         background: "#ffffff",
         border: "1px solid #d6e0e0",
@@ -30,6 +27,9 @@ export default function SectionWrapper({ alert, onCloseAlert, onSave, onReset, s
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && (
+        <Alert type={alert.type} message={alert.message} onClose={onCloseAlert} />
+      )}
     </div>
   );
 }

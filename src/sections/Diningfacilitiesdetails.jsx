@@ -229,9 +229,6 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
                 <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
                   <img src={diningPhotoPreview} alt="Dining Hall Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
-                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
-                  {form.DiningHallPhoto?.existingFile ? "Current Photo" : "New Photo"}
-                </div>
                 <button
                   type="button"
                   onClick={() => {

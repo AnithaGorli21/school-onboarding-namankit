@@ -246,12 +246,7 @@ const handleFileChange = (e) => {
           <Loader />
         </div>
       )}
-      {alert && (
-        <div className={`pfm-alert ${alert.type}`}>
-          {alert.message}
-          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
-        </div>
-      )}
+      
       {/* Show missing fees info */}
       {rows.length > 0 && missingFees.length > 0 && (
         <div className="pfm-missing-info">
@@ -364,6 +359,12 @@ const handleFileChange = (e) => {
         </button>
         <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
       </div>
+      {alert && (
+        <div className={`pfm-alert ${alert.type}`}>
+          {alert.message}
+          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
+        </div>
+      )}
     </div>
   );
 }

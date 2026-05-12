@@ -7,15 +7,11 @@ import { Field, Row3 } from "../components/FormFields";
 export default function UploadSchoolProfile({ form, setForm, errors }) {
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  // ── Handle existing photo prepopulation ───────────────────────
   useEffect(() => {
     if (form.schoolPhoto) {
-      console.log('[UploadSchoolProfile] Setting existing photo preview:', form.schoolPhoto);
-      // For existing files, use the downloadURL or contentUrl
       if (form.schoolPhoto.existingFile) {
         setPhotoPreview(form.schoolPhoto.downloadURL || form.schoolPhoto.contentUrl);
       } else {
-        // For newly selected files, create object URL
         setPhotoPreview(URL.createObjectURL(form.schoolPhoto));
       }
     } else {
@@ -27,69 +23,60 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const sizeKB = file.size / 1024;
-    if (sizeKB < 5 || sizeKB > 100) {
-      alert("Photo size must be between 5KB and 100KB.");
-      e.target.value = ""; // Clear the input
+    // ✅ Format validation
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Invalid file format. Only JPG and PNG files are accepted.");
+      e.target.value = "";
       return;
     }
 
-    // 1. Update the parent form state
+    const sizeKB = file.size / 1024;
+    if (sizeKB < 5 || sizeKB > 100) {
+      alert("Photo size must be between 5KB and 100KB.");
+      e.target.value = "";
+      return;
+    }
     setForm((prev) => ({ ...prev, schoolPhoto: file }));
-    
-    // 2. Generate preview URL
     setPhotoPreview(URL.createObjectURL(file));
   };
 
   return (
-    /* REMOVE Row3 from the outer wrapper to fix the layout "going up" */
     <div style={{ marginTop: 28, borderTop: "1px solid #eee", paddingTop: 20 }}>
-      
-      <div style={{
-        fontSize: 16,
-        fontWeight: 400,
-        color: "#333",
-        marginBottom: 14,
-      }}>
-        Upload Photo
-      </div>
 
-      <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginBottom: 14, lineHeight: 1.5 }}>
-        Note:- The size of the photograph should fall between 5KB to 100KB.
-      </p>
+      {/* ✅ Fix 2 — Removed duplicate "Upload Photo" heading */}
+      {/* ❌ Removed: <div>Upload Photo</div> */}
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
         <div style={{ flex: "0 0 400px" }}>
-          {/* Added optional chaining errors?.schoolPhoto to prevent the crash */}
+          {/* ✅ Fix 1 — Note moved BELOW Choose File */}
           <Field label="Upload School Photo" required error={errors?.schoolPhoto || errors?.photo}>
             <input
               type="file"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png"
               onChange={handlePhotoChange}
               style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }}
             />
           </Field>
+          {/* ✅ Note now BELOW the file input */}
+          <p style={{ color: "#cc0000", fontSize: 13, fontWeight: 400, marginTop: 8, lineHeight: 1.5 }}>
+            Note:- The size of the photograph should fall between 5KB to 100KB.
+          </p>
         </div>
 
         {photoPreview && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
             <div style={{
-              width: 120,
-              height: 90,
+              width: 120, height: 90,
               border: "1px solid #cccccc",
-              borderRadius: 3,
-              overflow: "hidden",
-              flexShrink: 0,
-              marginTop: 10
+              borderRadius: 3, overflow: "hidden",
+              flexShrink: 0, marginTop: 10
             }}>
-              <img 
-                src={photoPreview} 
-                alt="Preview" 
-                style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+              <img
+                src={photoPreview}
+                alt="Preview"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
-            </div>
-            <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
-              {form.schoolPhoto?.existingFile ? "Current Photo" : "New Photo"}
             </div>
             <button
               type="button"
@@ -98,13 +85,9 @@ export default function UploadSchoolProfile({ form, setForm, errors }) {
                 setPhotoPreview(null);
               }}
               style={{
-                fontSize: 11,
-                color: "#cc0000",
-                background: "none",
-                border: "1px solid #cc0000",
-                borderRadius: 3,
-                padding: "2px 6px",
-                cursor: "pointer"
+                fontSize: 11, color: "#cc0000",
+                background: "none", border: "1px solid #cc0000",
+                borderRadius: 3, padding: "2px 6px", cursor: "pointer"
               }}
             >
               Remove Photo

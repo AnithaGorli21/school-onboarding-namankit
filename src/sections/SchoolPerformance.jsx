@@ -192,24 +192,15 @@ export default function SchoolPerformance({
     setPerfError("");
   };
 
-  return (
+ return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4, position: "relative" }}>
       {(loadingData || saving) && (
         <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Loader />
         </div>
       )}
-      {alert && (
-        <div style={{
-          padding: "10px 14px", borderRadius: 4, fontSize: 13, marginBottom: 14,
-          background: alert.type === "success" ? "#d4edda" : "#f8d7da",
-          color: alert.type === "success" ? "#155724" : "#721c24",
-          border: `1px solid ${alert.type === "success" ? "#c3e6cb" : "#f5c6cb"}`,
-        }}>
-          {alert.message}
-          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
-        </div>
-      )}
+
+      {/* ✅ REMOVED alert from here — moved below Save button */}
 
       {/* Min performance years error */}
       {perfError && (
@@ -338,7 +329,8 @@ export default function SchoolPerformance({
           disabled={saving}
           style={{
             background: "#28a745", color: "#fff", border: "none", borderRadius: 4,
-            padding: "9px 26px", fontSize: 14, fontWeight: 600, cursor: saving ? "default" : "pointer",
+            padding: "9px 26px", fontSize: 14, fontWeight: 600, 
+            cursor: saving ? "default" : "pointer",
             opacity: saving ? 0.65 : 1,
           }}
         >
@@ -355,6 +347,19 @@ export default function SchoolPerformance({
           Reset
         </button>
       </div>
+
+      {/* ✅ Alert MOVED HERE — below Save/Reset buttons */}
+      {alert && (
+        <div style={{
+          padding: "10px 14px", borderRadius: 4, fontSize: 13, marginTop: 12,
+          background: alert.type === "success" ? "#d4edda" : "#f8d7da",
+          color: alert.type === "success" ? "#155724" : "#721c24",
+          border: `1px solid ${alert.type === "success" ? "#c3e6cb" : "#f5c6cb"}`,
+        }}>
+          {alert.message}
+          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
+        </div>
+      )}
     </div>
   );
 }

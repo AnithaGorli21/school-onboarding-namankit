@@ -183,7 +183,6 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
           <Loader />
         </div>
       )}
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
         <Row3>
@@ -385,6 +384,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }
