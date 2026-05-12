@@ -51,10 +51,17 @@ export async function updateSchoolEntry(schoolId, payload) {
     throw new Error("Invalid school ID for update");
   }
 
+  const token = await getAccessToken();
+  if (!token) throw new Error("Token not available");
+
   const response = await fetch(`/o/c/namankitschoolprofiles/${parsedSchoolId}`, {
     method: "PATCH",
-    headers: buildHeadersRegistrationUpdate(),
-    credentials: buildCreds(),
+    headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+    },
+    credentials: 'omit',
     body: JSON.stringify(payload),
   });
 
