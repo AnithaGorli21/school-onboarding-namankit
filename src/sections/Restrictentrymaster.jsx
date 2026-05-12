@@ -7,13 +7,14 @@
 //  3. School Registration — From Date must be before To Date
 //  4. Profile Registration — From Date must be before To Date
 // ============================================================
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   loadRestrictEntry,
   submitRestrictEntry,
   mapRecordToDates,
   fmtDate,
 } from "../api/RestrictEntryMaster";
+import { Toast } from "../components/Toast";
  
 // ── Config ────────────────────────────────────────────────────
 const RESTRICT_OPTIONS = [
@@ -172,6 +173,16 @@ export default function RestrictEntryMaster() {
   const [fieldErrors, setFieldErrors] = useState({});  // per-field errors
   const [loadErr, setLoadErr] = useState("");
   const [touched, setTouched] = useState({});  // track user interaction
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3500);
+  }, []);
  
   // ── Load on mount ──────────────────────────────────────────
   useEffect(() => {
@@ -243,9 +254,11 @@ export default function RestrictEntryMaster() {
       setInlineErr("");
       setFieldErrors({});
       setTouched({});
-      setModalMsg(recordId ? "Data Updated Successfully" : "Data Saved Successfully");
+      // setModalMsg(recordId ? "Data Updated Successfully" : "Data Saved Successfully");
+      showToast("Data Updated Successfully", "success");
     } catch (err) {
-      setModalMsg(err.message || "Failed to save. Please try again.");
+      // setModalMsg(err.message || "Failed to save. Please try again.");
+      showToast("Failed to save. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -256,7 +269,7 @@ export default function RestrictEntryMaster() {
   const today = new Date().toISOString().split('T')[0];
   return (
     <>
-      {modalMsg && <InfoModal message={modalMsg} onClose={() => setModalMsg("")} />}
+      {/* {modalMsg && <InfoModal message={modalMsg} onClose={() => setModalMsg("")} />} */}
  
       <div style={s.pageWrap}>
         <div style={s.card}>
@@ -392,6 +405,12 @@ export default function RestrictEntryMaster() {
           )}
         </div>
       </div>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+      />
     </>
   );
 }
