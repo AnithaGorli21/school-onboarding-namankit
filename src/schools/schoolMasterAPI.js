@@ -23,6 +23,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
+import { buildHeaders } from '../config';
 import {
   MOCK_DISTRICTS,
   MOCK_TALUKAS,
@@ -82,11 +83,7 @@ function getSiteGroupId() {
 async function liferayFetch(path, options = {}) {
   const url = `${getPortalURL()}${path}`;
 
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    'X-CSRF-Token': getAuthToken(),
-  };
+  const defaultHeaders = buildHeaders();
 
   const response = await fetch(url, {
     credentials: 'include',
