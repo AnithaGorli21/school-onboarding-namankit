@@ -261,17 +261,17 @@ export async function fetchSchoolRoleByName(roleName) {
   if (!normalizedName) {
     return null;
   }
-  const pageSize = 200;
+  const pageSize = 1;
   let page = 1;
   const allRoles = [];
 
   while (true) {
     const response = await fetch(
-      `/o/headless-admin-user/v1.0/roles?page=${page}&pageSize=${pageSize}`,
+      `/o/headless-admin-user/v1.0/roles?search='${normalizedName}'&page=${page}&pageSize=${pageSize}`,
       {
         method: "GET",
-       headers: buildHeaders(), // ✅ fixed
-        credentials: buildCreds(), // ✅ fixed
+       headers: buildHeaders(), 
+        credentials: buildCreds(), 
       }
     );
 

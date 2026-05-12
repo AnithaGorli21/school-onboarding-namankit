@@ -4,7 +4,8 @@
 // No credentials are hardcoded — all read from Liferay context
 // ─────────────────────────────────────────────────────────────
 
-const IS_DEV = window.location.hostname === "localhost";
+// const IS_DEV = window.location.hostname === "localhost";
+const IS_DEV = false; // ← UAT mode, Bearer token, data goes to UAT
 
 // In dev (localhost), we use Basic auth with hardcoded creds.
 // In QA/UAT, we always use Liferay session (cookies + CSRF token).
