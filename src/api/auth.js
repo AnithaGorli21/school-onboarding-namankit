@@ -49,7 +49,7 @@ export const ROLES = {
   CONTROLLER: "Controller_namankit",
   PO:         "PO_namankit",
   ATC:        "ATC_namankit",
-  SCHOOL:     "Pre School",
+  SCHOOL:     "School_Namankit",
 };
 
 const IS_DEV = window.location.hostname === "localhost";
