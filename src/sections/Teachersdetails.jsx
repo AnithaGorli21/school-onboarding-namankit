@@ -23,6 +23,7 @@ const themeStyles = {
   container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)", position: "relative" },
   card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
+  radioGroupLabel: { display: "flex", gap: "5px", },
   checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
   addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
 };
@@ -233,7 +234,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           <Field label="Gender" required>
             <div style={themeStyles.radioGroup}>
               {[{ value: 1, label: "Male" }, { value: 2, label: "Female" }, { value: 3, label: "Other" }].map((g) => (
-                <label key={g.value}>
+                <label style={themeStyles.radioGroupLabel} key={g.value}>
                   <input
                     type="radio"
                     checked={newRow.genderId === g.value}
@@ -246,7 +247,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           <Field label="Status" required>
             <div style={themeStyles.radioGroup}>
               {["Residential", "Non Residential"].map((s, i) => (
-                <label key={s}>
+                <label style={themeStyles.radioGroupLabel} key={s}>
                   <input
                     type="radio"
                     checked={newRow.teacherDetailStatus === (i === 0)}

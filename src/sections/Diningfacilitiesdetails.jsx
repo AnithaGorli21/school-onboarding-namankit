@@ -92,6 +92,16 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
     }));
   };
 
+  const onDiningHallAreaChange = (v) => {
+    if (v !== '' && v < 1) return;
+    
+    setForm((p) => ({
+      ...p,
+      DiningHallAreainSqft: v,
+    }));
+    set("DiningHallAreainSqft");
+  };
+
   const handleFileChange = (k) => (e) => {
     const file = e.target.files[0] || null;
     if (!file) return;
@@ -188,7 +198,7 @@ export default function DiningFacilitiesDetails({ onTabChange, onSave, schoolPro
         {/* Row 85 — Dining Hall Area: shown ONLY if Yes selected */}
         {form.SeparateDiningHallforBoysandGirls === "Yes" && (
           <Field label="Dining Hall Area in Sq.Ft" error={errors.DiningHallAreainSqft}>
-            <TextInput value={form.DiningHallAreainSqft} onChange={set("DiningHallAreainSqft")} type="number" />
+            <TextInput value={form.DiningHallAreainSqft} onChange={onDiningHallAreaChange} type="number" />
           </Field>
         )}
 
