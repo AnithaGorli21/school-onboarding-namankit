@@ -2,7 +2,7 @@
   "name": "@liferay/school-registration",
   "version": "1.0.0",
   "private": true,
-  "proxy": "https://mahadbt2-qa-dashboard.quantela.com",
+  "proxy": "https://mahadbt2-uat-dashboard.quantela.com",
   "dependencies": {
     "bootstrap": "^5.3.8",
     "exceljs": "^4.3.0",

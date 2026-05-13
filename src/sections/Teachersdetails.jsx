@@ -88,9 +88,37 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
   }, []);
 
   // ── Load Medium and Subject picklists ────────────────────
+  // useEffect(() => {
+  //   trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM"))
+  //     .then(setMediumOpts)
+  //     .catch(() => setMediumOpts([
+  //       { value: "English", label: "English" },
+  //       { value: "Marathi", label: "Marathi" },
+  //       { value: "Hindi",   label: "Hindi" },
+  //       { value: "Urdu",    label: "Urdu" },
+  //       { value: "Other",   label: "Other" },
+  //     ]));
+  // }, []);
+
+  // useEffect(() => {
+  //   trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS"))
+  //     .then(setSubjectOpts)
+  //     .catch(() => setSubjectOpts([
+  //       { value: "Mathematics",   label: "Mathematics" },
+  //       { value: "Science",       label: "Science" },
+  //       { value: "English",       label: "English" },
+  //       { value: "Marathi",       label: "Marathi" },
+  //       { value: "Hindi",         label: "Hindi" },
+  //       { value: "Social Science",label: "Social Science" },
+  //       { value: "Sanskrit",      label: "Sanskrit" },
+  //       { value: "P.E.",          label: "P.E." },
+  //     ]));
+  // }, []);
+  // ── Load Medium and Subject picklists ────────────────────
   useEffect(() => {
     trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-MEDIUM"))
-      .then(setMediumOpts)
+      // .then(setMediumOpts)
+      .then(opts => setMediumOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
       .catch(() => setMediumOpts([
         { value: "English", label: "English" },
         { value: "Marathi", label: "Marathi" },
@@ -99,10 +127,11 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
         { value: "Other",   label: "Other" },
       ]));
   }, []);
-
+ 
   useEffect(() => {
     trackLookupCall(getPicklist("DBT-NAMANKIT-TEACHER-DETAILS-SUBJECTS"))
-      .then(setSubjectOpts)
+      // .then(setSubjectOpts)
+      .then(opts => setSubjectOpts(opts.map(o => ({ value: Number(o.label), label: o.value }))))
       .catch(() => setSubjectOpts([
         { value: "Mathematics",   label: "Mathematics" },
         { value: "Science",       label: "Science" },

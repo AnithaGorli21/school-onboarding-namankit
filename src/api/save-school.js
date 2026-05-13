@@ -1,16 +1,10 @@
-// import { getAccessToken } from "./auth";
 import { getCsrfToken } from "../utils/liferay";
-// import { fetchObjectName } from "./save-update-api";
-const OBJECT_API_URL = "/o/c/universityotherfeeses/"; // your Object REST endpoint
-const UPLOAD_API = "/o/headless-delivery/v1.0"; // ✅ added missing constant
+import { buildHeaders, buildCreds, buildHeadersHeadLess, buildCredsHeadless, buildHeadersRegistration, buildCredsRegistration, buildHeadersRegistrationUpdate } from "../config";
+import { getAccessToken } from "./auth";
 
+const OBJECT_API_URL = "/o/c/universityotherfeeses/"; 
+const UPLOAD_API = "/o/headless-delivery/v1.0";
 
-
-const buildHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-   "Authorization": "Basic " + btoa("prabhudasu:root")
-});
 
 const safeApiErrorMessage = (errorText, fallbackMessage) => {
   const text = String(errorText || "").trim();
@@ -36,14 +30,10 @@ export async function fetchSchoolLiferayUserByEmail(email) {
       `emailAddress eq '${escapedEmail}'`
     )}`,
     {
-      method: "GET",
-       headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-      credentials: "omit",
-    }
+  method: "GET",
+  headers: buildHeaders(),
+  credentials: buildCreds(),
+}
   );
 
   if (!response.ok) {
@@ -61,10 +51,17 @@ export async function updateSchoolEntry(schoolId, payload) {
     throw new Error("Invalid school ID for update");
   }
 
+  const token = await getAccessToken();
+  if (!token) throw new Error("Token not available");
+
   const response = await fetch(`/o/c/namankitschoolprofiles/${parsedSchoolId}`, {
     method: "PATCH",
-    headers: buildHeaders(),
-    credentials: "include",
+    headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+    },
+    credentials: 'omit',
     body: JSON.stringify(payload),
   });
 
@@ -87,10 +84,8 @@ export async function assignSchoolRoleToUserAccount(userId, roleId) {
     `/o/headless-admin-user/v1.0/roles/${parsedRoleId}/association/user-account/${userId}`,
     {
       method: "POST",
-      headers: {
-        "Authorization": "Basic " + btoa("prabhudasu:root"),
-        "Content-Type": "application/json"
-      }
+     headers: buildHeadersRegistration(), 
+     credentials: buildCreds(),
     }
   );
 
@@ -110,10 +105,24 @@ export async function assignSchoolRoleToUserAccount(userId, roleId) {
  
 
 export async function saveSchoolMasterEntry(payload) {
+
+      // const response = await fetch("/o/c/namankitschoolprofiles", {
+      //   method: "POST",
+      //   // headers: {
+      //   //   Accept: "application/json",
+      //   //   "Content-Type": "application/json",
+      //   //   "Authorization": `Bearer ${token}`,
+      //   // },
+      //   headers: buildHeadersRegistration(),
+
+      //   credentials: "include",
+      //   body: JSON.stringify(payload),
+      // });
+
   const response = await fetch("/o/c/namankitschoolprofiles", {
     method: "POST",
-    headers: buildHeaders(),
-    credentials: "include",
+    headers: buildHeadersRegistration(),
+   credentials: buildCredsRegistration(), 
     body: JSON.stringify(payload),
   });
 
@@ -229,12 +238,8 @@ export async function fetchObjectName(objectDefinitionId) {
 export async function createSchoolLiferayUserAccount(payload) {
   const response = await fetch("/o/headless-admin-user/v1.0/user-accounts", {
     method: "POST",
-     headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-    credentials: "omit",
+     headers: buildHeadersRegistration(), // ✅ fixed
+    credentials: buildCredsRegistration(), // ✅ fixed
     body: JSON.stringify(payload),
   });
 
@@ -257,12 +262,8 @@ export async function deleteSchoolLiferayUserAccount(userId) {
   }
   const response = await fetch(`/o/headless-admin-user/v1.0/user-accounts/${parsedUserId}`, {
     method: "DELETE",
-    headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-    credentials: "omit",
+    headers: buildHeadersRegistration(), // ✅ fixed
+    credentials: buildCredsRegistration(), // ✅ fixed
   });
 
   if (response.status === 404) {
@@ -282,23 +283,21 @@ export async function fetchSchoolRoleByName(roleName) {
   if (!normalizedName) {
     return null;
   }
-  const pageSize = 200;
+  const pageSize = 1;
   let page = 1;
   const allRoles = [];
 
   while (true) {
+    const header = buildHeadersRegistration();
     const response = await fetch(
-      `/o/headless-admin-user/v1.0/roles?page=${page}&pageSize=${pageSize}`,
+      `/o/headless-admin-user/v1.0/roles?search=${encodeURIComponent(normalizedName)}&page=${page}&pageSize=${pageSize}`,
       {
         method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-           "Authorization": "Basic " + btoa("prabhudasu:root")
-        },
-        credentials: "omit",
+        headers: header, 
+        credentials: "include"
       }
-    );
+    ); 
+ 
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -344,7 +343,7 @@ export async function checkUDISEExists(udiseCode) {
       filters.map((filter) =>
         fetch(
           `/o/c/namankitschoolprofiles/?filter=${encodeURIComponent(filter)}&pageSize=1`,
-          { headers: buildHeaders(), credentials: "include" }
+           { headers: buildHeadersRegistration(), credentials: buildCredsRegistration() } // ✅ fixed
         ).then((res) => res.json())
       )
     );

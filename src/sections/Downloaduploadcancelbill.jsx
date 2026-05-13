@@ -6,6 +6,7 @@
 // ============================================================
 import { useState, useEffect } from "react";
 import { apiFetch, apiPatch } from "../api/liferay";
+import { buildHeaders, buildHeadersDocument,  buildCreds } from "../config";
 
 // ── Hardcoded PO list ─────────────────────────────────────────
 const PO_LIST = [
@@ -255,27 +256,31 @@ function UploadModal({ bill, onClose, onUploaded }) {
   const [loading, setLoading] = useState(false);
   const [err,     setErr]     = useState("");
 
-  const handleUpload = async () => {
-    if (!file) { setErr("Please select a file."); return; }
-    setLoading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const uploadRes = await fetch("/o/headless-delivery/v1.0/sites/guest/documents", {
-        method: "POST",
-        headers: { Authorization: "Basic " + btoa("prabhudasu:root") },
-        body: form,
-      });
-      const uploadData = await uploadRes.json();
-      const fileUrl = uploadData.contentUrl || uploadData.id || file.name;
-      await uploadBillAPI(bill.id, fileUrl);
-      onUploaded();
-    } catch (e) {
-      setErr("Upload failed — " + e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const handleUpload = async () => {
+  if (!file) { setErr("Please select a file."); return; }
+  setLoading(true);
+  try {
+    const form = new FormData();
+    form.append("file", file);
+
+    const { "Content-Type": _, ...uploadHeaders } = buildHeadersDocument(); 
+
+    const uploadRes = await fetch("/o/headless-delivery/v1.0/sites/guest/documents", {
+      method: "POST",
+      headers: uploadHeaders,
+      credentials: buildCreds(),
+      body: form,
+    });
+    const uploadData = await uploadRes.json();
+    const fileUrl = uploadData.contentUrl || uploadData.id || file.name;
+    await uploadBillAPI(bill.id, fileUrl);
+    onUploaded();
+  } catch (e) {
+    setErr("Upload failed — " + e.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>

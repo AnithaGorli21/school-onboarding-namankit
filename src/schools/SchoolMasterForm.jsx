@@ -948,7 +948,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
       }
 
       try {
-        const preSchoolRole = await fetchSchoolRoleByName("Pre School");
+        const preSchoolRole = await fetchSchoolRoleByName("School_Namankit");
 
         if (!preSchoolRole?.id) {
           throw new Error("Pre School role was not found");
