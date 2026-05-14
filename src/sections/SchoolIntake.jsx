@@ -36,6 +36,32 @@ const errStyle = {
 
 const toNum = (v) => parseInt(v || 0, 10);
 
+const InputCell = ({ fieldKey, intake, errors, set }) => {
+
+  const handleChange = (value) => {
+    const sanitized = value.toString().replace(/[^0-9]/g, "");
+    const limited = sanitized.slice(0, 5);
+    const capped = limited === "" ? "" : Math.min(Number(limited), 99999).toString();
+    set(fieldKey)(capped); 
+  };
+
+  return (
+    <td style={td({ verticalAlign: "top" })}>
+      <TextInput
+        value={intake[fieldKey]}
+        onChange={handleChange}
+        type="text"
+        inputMode="numeric"
+        maxLength={5}
+        hasError={!!errors[fieldKey]}
+      />
+      {errors[fieldKey] && (
+        <span style={errStyle}>{errors[fieldKey]}</span>
+      )}
+    </td>
+  );
+};
+
 export default function SchoolIntake({ 
   intake, 
   setIntake, 
@@ -115,20 +141,6 @@ export default function SchoolIntake({
   const col_other_res       = other_res_boys       + other_res_girls;
   const col_other_nonres    = other_nonres_boys    + other_nonres_girls;
 
-  // Helper: input cell with error
-  const InputCell = ({ fieldKey }) => (
-    <td style={td({ verticalAlign: "top" })}>
-      <TextInput
-        value={intake[fieldKey]}
-        onChange={set(fieldKey)}
-        type="number"
-        hasError={!!errors[fieldKey]}
-      />
-      {errors[fieldKey] && (
-        <span style={errStyle}>{errors[fieldKey]}</span>
-      )}
-    </td>
-  );
 
   return (
     <div style={{ marginTop: 28 }}>
@@ -162,10 +174,10 @@ export default function SchoolIntake({
             {/* Boys row */}
             <tr>
               <td style={td({ fontWeight: 600 })}>Boys</td>
-              <InputCell fieldKey="namankit_boys_residential" />
-              <InputCell fieldKey="namankit_boys_nonresidential" />
-              <InputCell fieldKey="other_boys_residential" />
-              <InputCell fieldKey="other_boys_nonresidential" />
+              <InputCell fieldKey="namankit_boys_residential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="namankit_boys_nonresidential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="other_boys_residential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="other_boys_nonresidential" intake={intake} errors={errors} set={set}/>
               <td style={td({ background: "#f5f5f5", fontWeight: 600, borderRight: "none" })}>
                 {total_boys}
               </td>
@@ -173,10 +185,10 @@ export default function SchoolIntake({
             {/* Girls row */}
             <tr>
               <td style={td({ fontWeight: 600 })}>Girls</td>
-              <InputCell fieldKey="namankit_girls_residential" />
-              <InputCell fieldKey="namankit_girls_nonresidential" />
-              <InputCell fieldKey="other_girls_residential" />
-              <InputCell fieldKey="other_girls_nonresidential" />
+              <InputCell fieldKey="namankit_girls_residential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="namankit_girls_nonresidential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="other_girls_residential" intake={intake} errors={errors} set={set}/>
+              <InputCell fieldKey="other_girls_nonresidential" intake={intake} errors={errors} set={set}/>
               <td style={td({ background: "#f5f5f5", fontWeight: 600, borderRight: "none" })}>
                 {total_girls}
               </td>

@@ -41,7 +41,7 @@ export const updateApprovalStatus = (schoolProfileId, status) =>
 export const getAllSchoolsForPO = (schoolType) => {
   console.log("schoolType", schoolType);
   return apiFetch(
-    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
+    "/o/c/namankitschoolprofiles?pageSize=200&sort=schoolName:asc",
   ).then((d) => {
     const items = d.items || [];
     const currentYear = new Date().getFullYear();
