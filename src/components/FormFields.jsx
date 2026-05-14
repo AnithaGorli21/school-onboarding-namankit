@@ -44,11 +44,12 @@ export function Field({ label, required, error, children, style }) {
 }
 
 // ── TextInput ────────────────────────────────────────────────
-export function TextInput({ value, onChange, placeholder = "", type = "text", disabled = false, readOnly = false, maxLength  }) {
+export function TextInput({ value, onChange, placeholder = "", type = "text", disabled = false, readOnly = false, maxLength, inputMode  }) {
   const [focused, setFocused] = useState(false);
   return (
     <input
       type={type}
+      inputMode={inputMode}
       value={value ?? ""}
       placeholder={placeholder}
       disabled={disabled}
