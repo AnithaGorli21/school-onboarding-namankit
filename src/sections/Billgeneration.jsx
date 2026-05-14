@@ -769,7 +769,7 @@ const getTransactions = () =>
 
 const getAllSchools = () =>
   apiFetch(
-    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc",
+    "/o/c/namankitschoolprofiles?pageSize=200&sort=schoolName:asc",
   ).then((d) => d.items || []);
 
 const getSchoolGrading = (schoolProfileId) =>

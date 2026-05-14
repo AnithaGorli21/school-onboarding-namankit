@@ -8,7 +8,7 @@ import { apiFetch } from "../api/liferay";
 // ── API ───────────────────────────────────────────────────────
 const getGradingSchools = () =>
   apiFetch(
-    "/o/c/namankitschoolprofiles?pageSize=200&sort=dateCreated:desc" +
+    "/o/c/namankitschoolprofiles?pageSize=200&sort=schoolName:asc" +
     "&fields=id,schoolName,udiseCode,approvalStatus,atcMarks,poMarks,systemCalculatedMarks,assignedFees,finalFees"
   ).then((d) => d.items || []);
 
