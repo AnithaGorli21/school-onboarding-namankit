@@ -350,7 +350,7 @@ const st = {
   },
   body: { display: "flex", flex: 1, overflow: "hidden" },
   sidebar: {
-    width: 210, background: "#1e3a5f", display: "flex",
+    width: 210, background: "#002B70", display: "flex",
     flexDirection: "column", flexShrink: 0,
   },
   sidebarLabel: {
@@ -565,7 +565,7 @@ function ControllerApp({ role }) {
 
   return (
     <div style={st.pageWrap}>
-      <Header title="Namankit — Controller Panel" role={role} />
+      {/* <Header title="Namankit — Controller Panel" role={role} /> */}
       <div style={st.body}>
         <Sidebar items={CONTROLLER_NAV} active={screen} onChange={setScreen} />
         <div style={st.content}>{renderScreen()}</div>
@@ -605,7 +605,7 @@ function POApp({ role }) {
 
   return (
     <div style={st.pageWrap}>
-      <Header title="Namankit — PO Panel" role={role} />
+      {/* <Header title="Namankit — PO Panel" role={role} /> */}
       <div style={st.body}>
         <Sidebar items={PO_NAV} active={screen} onChange={setScreen} />
         <div style={st.content}>{renderScreen()}</div>
@@ -649,7 +649,7 @@ function ATCApp({ role }) {
 
   return (
     <div style={st.pageWrap}>
-      <Header title="Namankit — ATC Panel" role={role} />
+      {/* <Header title="Namankit — ATC Panel" role={role} /> */}
       <div style={st.body}>
         <Sidebar items={ATC_NAV} active={screen} onChange={setScreen} />
         <div style={st.content}>{renderScreen()}</div>
@@ -828,7 +828,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
 
   return (
     <div style={st.pageWrap}>
-      {!hideHeader && <Header title="Namankit — School Panel" role={role} />}
+      {/* {!hideHeader && <Header title="Namankit — School Panel" role={role} />} */}
       <div style={st.body}>
         {!hideSidebar && <Sidebar items={SCHOOL_NAV} active={screen} onChange={(s) => { setScreen(s); setView("list"); }} />}
         <div style={st.content}>{renderScreen()}</div>
