@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch, apiPatch } from "../api/liferay";
 import { buildHeaders, buildHeadersDocument,  buildCreds } from "../config";
+import { uploadFileToFolder } from "../api/upload";
 
 // ── Hardcoded PO list ─────────────────────────────────────────
 const PO_LIST = [
@@ -260,19 +261,12 @@ function UploadModal({ bill, onClose, onUploaded }) {
   if (!file) { setErr("Please select a file."); return; }
   setLoading(true);
   try {
-    const form = new FormData();
-    form.append("file", file);
+    // ✅ Use existing uploadFileToFolder — works correctly
+    const result = await uploadFileToFolder(file, "Bill Documents");
+    const fileUrl = result.downloadURL;
 
-    const { "Content-Type": _, ...uploadHeaders } = buildHeadersDocument(); 
+    if (!fileUrl) throw new Error("No file URL returned from server");
 
-    const uploadRes = await fetch("/o/headless-delivery/v1.0/sites/guest/documents", {
-      method: "POST",
-      headers: uploadHeaders,
-      credentials: buildCreds(),
-      body: form,
-    });
-    const uploadData = await uploadRes.json();
-    const fileUrl = uploadData.contentUrl || uploadData.id || file.name;
     await uploadBillAPI(bill.id, fileUrl);
     onUploaded();
   } catch (e) {
@@ -356,10 +350,17 @@ export default function DownloadUploadCancelBill() {
     finally { setDownloading(null); }
   };
 
-  const handleView = (bill) => {
-    if (bill.uploadedFile) window.open(bill.uploadedFile, "_blank");
-    else window.alert("No file uploaded for this bill yet.");
-  };
+  // ✅ Fix handleView
+const handleView = (bill) => {
+  if (bill.uploadedFile) {
+    const url = bill.uploadedFile.startsWith("http")
+      ? bill.uploadedFile
+      : `${window.location.origin}${bill.uploadedFile}`;
+    window.open(url, "_blank");
+  } else {
+    window.alert("No file uploaded for this bill yet.");
+  }
+};
 
   const handleCancel = async (bill) => {
     if (!window.confirm(`Cancel Bill #${bill.id}? This cannot be undone.`)) return;
@@ -398,10 +399,10 @@ export default function DownloadUploadCancelBill() {
           bill={uploadModal}
           onClose={() => setUploadModal(null)}
           onUploaded={() => {
-            setBills((prev) => prev.map((b) => b.id === uploadModal.id ? { ...b, billStatus: "Uploaded" } : b));
-            setUploadModal(null);
-            setAlert({ type: "suc", message: "Bill uploaded successfully." });
-          }}
+  setUploadModal(null);
+  setAlert({ type: "suc", message: "Bill uploaded successfully." });
+  handleSearch(); // ✅ refresh to get updated uploadedFile URL
+}}
         />
       )}
       <div style={s.page}>

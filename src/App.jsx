@@ -649,7 +649,7 @@ function ATCApp({ role }) {
 
   return (
     <div style={st.pageWrap}>
-      <Header title="Namankit — ATC Panel" role={role} />
+      {/* <Header title="Namankit — ATC Panel" role={role} /> */}
       <div style={st.body}>
         <Sidebar items={ATC_NAV} active={screen} onChange={setScreen} />
         <div style={st.content}>{renderScreen()}</div>
@@ -865,7 +865,7 @@ const [schoolForView, setSchoolForView] = useState(null);
 
   return (
     <div style={st.pageWrap}>
-      {!hideHeader && <Header title="Namankit — School Panel" role={role} />}
+      {/* {!hideHeader && <Header title="Namankit — School Panel" role={role} />} */}
       <div style={st.body}>
         {!hideSidebar && <Sidebar items={SCHOOL_NAV} active={screen} onChange={(s) => { setScreen(s); setView("list"); }} />}
         <div style={st.content}>{renderScreen()}</div>
