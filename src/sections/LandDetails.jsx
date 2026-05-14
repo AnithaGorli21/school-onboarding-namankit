@@ -255,20 +255,35 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
     setPage(1);
   };
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const sizeKB = file.size / 1024;
-    if (sizeKB < 5 || sizeKB > 100) {
-      setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
-      e.target.value = "";
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
-    // Clear photo error on selection
-    setErrors((p) => ({ ...p, photo: "" }));
-  };
+  // ✅ Fixed — add format check
+const handlePhotoChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // ✅ Validate file format — no webp allowed
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+  if (!allowedTypes.includes(file.type)) {
+    setAlert({ 
+      type: "error", 
+      message: "Invalid file format. Only JPG and PNG files are accepted." 
+    });
+    e.target.value = "";
+    return;
+  }
+
+  // ✅ Validate file size
+  const sizeKB = file.size / 1024;
+  if (sizeKB < 5 || sizeKB > 100) {
+    setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
+    e.target.value = "";
+    return;
+  }
+
+  setPhotoFile(file);
+  setPhotoPreview(URL.createObjectURL(file));
+  setErrors((p) => ({ ...p, photo: "" }));
+};
+
 
   // ── Validate decimal helper ───────────────────────────────
   const isValidDecimal = (v) => v === "" || /^\d+(\.\d{0,2})?$/.test(v);
@@ -374,7 +389,6 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
         </div>
       )}
 
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
         <SectionHeading title="School Land Details" />
@@ -543,17 +557,14 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
             <div>
               {/* Row 61 — Photo: Mandatory */}
               <Field label="Upload School Land Photo" required error={errors.photo}>
-                <input type="file" accept="image/*" onChange={handlePhotoChange}
-                  style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }} />
+                <input type="file" accept=".jpg,.jpeg,.png" onChange={handlePhotoChange}
+  style={{ fontSize: 13, fontFamily: "var(--font-main)", padding: "4px 0" }} />
               </Field>
             </div>
             {photoPreview && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
                   <img src={photoPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                </div>
-                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
-                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
                 </div>
                 <button
                   type="button"
@@ -585,6 +596,7 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }

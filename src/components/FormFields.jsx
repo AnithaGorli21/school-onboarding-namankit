@@ -149,6 +149,7 @@ export function Alert({ type, message, onClose }) {
       padding: "9px 14px",
       borderRadius: 3,
       marginBottom: 14,
+      marginTop: 14,
       fontSize: 13,
       display: "flex",
       justifyContent: "space-between",

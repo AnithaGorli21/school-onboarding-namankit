@@ -357,9 +357,9 @@ console.log('payload:::::::', payload);
         </div>
       )}
  
-      {alert && (
+      {/* {alert && (
         <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-      )}
+      )} */}
  
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
         {/* School Profile fields */}
@@ -409,6 +409,10 @@ console.log('payload:::::::', payload);
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {/* ✅ Alert below save button */}
+{alert && (
+  <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
+)}
     </div>
   );
 }

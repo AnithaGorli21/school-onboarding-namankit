@@ -98,13 +98,16 @@ export default function SchoolBankDetails({
           if (formData.uploadCancelledChequeImage) {
             // For existing files, use the downloadURL or contentUrl
             if (formData.uploadCancelledChequeImage.existingFile) {
-              setImagePreviewUrl(formData.uploadCancelledChequeImage.downloadURL || formData.uploadCancelledChequeImage.contentUrl);
+              setImagePreviewUrl(
+                formData.uploadCancelledChequeImage.downloadURL ||
+                  formData.uploadCancelledChequeImage.contentUrl,
+              );
             } else {
               // For newly selected files, create object URL (only for images)
               setImagePreviewUrl(
-                formData.uploadCancelledChequeImage.type?.startsWith("image/") 
-                  ? URL.createObjectURL(formData.uploadCancelledChequeImage) 
-                  : null
+                formData.uploadCancelledChequeImage.type?.startsWith("image/")
+                  ? URL.createObjectURL(formData.uploadCancelledChequeImage)
+                  : null,
               );
             }
           }
@@ -226,20 +229,6 @@ export default function SchoolBankDetails({
     >
       <SectionHeading title="School Bank Details" />
       <div className="sbd-row3">
-        <Field label="Bank Name" required error={errors.bankName}>
-          <TextInput
-            value={form.bankName}
-            onChange={set("bankName")}
-            disabled={ifscFetched}
-          />
-        </Field>
-        <Field label="Bank Branch Name" required error={errors.bankBranchName}>
-          <TextInput
-            value={form.bankBranchName}
-            onChange={set("bankBranchName")}
-            disabled={ifscFetched}
-          />
-        </Field>
         <Field
           label="Bank IFSC Code"
           required
@@ -262,6 +251,20 @@ export default function SchoolBankDetails({
               Fetching bank details...
             </span>
           )}
+        </Field>
+        <Field label="Bank Name" required error={errors.bankName}>
+          <TextInput
+            value={form.bankName}
+            onChange={set("bankName")}
+            disabled={ifscFetched}
+          />
+        </Field>
+        <Field label="Bank Branch Name" required error={errors.bankBranchName}>
+          <TextInput
+            value={form.bankBranchName}
+            onChange={set("bankBranchName")}
+            disabled={ifscFetched}
+          />
         </Field>
       </div>
       <div className="sbd-row2">
