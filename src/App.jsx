@@ -649,7 +649,7 @@ function ATCApp({ role }) {
 
   return (
     <div style={st.pageWrap}>
-      {/* <Header title="Namankit — ATC Panel" role={role} /> */}
+      <Header title="Namankit — ATC Panel" role={role} />
       <div style={st.body}>
         <Sidebar items={ATC_NAV} active={screen} onChange={setScreen} />
         <div style={st.content}>{renderScreen()}</div>
@@ -675,6 +675,9 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
   const [activeTab, setActiveTab] = useState("School Basic Details");
   const [schoolProfileId, setSchoolProfileId] = useState(selectedSchoolForProfile?.id || null);
   const [isEditMode, setIsEditMode] = useState(Boolean(selectedSchoolForProfile?.id));
+  // ✅ Add these states in SchoolApp
+const [showReviewOnly, setShowReviewOnly] = useState(false);
+const [schoolForView, setSchoolForView] = useState(null);
   const [masterData, setMasterData] = useState({
     schoolBasic: {}, landDetails: {}, hostelDetails: {}, diningDetails: {},
     labDetails: {}, libraryDetails: {}, teacherDetails: {}, extraCurriculum: {},
@@ -782,18 +785,52 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
   const renderScreen = () => {
     switch (screen) {
       case "schoolList":
-        if (view === "list") {
-          return (
-            <div style={{ padding: "12px 0" }}>
-              <div style={{ padding: "0 20px 12px", display: "flex", justifyContent: "flex-end" }}>
-                <button onClick={handleNewSchool} style={{ background: "#1a7a8a", color: "#fff", border: "none", borderRadius: 4, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  + New School
-                </button>
-              </div>
-              <SchoolListPage onEdit={handleEdit} />
-            </div>
-          );
-        }
+  if (view === "list") {
+
+    // ✅ ADD THIS — Show review when View button clicked
+    if (showReviewOnly && schoolForView) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <div style={{ background: "#f0f4f5", padding: "8px 20px", borderBottom: "1px solid #dee2e6", display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => { setShowReviewOnly(false); setSchoolForView(null); }}
+              style={{ background: "none", border: "1px solid #1a7a8a", color: "#1a7a8a", borderRadius: 4, padding: "5px 14px", fontSize: 13, cursor: "pointer" }}
+            >
+              ← Back to List
+            </button>
+            <span style={{ fontSize: 13, color: "#888" }}>
+              Viewing: <strong style={{ color: "#1a7a8a" }}>{schoolForView.schoolName}</strong>
+            </span>
+            <button
+              onClick={() => window.print()}
+              style={{ background: "#1a2a5e", color: "#fff", border: "none", borderRadius: 4, padding: "5px 14px", fontSize: 13, cursor: "pointer", marginLeft: "auto" }}
+            >
+              🖨️ Print
+            </button>
+          </div>
+          <PreviewPage schoolProfileId={schoolForView.id} setShowPreview={() => {}} />
+        </div>
+      );
+    }
+
+    // ✅ Original list view — unchanged
+    return (
+      <div style={{ padding: "12px 0" }}>
+        <div style={{ padding: "0 20px 12px", display: "flex", justifyContent: "flex-end" }}>
+          <button onClick={handleNewSchool} style={{ background: "#1a7a8a", color: "#fff", border: "none", borderRadius: 4, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            + New School
+          </button>
+        </div>
+        <SchoolListPage
+          onEdit={handleEdit}
+          onView={(school) => {
+            setSchoolForView(school);   
+            setShowReviewOnly(true);     
+          }}
+        />
+      </div>
+    );
+  }
         return (
           <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
             <div style={{ background: "#f0f4f5", padding: "8px 20px", borderBottom: "1px solid #dee2e6", display: "flex", alignItems: "center", gap: 12 }}>
@@ -828,7 +865,7 @@ export function SchoolApp({ role = '', list = 'list', hideSidebar = false, hideH
 
   return (
     <div style={st.pageWrap}>
-      {/* {!hideHeader && <Header title="Namankit — School Panel" role={role} />} */}
+      {!hideHeader && <Header title="Namankit — School Panel" role={role} />}
       <div style={st.body}>
         {!hideSidebar && <Sidebar items={SCHOOL_NAV} active={screen} onChange={(s) => { setScreen(s); setView("list"); }} />}
         <div style={st.content}>{renderScreen()}</div>
