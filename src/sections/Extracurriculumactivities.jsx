@@ -53,7 +53,7 @@ export default function ExtraCurriculumActivities({
     setLoadingData(true);
     try {
       await submitExtraCurriculum({ form, schoolProfileId, recordId });
-      setAlert({ type: "success", message: "Extra Curriculum Activities saved successfully!" });
+      setAlert({ type: "success", message: "Extracurricular Activities saved successfully!" });
       onSave?.(form);
     } catch (err) {
       setAlert({ type: "error", message: "Save failed - " + (err.message || "Please try again.") });

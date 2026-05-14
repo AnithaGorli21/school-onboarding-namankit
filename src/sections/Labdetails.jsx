@@ -1,12 +1,10 @@
 // ============================================================
 //  src/sections/Labdetails.jsx
-//  Validations added per Excel spec:
-//  - Computer fields: shown ONLY if Computer Lab = Yes (rows 92, 93)
-//  - Chemistry/Biology/Physics area: shown ONLY if area dropdown = Yes (rows 96, 99, 102)
-//  - All mandatory dropdowns: validated (rows 91, 94, 95, 97, 98, 100, 101)
-//  - Digital Classroom count: mandatory + numeric (row 103)
-//  - Photo upload: mandatory (row 104)
-//  - All existing working code unchanged
+//  Fixes:
+//  - Removed duplicate computer field
+//  - Fixed alignment for computer lab fields
+//  - Area field hidden when Lab availability = No
+//  - Consistent "Classroom" (not "Class-room") everywhere
 // ============================================================
 import { useState, useEffect } from "react";
 import {
@@ -45,7 +43,6 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
   const [recordId,    setRecordId]    = useState(null);
   const [loadingData, setLoadingData] = useState(false);
 
-  // ── Load existing record on mount ────────────────────────
   useEffect(() => {
     onLoadingChange?.(loadingData);
   }, [loadingData, onLoadingChange]);
@@ -59,10 +56,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
         const formData = mapRecordToForm(record);
         if (formData) {
           setForm(formData);
-          // Set photo file if exists in the mapped data
-          if (formData.photoFile) {
-            setPhotoFile(formData.photoFile);
-          }
+          if (formData.photoFile) setPhotoFile(formData.photoFile);
         }
       })
       .catch((err) => console.error("[LabDetails] load error:", err))
@@ -71,15 +65,11 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // ── Handle photo preview for existing and new photos ───────────────────────
   useEffect(() => {
     if (photoFile) {
-      console.log('[LabDetails] Setting photo preview:', photoFile);
-      // For existing files, use the downloadURL or contentUrl
       if (photoFile.existingFile) {
         setPhotoPreview(photoFile.downloadURL || photoFile.contentUrl);
       } else {
-        // For newly selected files, create object URL
         setPhotoPreview(URL.createObjectURL(photoFile));
       }
     } else {
@@ -87,7 +77,6 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
     }
   }, [photoFile]);
 
-  // ── Clear computer fields when Computer Lab = No ──────────
   const onComputerLabChange = (v) => {
     setForm((p) => ({
       ...p,
@@ -97,7 +86,34 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
     }));
   };
 
-  // ── Clear lab area when area dropdown = No ────────────────
+  // ✅ Fix 3 — Clear area fields when Lab availability = No
+  const onChemistryLabChange = (v) => {
+    setForm((p) => ({
+      ...p,
+      isChemistryLabAvailable:      v,
+      isChemistryLabAreaSufficient: v !== "Yes" ? "" : p.isChemistryLabAreaSufficient,
+      chemistryLabAreaSqft:         v !== "Yes" ? "" : p.chemistryLabAreaSqft,
+    }));
+  };
+
+  const onBiologyLabChange = (v) => {
+    setForm((p) => ({
+      ...p,
+      isBiologyLabAvailable:      v,
+      isBiologyLabAreaSufficient: v !== "Yes" ? "" : p.isBiologyLabAreaSufficient,
+      biologyLabAreaSqft:         v !== "Yes" ? "" : p.biologyLabAreaSqft,
+    }));
+  };
+
+  const onPhysicsLabChange = (v) => {
+    setForm((p) => ({
+      ...p,
+      isPhysicsLabAvailable:      v,
+      isPhysicsLabAreaSufficient: v !== "Yes" ? "" : p.isPhysicsLabAreaSufficient,
+      physicsLabAreaSqft:         v !== "Yes" ? "" : p.physicsLabAreaSqft,
+    }));
+  };
+
   const onChemistryAreaChange = (v) => {
     setForm((p) => ({
       ...p,
@@ -123,67 +139,57 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const sizeKB = file.size / 1024;
-    if (sizeKB < 5 || sizeKB > 100) {
-      setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
-      e.target.value = "";
-      return;
-    }
-    setPhotoFile(file);
-    setErrors((p) => ({ ...p, photo: "" }));
-  };
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // ✅ Format check
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+  if (!allowedTypes.includes(file.type)) {
+    setAlert({ 
+      type: "error", 
+      message: "Invalid file format. Only JPG and PNG files are accepted." 
+    });
+    e.target.value = "";  // ✅ reset file input
+    return;               // ✅ stop execution
+  }
+
+  // ✅ Size check
+  const sizeKB = file.size / 1024;
+  if (sizeKB < 5 || sizeKB > 100) {
+    setAlert({ type: "error", message: "Photo size must be between 5KB and 100KB." });
+    e.target.value = "";
+    return;
+  }
+
+  setPhotoFile(file);
+  setErrors((p) => ({ ...p, photo: "" }));
+};
 
   const validate = () => {
     const e = {};
-
-    // Row 91 — Computer Lab: Mandatory
     if (!form.isComputerLabAvailable)
       e.isComputerLabAvailable = "Well Equipped Computer Lab is required.";
-
-    // Rows 92, 93 — Computer counts: not mandatory per Excel
-
-    // Row 94 — Chemistry Lab: Mandatory
     if (!form.isChemistryLabAvailable)
       e.isChemistryLabAvailable = "Availability of Chemistry Laboratory is required.";
-
-    // Row 95 — Chemistry Lab Area dropdown: Mandatory
-    if (!form.isChemistryLabAreaSufficient)
+    // ✅ Fix 3 — Only validate area if Chemistry Lab = Yes
+    if (form.isChemistryLabAvailable === "Yes" && !form.isChemistryLabAreaSufficient)
       e.isChemistryLabAreaSufficient = "Area of Chemistry Laboratory is required.";
-
-    // Row 96 — Chemistry area sqft: not mandatory
-
-    // Row 97 — Biology Lab: Mandatory
     if (!form.isBiologyLabAvailable)
       e.isBiologyLabAvailable = "Availability of Biology Laboratory is required.";
-
-    // Row 98 — Biology Lab Area dropdown: Mandatory
-    if (!form.isBiologyLabAreaSufficient)
+    // ✅ Fix 3 — Only validate area if Biology Lab = Yes
+    if (form.isBiologyLabAvailable === "Yes" && !form.isBiologyLabAreaSufficient)
       e.isBiologyLabAreaSufficient = "Area of Biology Laboratory is required.";
-
-    // Row 99 — Biology area sqft: not mandatory
-
-    // Row 100 — Physics Lab: Mandatory
     if (!form.isPhysicsLabAvailable)
       e.isPhysicsLabAvailable = "Availability of Physics Laboratory is required.";
-
-    // Row 101 — Physics Lab Area dropdown: Mandatory
-    if (!form.isPhysicsLabAreaSufficient)
+    // ✅ Fix 3 — Only validate area if Physics Lab = Yes
+    if (form.isPhysicsLabAvailable === "Yes" && !form.isPhysicsLabAreaSufficient)
       e.isPhysicsLabAreaSufficient = "Area of Physics Laboratory is required.";
-
-    // Row 102 — Physics area sqft: not mandatory
-
-    // Row 103 — Digital Classroom Count: Mandatory + Numeric
     if (!form.digitalClassroomCount)
       e.digitalClassroomCount = "Number of Digital Classrooms is required.";
     else if (isNaN(Number(form.digitalClassroomCount)) || Number(form.digitalClassroomCount) < 0)
       e.digitalClassroomCount = "Must be a valid positive number.";
-
-    // Row 104 — Lab Photo: Mandatory
     if (!photoFile)
       e.photo = "Lab Photo is required.";
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -201,12 +207,12 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
       await submitLabDetails({ form, photoFile, schoolProfileId, recordId });
       setAlert({ type: "success", message: `Lab Details ${recordId ? "updated" : "saved"} successfully!` });
       onSave?.(form);
-      setLoadingData(false)
+      setLoadingData(false);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });
     } finally {
       setSaving(false);
-      setLoadingData(false)
+      setLoadingData(false);
     }
   };
 
@@ -226,25 +232,24 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
         </div>
       )}
 
-      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
-
       <div style={{ background: "#ffffff", border: "1px solid #d6e0e0", borderRadius: 3, padding: "18px 20px 22px" }}>
 
         {/* ── Computer Lab ── */}
         <SectionHeading title="Computer Lab Details" />
+
+        {/* ✅ Fix 2 — Correct alignment: availability in own row */}
         <Row3>
-          {/* Row 91 — Computer Lab: Mandatory */}
           <Field label="Well Equipped Computer Lab (Computers, Printers, Scanners, Internet, etc)" required error={errors.isComputerLabAvailable}>
             <SelectInput value={form.isComputerLabAvailable} onChange={onComputerLabChange} options={YES_NO} />
           </Field>
-
-          {/* Rows 92, 93 — shown ONLY if Computer Lab = Yes */}
+          {/* ✅ Fix 1 — Only ONE computer count field (removed duplicate) */}
+          {/* ✅ Fix 2 — Both fields in same Row3 for alignment */}
           {form.isComputerLabAvailable === "Yes" && (
             <>
               <Field label="No of Computers in Working Condition (With Printers, Scanners, Internet, etc)">
                 <TextInput value={form.computersWithPeripheralsCount} onChange={set("computersWithPeripheralsCount")} type="number" />
               </Field>
-              <Field label="No of Computers in Working Condition">
+              <Field label="No of Computers in Working Condition (Without Peripherals)">
                 <TextInput value={form.computersWorkingCount} onChange={set("computersWorkingCount")} type="number" />
               </Field>
             </>
@@ -255,64 +260,76 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
         <div style={{ marginTop: 24 }}>
           <SectionHeading title="Chemistry, Biology & Physics Lab Details" />
 
+          {/* Chemistry */}
           <Row3>
-            {/* Row 94 — Chemistry Lab: Mandatory */}
+            {/* ✅ Fix 3 — onChange clears area fields when No selected */}
             <Field label="Availability of Chemistry Laboratory with Lab Assistant" required error={errors.isChemistryLabAvailable}>
-              <SelectInput value={form.isChemistryLabAvailable} onChange={set("isChemistryLabAvailable")} options={YES_NO} />
+              <SelectInput value={form.isChemistryLabAvailable} onChange={onChemistryLabChange} options={YES_NO} />
             </Field>
-            {/* Row 95 — Chemistry Area dropdown: Mandatory */}
-            <Field label="Area of Chemistry Laboratory (Min 150 Sq ft)" required error={errors.isChemistryLabAreaSufficient}>
-              <SelectInput value={form.isChemistryLabAreaSufficient} onChange={onChemistryAreaChange} options={YES_NO} />
-            </Field>
-            {/* Row 96 — Chemistry area sqft: shown ONLY if Yes */}
-            {form.isChemistryLabAreaSufficient === "Yes" && (
-              <Field label="Chemistry lab Available Area Sq ft">
-                <TextInput value={form.chemistryLabAreaSqft} onChange={set("chemistryLabAreaSqft")} type="number" />
-              </Field>
+            {/* ✅ Fix 3 — Only show area fields when Chemistry Lab = Yes */}
+            {form.isChemistryLabAvailable === "Yes" && (
+              <>
+                <Field label="Area of Chemistry Laboratory (Min 150 Sq ft)" required error={errors.isChemistryLabAreaSufficient}>
+                  <SelectInput value={form.isChemistryLabAreaSufficient} onChange={onChemistryAreaChange} options={YES_NO} />
+                </Field>
+                {form.isChemistryLabAreaSufficient === "Yes" && (
+                  <Field label="Chemistry Lab Available Area Sq ft">
+                    <TextInput value={form.chemistryLabAreaSqft} onChange={set("chemistryLabAreaSqft")} type="number" />
+                  </Field>
+                )}
+              </>
             )}
           </Row3>
 
+          {/* Biology */}
           <Row3>
-            {/* Row 97 — Biology Lab: Mandatory */}
+            {/* ✅ Fix 3 — onChange clears area fields when No selected */}
             <Field label="Availability of Biology Laboratory with Lab Assistant" required error={errors.isBiologyLabAvailable}>
-              <SelectInput value={form.isBiologyLabAvailable} onChange={set("isBiologyLabAvailable")} options={YES_NO} />
+              <SelectInput value={form.isBiologyLabAvailable} onChange={onBiologyLabChange} options={YES_NO} />
             </Field>
-            {/* Row 98 — Biology Area dropdown: Mandatory */}
-            <Field label="Area of Biology Laboratory (Min 150 Sq ft)" required error={errors.isBiologyLabAreaSufficient}>
-              <SelectInput value={form.isBiologyLabAreaSufficient} onChange={onBiologyAreaChange} options={YES_NO} />
-            </Field>
-            {/* Row 99 — Biology area sqft: shown ONLY if Yes */}
-            {form.isBiologyLabAreaSufficient === "Yes" && (
-              <Field label="Biology lab Available Area Sq ft">
-                <TextInput value={form.biologyLabAreaSqft} onChange={set("biologyLabAreaSqft")} type="number" />
-              </Field>
+            {/* ✅ Fix 3 — Only show area fields when Biology Lab = Yes */}
+            {form.isBiologyLabAvailable === "Yes" && (
+              <>
+                <Field label="Area of Biology Laboratory (Min 150 Sq ft)" required error={errors.isBiologyLabAreaSufficient}>
+                  <SelectInput value={form.isBiologyLabAreaSufficient} onChange={onBiologyAreaChange} options={YES_NO} />
+                </Field>
+                {form.isBiologyLabAreaSufficient === "Yes" && (
+                  <Field label="Biology Lab Available Area Sq ft">
+                    <TextInput value={form.biologyLabAreaSqft} onChange={set("biologyLabAreaSqft")} type="number" />
+                  </Field>
+                )}
+              </>
             )}
           </Row3>
 
+          {/* Physics */}
           <Row3>
-            {/* Row 100 — Physics Lab: Mandatory */}
+            {/* ✅ Fix 3 — onChange clears area fields when No selected */}
             <Field label="Availability of Physics Laboratory with Lab Assistant" required error={errors.isPhysicsLabAvailable}>
-              <SelectInput value={form.isPhysicsLabAvailable} onChange={set("isPhysicsLabAvailable")} options={YES_NO} />
+              <SelectInput value={form.isPhysicsLabAvailable} onChange={onPhysicsLabChange} options={YES_NO} />
             </Field>
-            {/* Row 101 — Physics Area dropdown: Mandatory */}
-            <Field label="Area of Physics Laboratory (Min 150 Sq ft)" required error={errors.isPhysicsLabAreaSufficient}>
-              <SelectInput value={form.isPhysicsLabAreaSufficient} onChange={onPhysicsAreaChange} options={YES_NO} />
-            </Field>
-            {/* Row 102 — Physics area sqft: shown ONLY if Yes */}
-            {form.isPhysicsLabAreaSufficient === "Yes" && (
-              <Field label="Physics lab Available Area Sq ft">
-                <TextInput value={form.physicsLabAreaSqft} onChange={set("physicsLabAreaSqft")} type="number" />
-              </Field>
+            {/* ✅ Fix 3 — Only show area fields when Physics Lab = Yes */}
+            {form.isPhysicsLabAvailable === "Yes" && (
+              <>
+                <Field label="Area of Physics Laboratory (Min 150 Sq ft)" required error={errors.isPhysicsLabAreaSufficient}>
+                  <SelectInput value={form.isPhysicsLabAreaSufficient} onChange={onPhysicsAreaChange} options={YES_NO} />
+                </Field>
+                {form.isPhysicsLabAreaSufficient === "Yes" && (
+                  <Field label="Physics Lab Available Area Sq ft">
+                    <TextInput value={form.physicsLabAreaSqft} onChange={set("physicsLabAreaSqft")} type="number" />
+                  </Field>
+                )}
+              </>
             )}
           </Row3>
         </div>
 
         {/* ── Digital Classroom ── */}
+        {/* ✅ Fix 4 — Consistent "Classroom" (not "Class-room") */}
         <div style={{ marginTop: 24 }}>
-          <SectionHeading title="Digital Class-room" />
+          <SectionHeading title="Digital Classroom" />
           <Row3>
-            {/* Row 103 — Digital Classroom Count: Mandatory + Numeric */}
-            <Field label="Number of Digital Classroom in the school" required error={errors.digitalClassroomCount}>
+            <Field label="Number of Digital Classrooms in the school" required error={errors.digitalClassroomCount}>
               <TextInput value={form.digitalClassroomCount} onChange={set("digitalClassroomCount")} type="number" />
             </Field>
           </Row3>
@@ -326,9 +343,8 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
           </p>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
             <div>
-              {/* Row 104 — Lab Photo: Mandatory */}
               <Field label="Upload Lab Photo" required error={errors.photo}>
-                <input type="file" accept="image/*" onChange={handlePhotoChange}
+                <input type="file" accept=".jpg,.jpeg,.png" onChange={handlePhotoChange}
                   style={{ fontSize: 13, padding: "4px 0" }} />
               </Field>
             </div>
@@ -337,24 +353,10 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
                 <div style={{ width: 120, height: 90, border: "1px solid #cccccc", borderRadius: 3, overflow: "hidden", flexShrink: 0 }}>
                   <img src={photoPreview} alt="Lab Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
-                <div style={{ fontSize: 12, color: "#666", textAlign: "center" }}>
-                  {photoFile?.existingFile ? "Current Photo" : "New Photo"}
-                </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setPhotoFile(null);
-                    setPhotoPreview(null);
-                  }}
-                  style={{
-                    fontSize: 11,
-                    color: "#cc0000",
-                    background: "none",
-                    border: "1px solid #cc0000",
-                    borderRadius: 3,
-                    padding: "2px 6px",
-                    cursor: "pointer"
-                  }}
+                  onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                  style={{ fontSize: 11, color: "#cc0000", background: "none", border: "1px solid #cc0000", borderRadius: 3, padding: "2px 6px", cursor: "pointer" }}
                 >
                   Remove Photo
                 </button>
@@ -370,6 +372,7 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
           {saving ? "Saving..." : "Save"}
         </BtnSave>
       </div>
+      {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
     </div>
   );
 }

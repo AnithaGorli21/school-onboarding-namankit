@@ -238,43 +238,22 @@ const handleFileChange = (e) => {
 
   const missingFees = getMissingFees();
 
-  return (
+ return (
     <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 4, position: "relative" }}>
-      <div className="pfm-heading">Profile FeeMaster</div>
-
+      <div className="pfm-heading">Profile feeMaster</div>
       {(loadingData || lookupLoadingCount > 0) && (
         <div style={{ width: "100%", height: "100%", top: 0, left: 0, position: "absolute", zIndex: 1000, background: "rgba(255, 255, 255, 0.72)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Loader />
         </div>
       )}
-
-      {alert && (
-        <div className={`pfm-alert ${alert.type}`}>
-          {alert.message}
-          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
-        </div>
-      )}
-
+      
       {/* Show missing fees info */}
       {rows.length > 0 && missingFees.length > 0 && (
         <div className="pfm-missing-info">
           ⚠️ <strong>Pending fee items:</strong> {missingFees.map((f) => f.label).join(", ")}
         </div>
       )}
-
-      <div className="pfm-row2">
-        <div>
-          <label className="pfm-label">Fees Per Student ST <span className="req">*</span></label>
-          <input className="pfm-input grey" value={feesPerStudentST} readOnly />
-        </div>
-        <div>
-          <label className="pfm-label">Fees Per Student General <span className="req">*</span></label>
-          <input className="pfm-input grey" value={feesPerStudentGeneral} readOnly />
-        </div>
-      </div>
-
       {inputErr && <div className="pfm-err">{inputErr}</div>}
-
       <div className="pfm-row3">
         <div>
           <label className="pfm-label">Fees Item <span className="req">*</span></label>
@@ -284,7 +263,6 @@ const handleFileChange = (e) => {
             onChange={(e) => setI("feesItemId")(e.target.value)}
           >
             <option value="">Select</option>
-            {/* Only show remaining (not yet added) fee options */}
             {remainingFeeOpts.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
@@ -311,30 +289,19 @@ const handleFileChange = (e) => {
           />
         </div>
       </div>
-
       <button type="button" className="pfm-add-btn" onClick={handleAdd}>Add</button>
-
-      <div className="pfm-upload-row">
-        <div className="pfm-upload-group">
-          <label className="pfm-label">Upload Receipt <span className="req">*</span></label>
-          <div className="pfm-file-box">
-            <label className="pfm-choose-label">
-              Choose File
-              <input type="file" style={{ display: "none" }} accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} />
-            </label>
-            <span className="pfm-filename">{receiptFile ? receiptFile.name : "No file chosen"}</span>
-          </div>
+       <div className="pfm-row2">
+        <div>
+          <label className="pfm-label">Fees Per Student ST <span className="req">*</span></label>
+          <input className="pfm-input grey" value={feesPerStudentST} readOnly />
         </div>
-<button
-  type="button"
-  className="pfm-view-btn"
-  onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
-  disabled={!receiptPreview}
->
-  View Uploaded Receipt
-</button>
+        <div>
+          <label className="pfm-label">Fees Per Student General <span className="req">*</span></label>
+          <input className="pfm-input grey" value={feesPerStudentGeneral} readOnly />
+        </div>
       </div>
 
+      {/* ✅ TABLE MOVED ABOVE UPLOAD */}
       {rows.length > 0 && (
         <div className="pfm-table-wrap">
           <table className="pfm-table">
@@ -364,12 +331,40 @@ const handleFileChange = (e) => {
         </div>
       )}
 
+      {/* ✅ UPLOAD MOVED BELOW TABLE */}
+      <div className="pfm-upload-row">
+        <div className="pfm-upload-group">
+          <label className="pfm-label">Upload Receipt <span className="req">*</span></label>
+          <div className="pfm-file-box">
+            <label className="pfm-choose-label">
+              Choose File
+              <input type="file" style={{ display: "none" }} accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} />
+            </label>
+            <span className="pfm-filename">{receiptFile ? receiptFile.name : "No file chosen"}</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="pfm-view-btn"
+          onClick={() => receiptPreview && window.open(receiptPreview, "_blank")}
+          disabled={!receiptPreview}
+        >
+          View Uploaded Receipt
+        </button>
+      </div>
+
       <div className="pfm-actions">
         <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : "Save"}
         </button>
         <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
       </div>
+      {alert && (
+        <div className={`pfm-alert ${alert.type}`}>
+          {alert.message}
+          <span onClick={() => setAlert(null)} style={{ float: "right", cursor: "pointer", fontWeight: 700 }}>×</span>
+        </div>
+      )}
     </div>
   );
 }
