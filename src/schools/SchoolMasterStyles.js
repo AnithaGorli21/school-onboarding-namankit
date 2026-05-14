@@ -18,8 +18,8 @@
 // ─── CSS Variables injected as a <style> block ───────────────
 export const CSS_VARIABLES = `
   :root {
-    --tdd-navy:       #033984;
-    --tdd-navy-dark:  #0f2547;
+    --tdd-navy:       #002B70;
+    --tdd-navy-dark:  #002B70;
     --tdd-navy-light: #2c5aa0;
     --tdd-gold:       #b8860b;
     --tdd-gold-light: #d4a017;
@@ -234,7 +234,7 @@ export const layoutStyles = {
     border: '1px solid var(--tdd-border)',
   },
   sectionBar: {
-    background: 'linear-gradient(90deg, var(--tdd-navy) 0%, var(--tdd-navy-light) 100%)',
+    background: 'linear-gradient(90deg, var(--tdd-navy) 0%, var(--tdd-navy) 100%)',
     color: 'var(--tdd-white)',
     padding: '13px 24px',
     display: 'flex',
@@ -243,7 +243,7 @@ export const layoutStyles = {
     fontSize: 15,
     fontWeight: 700,
     letterSpacing: '0.4px',
-    borderBottom: '3px solid var(--tdd-gold)',
+    borderBottom: '3px solid var(--tdd-navy-dark)',
   },
   mockBadge: {
     marginLeft: 'auto',
@@ -265,7 +265,7 @@ export const layoutStyles = {
     textTransform: 'uppercase',
     letterSpacing: '1.2px',
     color: 'var(--tdd-navy)',
-    borderBottom: '2px solid var(--tdd-gold)',
+    borderBottom: '2px solid var(--tdd-navy)',
     paddingBottom: 5,
     marginBottom: 16,
     display: 'inline-block',
@@ -292,7 +292,8 @@ export const layoutStyles = {
   },
   captchaRow: {
     display: 'flex',
-    alignItems: 'center',
+    // alignItems: 'center',
+    alignItems: "flex-start", // 👈 key fix — was likely "center" causing the jump
     gap: 14,
     padding: '14px 0 4px',
     borderTop: '1px solid var(--tdd-border)',

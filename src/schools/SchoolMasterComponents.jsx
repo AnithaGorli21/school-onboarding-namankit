@@ -66,19 +66,35 @@ export const TDDInput = React.forwardRef(function TDDInput(
   { hasError, style, ...props },
   ref
 ) {
+  const [isFocused, setIsFocused] = React.useState(false);
+
   return (
     <input
       ref={ref}
       className="tdd-input"
       style={{
         ...formStyles.input,
+        outline: "none",  // remove browser default
         ...(hasError
           ? {
-              borderColor: 'var(--tdd-danger)',
-              boxShadow: '0 0 0 2px rgba(192,57,43,0.12)',
+              borderColor: "var(--tdd-danger)",
+              boxShadow: "0 0 0 2px rgba(192,57,43,0.12)",
+            }
+          : isFocused
+          ? {
+              borderColor: "var(--tdd-primary)",           // your brand color on focus
+              boxShadow: "0 0 0 2px rgba(52,152,219,0.15)", // subtle focus ring
             }
           : {}),
         ...(style || {}),
+      }}
+      onFocus={(e) => {
+        setIsFocused(true);
+        props.onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        setIsFocused(false);
+        props.onBlur?.(e);
       }}
       {...props}
     />
@@ -279,7 +295,7 @@ export function CaptchaWidget({ question, value, onChange, onRefresh, error }) {
         🔄
       </button>
  
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "flex-start" }}>
         <TDDInput
           name="captchaAnswer"
           value={value}
@@ -291,11 +307,14 @@ export function CaptchaWidget({ question, value, onChange, onRefresh, error }) {
           inputMode="numeric"
           aria-label="Captcha answer"
         />
-        {error && (
-          <span style={formStyles.errorMsg}>
-            <span>⚠</span> {error}
-          </span>
-        )}
+
+        <div style={{ minHeight: 18 }}>
+          {error && (
+            <span style={formStyles.errorMsg}>
+              <span>⚠</span> {error}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

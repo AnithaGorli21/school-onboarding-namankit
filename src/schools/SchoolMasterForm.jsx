@@ -168,7 +168,7 @@ function validateField(field, value) {
       if (!value.trim()) return "School mobile number is required.";
 
       if (!/^[6-9]\d{9}$/.test(value))
-        return "Must be a valid 10-digit Indian mobile number.";
+        return "Must be a valid 10-digit mobile number.";
 
       return "";
 
@@ -189,22 +189,32 @@ function validateField(field, value) {
       return "";
 
     case "primaryUDISE":
-      if (!value.trim()) return "Primary UDISE Code is required.";
-
-      if (!/^\d{11}$/.test(value))
-        return "UDISE Code must be exactly 11 digits.";
+      if (!value) return "Primary UDISE code is required.";
+      if (!/^\d{11}$/.test(value)) return "Primary UDISE must be 11 digits.";
+      if (/^0+$/.test(value)) return "Invalid Primary UDISE code."; 
 
       return "";
 
     case "secondaryUDISE":
 
+    if (value && !/^\d{11}$/.test(value)) return "Secondary UDISE must be 11 digits.";
+      if (value && /^0+$/.test(value)) return "Invalid Secondary UDISE code."; 
+
+      return "";
+
     case "higherSecondaryUDISE":
-      if (value && !/^\d{11}$/.test(value)) return "Must be exactly 11 digits.";
+      if (value && !/^\d{11}$/.test(value)) return "Higher Secondary UDISE must be 11 digits.";
+      if (value && /^0+$/.test(value)) return "Invalid Higher Secondary UDISE code."; 
 
       return "";
 
     case "pincode":
-      if (value && !/^\d{6}$/.test(value)) return "Pincode must be 6 digits.";
+     // if (value && !/^\d{6}$/.test(value)) return "Pincode must be 6 digits.";
+
+    if (!value) return "Pincode is required";
+    if (!/^\d{6}$/.test(value)) return "Pincode must be 6 digits";
+    if (/^0+$/.test(value)) return "Invalid pincode";       // blocks 000000
+    if (value.startsWith("0")) return "Invalid pincode";    // blocks 012345
 
       return "";
 
@@ -536,7 +546,7 @@ export default function SchoolMasterForm({ useMockData = false, onBack }) {
    // Add all fields that should not accept special characters
   const alphaOnlyFields = ["trusteeName", "schoolName"];
 
-  const numericNoZeroStartFields = ["pincode"];
+  const numericNoZeroStartFields = ["mobilePrincipal","mobileTrustee","mobileSchool","pincode", "primaryUDISE","secondaryUDISE", "higherSecondaryUDISE"];
 
   const sanitizedValue = alphaOnlyFields.includes(name)
   ? value.replace(/[^a-zA-Z\s]/g, "")
@@ -1275,6 +1285,18 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={6}
                       inputMode="numeric"
                       hasError={!!errors.pincode}
+                      onKeyDown={(e) => {
+                        const isAllowed =
+                          /^[0-9]$/.test(e.key) ||
+                          [
+                            "Backspace",
+                            "Delete",
+                            "ArrowLeft",
+                            "ArrowRight",
+                            "Tab",
+                          ].includes(e.key);
+                        if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
 
@@ -1304,6 +1326,18 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={10}
                       inputMode="tel"
                       hasError={!!errors.mobileSchool}
+                      onKeyDown={(e) => {
+                        const isAllowed =
+                          /^[0-9]$/.test(e.key) ||
+                          [
+                            "Backspace",
+                            "Delete",
+                            "ArrowLeft",
+                            "ArrowRight",
+                            "Tab",
+                          ].includes(e.key);
+                        if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
                 </div>
@@ -1326,6 +1360,18 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={10}
                       inputMode="tel"
                       hasError={!!errors.mobileTrustee}
+                      onKeyDown={(e) => {
+                        const isAllowed =
+                          /^[0-9]$/.test(e.key) ||
+                          [
+                            "Backspace",
+                            "Delete",
+                            "ArrowLeft",
+                            "ArrowRight",
+                            "Tab",
+                          ].includes(e.key);
+                        if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
 
@@ -1340,6 +1386,18 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={10}
                       inputMode="tel"
                       hasError={!!errors.mobilePrincipal}
+                      onKeyDown={(e) => {
+                        const isAllowed =
+                          /^[0-9]$/.test(e.key) ||
+                          [
+                            "Backspace",
+                            "Delete",
+                            "ArrowLeft",
+                            "ArrowRight",
+                            "Tab",
+                          ].includes(e.key);
+                        if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
 
@@ -1374,6 +1432,12 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={11}
                       inputMode="numeric"
                       placeholder="11-digit code"
+                      onKeyDown={(e) => {
+                      const isAllowed =
+                       /^[0-9]$/.test(e.key) ||
+                      ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key);
+                      if (!isAllowed) e.preventDefault();
+                      }}
                       hasError={!!errors.primaryUDISE}
                     />
                   </FormField>
@@ -1389,6 +1453,12 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={11}
                       inputMode="numeric"
                       hasError={!!errors.secondaryUDISE}
+                      onKeyDown={(e) => {
+                      const isAllowed =
+                       /^[0-9]$/.test(e.key) ||
+                      ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key);
+                      if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
 
@@ -1403,6 +1473,12 @@ console.log("Saved screenName in DB:", saved?.screenName);
                       maxLength={11}
                       inputMode="numeric"
                       hasError={!!errors.higherSecondaryUDISE}
+                      onKeyDown={(e) => {
+                      const isAllowed =
+                       /^[0-9]$/.test(e.key) ||
+                      ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key);
+                      if (!isAllowed) e.preventDefault();
+                      }}
                     />
                   </FormField>
                 </div>
@@ -1421,17 +1497,21 @@ console.log("Saved screenName in DB:", saved?.screenName);
               {/* ── Action Buttons */}
 
               <div className="tdd-action-row" style={layoutStyles.actionRow}>
-                <TDDButton variant="save" onClick={handleReview} disabled={checkingUDISE}>
+                <TDDButton
+                  variant="save"
+                  onClick={handleReview}
+                  disabled={checkingUDISE}
+                >
                   {checkingUDISE ? "Checking UDISE..." : "Preview & Review"}
                 </TDDButton>
 
                 <TDDButton variant="reset" onClick={handleReset}>
                   Reset
                 </TDDButton>
-
+{/* 
                 <TDDButton variant="back" onClick={handleBack}>
                   Back
-                </TDDButton>
+                </TDDButton> */}
               </div>
             </div>
           )}

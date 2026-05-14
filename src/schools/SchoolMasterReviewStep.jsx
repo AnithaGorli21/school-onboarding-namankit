@@ -86,7 +86,7 @@ const styles = {
     fontSize: '12px',
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
-    color: 'var(--tdd-primary, #1a56db)',
+    color: 'var(--tdd-navy, #002B70)',
     borderBottom: '1px solid var(--tdd-border, #e5e7eb)',
     colSpan: 2,
   },
@@ -178,7 +178,7 @@ const styles = {
     fontWeight: '600',
     fontSize: '14px',
     cursor: 'pointer',
-    background: 'var(--tdd-primary, #1a56db)',
+    background: 'var(--tdd-primary, #002B70)',
     color: '#fff',
     opacity: 1,
     transition: 'opacity 0.15s',
@@ -323,7 +323,7 @@ export default function SchoolMasterReviewStep({
             onClick={onBack}
             disabled={isSubmitting}
           >
-            ← Back to Edit
+            ← Back
           </button>
         </div>
 
