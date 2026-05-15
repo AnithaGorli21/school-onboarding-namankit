@@ -19,6 +19,7 @@ import {
   getVillages,
   getPoNames,
   getSchoolByEmail,
+  getStudentApprovalList,
 } from "../../api/liferay";
 
 export default function StudentRegistration() {
@@ -30,6 +31,18 @@ export default function StudentRegistration() {
   const [capturedUrl, setCapturedUrl] = useState(null);
 
   const [cameraOn, setCameraOn] = useState(false);
+
+  // ✅ Search states — separate from form
+  const [searchForm, setSearchForm] = useState({
+    uniqueNumber: "",
+    studentName: "",
+    pOName: "",
+    admissionDate: "",
+    oldAdmissionDate: "",
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   const videoRef = useRef(null);
 
@@ -322,6 +335,68 @@ useEffect(() => {
         message: "Failed to save — " + (err.message || "Please try again."),
       });
     }
+  };
+
+  // ✅ Search handler — uses separate searchForm state
+  const handleSearch = async () => {
+    const profileId = schoolProfileId || 8774511;
+    setSearching(true);
+    try {
+      const items = await getStudentApprovalList(profileId);
+      let filtered = items || [];
+      if (searchForm.uniqueNumber?.trim())
+        filtered = filtered.filter((s) =>
+          String(s.uniqueNumber || s.aadharNumberUID || "").includes(searchForm.uniqueNumber.trim())
+        );
+      if (searchForm.studentName?.trim()) {
+        const name = searchForm.studentName.trim().toLowerCase();
+        filtered = filtered.filter((s) => {
+          const fullName = (s.studentName || `${s.firstName || ""} ${s.lastName || ""}`).toLowerCase();
+          return fullName.includes(name);
+        });
+      }
+      if (searchForm.pOName?.trim())
+        filtered = filtered.filter((s) =>
+          (s.pOName || "").toLowerCase().includes(searchForm.pOName.trim().toLowerCase())
+        );
+      if (searchForm.admissionDate)
+        filtered = filtered.filter((s) =>
+          (s.admissionDate || "").includes(searchForm.admissionDate)
+        );
+      if (searchForm.oldAdmissionDate)
+        filtered = filtered.filter((s) =>
+          (s.oldAdmissionDate || "").includes(searchForm.oldAdmissionDate)
+        );
+      setSearchResults(filtered);
+      setSearched(true);
+    } catch (err) {
+      setAlert({ type: "error", message: "Search failed — " + err.message });
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // ✅ Export handler
+  const handleExport = () => {
+    if (!searchResults.length) return;
+    const headers = ["Sr No", "Unique Number", "Student Name", "Class", "District", "PO Name", "Admission Date", "Old Admission Date", "Is Active"];
+    const rows = searchResults.map((s, i) => [
+      i + 1,
+      s.uniqueNumber || "",
+      s.studentName || `${s.firstName || ""} ${s.lastName || ""}`.trim(),
+      s.currentClass || "",
+      s.district || "",
+      s.pOName || "",
+      s.admissionDate || "",
+      s.oldAdmissionDate || "",
+      s.isActive ? "True" : "False",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "students.csv"; a.click();
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -1707,8 +1782,8 @@ useEffect(() => {
                         borderRadius: 4,
                       }}
                       name="uniqueNumber"
-                      value={form.uniqueNumber || ""}
-                      onChange={handleChange}
+                      value={searchForm.uniqueNumber}
+                      onChange={(e) => setSearchForm(p => ({ ...p, uniqueNumber: e.target.value }))}
                     />
                   </div>
 
@@ -1728,8 +1803,8 @@ useEffect(() => {
                         borderRadius: 4,
                       }}
                       name="studentName"
-                      value={form.studentName || ""}
-                      onChange={handleChange}
+                      value={searchForm.studentName}
+                      onChange={(e) => setSearchForm(p => ({ ...p, studentName: e.target.value }))}
                     />
                   </div>
 
@@ -1749,8 +1824,8 @@ useEffect(() => {
                         borderRadius: 4,
                       }}
                       name="pOName"
-                      value={form.pOName || ""}
-                      onChange={handleChange}
+                      value={searchForm.pOName}
+                      onChange={(e) => setSearchForm(p => ({ ...p, pOName: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -1770,10 +1845,8 @@ useEffect(() => {
                     <label style={{ fontSize: 13 }}>Admission Date</label>
 
                     <SelectInput
-                      value={form.admissionDate || ""}
-                      onChange={(v) =>
-                        setForm((s) => ({ ...s, admissionDate: v }))
-                      }
+                      value={searchForm.admissionDate}
+                      onChange={(v) => setSearchForm(p => ({ ...p, admissionDate: v }))}
                       options={admissionYearOptions}
                       placeholder="-- Select --"
                     />
@@ -1783,10 +1856,8 @@ useEffect(() => {
                     <label style={{ fontSize: 13 }}>Old Admission Date</label>
 
                     <SelectInput
-                      value={form.oldAdmissionDate || ""}
-                      onChange={(v) =>
-                        setForm((s) => ({ ...s, oldAdmissionDate: v }))
-                      }
+                      value={searchForm.oldAdmissionDate}
+                      onChange={(v) => setSearchForm(p => ({ ...p, oldAdmissionDate: v }))}
                       options={admissionYearOptions}
                       placeholder="-- Select --"
                     />
@@ -1802,37 +1873,16 @@ useEffect(() => {
                     }}
                   >
                     <button
-                      style={{
-                        background: "#28a745",
-
-                        color: "#fff",
-
-                        border: "none",
-
-                        padding: "8px 16px",
-
-                        borderRadius: 4,
-
-                        minWidth: 100,
-                      }}
+                      onClick={handleSearch}
+                      disabled={searching}
+                      style={{ background: "#28a745", color: "#fff", border: "none", padding: "8px 16px", borderRadius: 4, minWidth: 100, cursor: "pointer" }}
                     >
-                      Search
+                      {searching ? "Searching..." : "Search"}
                     </button>
-
                     <button
-                      style={{
-                        background: "#28a745",
-
-                        color: "#fff",
-
-                        border: "none",
-
-                        padding: "8px 16px",
-
-                        borderRadius: 4,
-
-                        minWidth: 100,
-                      }}
+                      onClick={handleExport}
+                      disabled={!searched || !searchResults.length}
+                      style={{ background: searched && searchResults.length ? "#28a745" : "#aaa", color: "#fff", border: "none", padding: "8px 16px", borderRadius: 4, minWidth: 100, cursor: searched && searchResults.length ? "pointer" : "not-allowed" }}
                     >
                       Export to Excel
                     </button>
@@ -1840,16 +1890,46 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div
-                style={{
-                  marginTop: 22,
-
-                  borderTop: "1px solid #eee",
-
-                  paddingTop: 12,
-                }}
-              >
+              <div style={{ marginTop: 22, borderTop: "1px solid #eee", paddingTop: 12 }}>
                 <h5 style={{ margin: 0 }}>Filled Details</h5>
+                {searched && (
+                  <div style={{ overflowX: "auto", marginTop: 12 }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#1a2a5e", color: "#fff" }}>
+                          {["Sr No", "Unique Number", "Student Name", "Class", "District", "PO Name", "Admission Date", "Old Admission Date", "Is Active", "Edit"].map((h) => (
+                            <th key={h} style={{ padding: "10px 12px", border: "1px solid #2d3d6e", whiteSpace: "nowrap", textAlign: "left" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {searchResults.length === 0 ? (
+                          <tr><td colSpan={10} style={{ padding: 20, textAlign: "center", color: "#666" }}>No records found</td></tr>
+                        ) : (
+                          searchResults.map((s, i) => (
+                            <tr key={s.id || i} style={{ background: i % 2 === 0 ? "#fff" : "#f8f9fa" }}>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{i + 1}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.uniqueNumber || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.studentName || `${s.firstName || ""} ${s.lastName || ""}`.trim() || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.currentClass || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.district || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.pOName || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.admissionDate || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.oldAdmissionDate || "—"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>{s.isActive ? "True" : "False"}</td>
+                              <td style={{ padding: "8px 12px", border: "1px solid #dee2e6" }}>
+                                <button style={{ background: "#fff", border: "1px solid #ced4da", borderRadius: 3, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>Edit</button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    <div style={{ marginTop: 8, fontSize: 13, color: "#555" }}>
+                      <strong>Total Records</strong> {searchResults.length}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
