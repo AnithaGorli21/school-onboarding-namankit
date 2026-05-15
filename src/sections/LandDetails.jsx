@@ -527,7 +527,16 @@ const handlePhotoChange = (e) => {
             <div style={{ flex: 1 }}>
               {/* Row 59 — Total Classroom Without Benches: Mandatory */}
               <Field label="Total Classroom Without Benches" required error={rowErrors.classroomWithoutBenches}>
-                <TextInput value={classRow.classroomWithoutBenches} onChange={setCR("classroomWithoutBenches")} type="number" />
+                <TextInput type="number" value={classRow.classroomWithoutBenches}
+                  onChange={(e) =>
+                    handleNumberInputChange({
+                      value: e,
+                      field: 'classroomWithoutBenches',
+                      setForm: setClassRow,
+                      setCR,
+                    })
+                  } 
+                   />
               </Field>
             </div>
             <button 
