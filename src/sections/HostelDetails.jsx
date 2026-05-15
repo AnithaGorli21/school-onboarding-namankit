@@ -17,6 +17,7 @@ import {
 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadHostelDetails, submitHostelDetails, mapRecordToForm } from "../api/HostelDetails";
+import { handleNumberInputChange } from "../utils/NumberInputUtil";
 
 const YES_NO = ["Yes", "No"];
 
@@ -263,11 +264,30 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
       <Row3>
         {/* Row 63 — Students class 1-4: Mandatory + Numeric */}
         <Field label="Total Number of Students studying from class 1st to 4th" required error={errors.studentsClass1to4}>
-          <TextInput value={form.studentsClass1to4} onChange={set("studentsClass1to4")} type="number" />
+          <TextInput type="number" value={form.studentsClass1to4}
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'studentsClass1to4',
+                setForm: setForm,
+                set,
+              })
+            } 
+             />
         </Field>
         {/* Row 64 — Female Caretakers: Mandatory + Numeric */}
         <Field label="Total Number of Female caretakers for Students studying in 1st to 4th standard" required error={errors.femaleCaretakers1to4}>
-          <TextInput value={form.femaleCaretakers1to4} onChange={set("femaleCaretakers1to4")} type="number" />
+          <TextInput type="number"
+            value={form.femaleCaretakers1to4}
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'femaleCaretakers1to4',
+                setForm: setForm,
+                set,
+              })
+            } 
+          />
         </Field>
         {/* Row 65 — Incinerators: Mandatory */}
         <Field label="Availability Of incinerators" required error={errors.availabilityIncinerators}>
@@ -287,7 +307,16 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         {/* Row 68 — Area In Sq.Ft: Not mandatory, shown only if Yes */}
         {form.separateHostelBuilding === "Yes" && (
           <Field label="Area In Sq.Ft" error={errors.areaInSqFt}>
-            <TextInput value={form.areaInSqFt} onChange={set("areaInSqFt")} type="number" />
+            <TextInput type="number" value={form.areaInSqFt}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'areaInSqFt',
+                  setForm: setForm,
+                  set,
+                })
+              }
+            />
           </Field>
         )}
       </Row3>
@@ -331,21 +360,57 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
       <Row3>
         {/* Row 71 — Total Boys Hostels: Mandatory */}
         <Field label="Total Number of Boys Hostels" required error={errors.totalBoysHostels}>
-          <TextInput value={form.totalBoysHostels} onChange={set("totalBoysHostels")} type="number" />
+          <TextInput type="number" value={form.totalBoysHostels}
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'totalBoysHostels',
+                setForm: setForm,
+                set,
+              })
+            }
+          />
         </Field>
         {/* Row 72 — Capacity Boys Hostels: Mandatory */}
         <Field label="Total Capacity of Boys Hostels" required error={errors.capacityBoysHostels}>
-          <TextInput value={form.capacityBoysHostels} onChange={set("capacityBoysHostels")} type="number" />
+          <TextInput type="number" value={form.capacityBoysHostels}
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'capacityBoysHostels',
+                setForm: setForm,
+                set,
+              })
+            }
+          />
         </Field>
         {/* Row 73 — Total Girls Hostels: Mandatory */}
         <Field label="Total Number of Girls Hostels" required error={errors.totalGirlsHostels}>
-          <TextInput value={form.totalGirlsHostels} onChange={set("totalGirlsHostels")} type="number" />
+          <TextInput type="number" value={form.totalGirlsHostels}
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'totalGirlsHostels',
+                setForm: setForm,
+                set,
+              })
+            }
+          />
         </Field>
       </Row3>
       <Row3>
         {/* Row 74 — Capacity Girls Hostels: Mandatory */}
         <Field label="Total Capacity of Girls Hostels" required error={errors.capacityGirlsHostels}>
-          <TextInput value={form.capacityGirlsHostels} onChange={set("capacityGirlsHostels")} type="number" />
+          <TextInput type="number" value={form.capacityGirlsHostels} 
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'capacityGirlsHostels',
+                setForm: setForm,
+                set,
+              })
+            }
+          />
         </Field>
         {/* Row 75 — Grand Total Hostels: Auto-calculated */}
         <Field label="Grand Total (Number of Hostels)" required>
@@ -372,7 +437,16 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         </Field>
         {/* Row 79 — Actual Bathrooms: Mandatory */}
         <Field label="Actual Bathrooms" required error={errors.actualBathrooms}>
-          <TextInput value={form.actualBathrooms} onChange={set("actualBathrooms")} type="number" />
+          <TextInput type="number" value={form.actualBathrooms} 
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'actualBathrooms',
+                setForm: setForm,
+                set,
+              })
+            }
+          />
         </Field>
       </Row2>
       <Row2>
@@ -382,7 +456,15 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         </Field>
         {/* Row 81 — Actual Washrooms: Mandatory */}
         <Field label="Actual Washrooms" required error={errors.actualWashrooms}>
-          <TextInput value={form.actualWashrooms} onChange={set("actualWashrooms")} type="number" />
+          <TextInput type="number" value={form.actualWashrooms} 
+            onChange={(e) =>
+              handleNumberInputChange({
+                value: e,
+                field: 'actualWashrooms',
+                setForm: setForm,
+                set,
+              })
+            } />
         </Field>
       </Row2>
 
