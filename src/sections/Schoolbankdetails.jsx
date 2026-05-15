@@ -327,14 +327,14 @@ export default function SchoolBankDetails({
           </div>
         </Field>
       </div>
-      <button
+      {/* <button
         type="button"
         className="sbd-save-btn"
         onClick={handleSave}
         disabled={saving}
       >
         {saving ? "Saving…" : "Save"}
-      </button>
+      </button> */}
     </SectionWrapper>
   );
 }

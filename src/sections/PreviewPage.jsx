@@ -170,14 +170,14 @@ useEffect(() => {
     </style>
     <div style={page} id="print-area" >
       {/* Print button */}
-      <button
+      {/* <button
         onClick={() =>{ 
           setShowPreview(false);
           window.print()}}
         style={{ padding: "6px 16px", background: "#17a2b8", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", marginBottom: "16px", fontSize: "13px" }}
       >
         Print
-      </button>
+      </button> */}
 
       {/* ── School Basic Details ── */}
       <div style={section}>
@@ -187,9 +187,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>School Photo</td>
               <td style={{ ...val, colSpan: 3 }} colSpan="3">
-                {sb.uploadSchoolPhoto?.fileURL
-                  ? <img src={sb.uploadSchoolPhoto.fileURL} alt="School" style={{ maxHeight: 80 }} />
-                  : "No Photo Uploaded"}
+               {sb.uploadSchoolPhoto?.link?.href
+  ? <img src={`${window.location.origin}${sb.uploadSchoolPhoto.link.href}`} alt="School" style={{ maxHeight: 80 }} />
+  : sb.uploadSchoolPhoto?.fileURL
+  ? <img src={sb.uploadSchoolPhoto.fileURL} alt="School" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
               </td>
             </tr>
             <tr>
@@ -262,9 +264,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>School Land Photo</td>
               <td style={val} colSpan="3">
-                {ld.uploadSchoolLandPhoto?.fileURL
-                  ? <img src={ld.uploadSchoolLandPhoto.fileURL} alt="Land" style={{ maxHeight: 80 }} />
-                  : ""}
+                {ld.uploadSchoolLandPhoto?.link?.href
+  ? <img src={`${window.location.origin}${ld.uploadSchoolLandPhoto.link.href}`} alt="Land" style={{ maxHeight: 80 }} />
+  : ld.uploadSchoolLandPhoto?.fileURL
+  ? <img src={ld.uploadSchoolLandPhoto.fileURL} alt="Land" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
               </td>
             </tr>
             <tr>
@@ -313,9 +317,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>Hostel Photo</td>
               <td style={val} colSpan="3">
-                {hd.uploadHostelPhoto?.fileURL
-                  ? <img src={hd.uploadHostelPhoto.fileURL} alt="Hostel" style={{ maxHeight: 80 }} />
-                  : ""}
+               {hd.uploadHostelPhoto?.link?.href
+  ? <img src={`${window.location.origin}${hd.uploadHostelPhoto.link.href}`} alt="Hostel" style={{ maxHeight: 80 }} />
+  : hd.uploadHostelPhoto?.fileURL
+  ? <img src={hd.uploadHostelPhoto.fileURL} alt="Hostel" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
               </td>
             </tr>
             <tr>
@@ -388,9 +394,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>Dining Hall Photo</td>
               <td style={val} colSpan="3">
-                {dd.uploadDinningHallPhoto?.fileURL
-                  ? <img src={dd.uploadDinningHallPhoto.fileURL} alt="Dining" style={{ maxHeight: 80 }} />
-                  : ""}
+               {dd.uploadDinningHallPhoto?.link?.href
+  ? <img src={`${window.location.origin}${dd.uploadDinningHallPhoto.link.href}`} alt="Dining" style={{ maxHeight: 80 }} />
+  : dd.uploadDinningHallPhoto?.fileURL
+  ? <img src={dd.uploadDinningHallPhoto.fileURL} alt="Dining" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
                 {dd.uploadMenu?.fileURL && (
                   <button
                     onClick={() => window.open(dd.uploadMenu.fileURL, "_blank")}
@@ -425,9 +433,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>Lab Photo</td>
               <td style={val} colSpan="3">
-                {lab.uploadLapPhoto?.fileURL
-                  ? <img src={lab.uploadLapPhoto.fileURL} alt="Lab" style={{ maxHeight: 80 }} />
-                  : ""}
+               {lab.uploadLapPhoto?.link?.href
+  ? <img src={`${window.location.origin}${lab.uploadLapPhoto.link.href}`} alt="Lab" style={{ maxHeight: 80 }} />
+  : lab.uploadLapPhoto?.fileURL
+  ? <img src={lab.uploadLapPhoto.fileURL} alt="Lab" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
               </td>
             </tr>
             <tr>
@@ -484,9 +494,11 @@ useEffect(() => {
             <tr>
               <td style={lbl}>Library Photo</td>
               <td style={val} colSpan="3">
-                {lib.uploadLibraryPhoto?.fileURL
-                  ? <img src={lib.uploadLibraryPhoto.fileURL} alt="Library" style={{ maxHeight: 80 }} />
-                  : ""}
+                {lib.uploadLibraryPhoto?.link?.href
+  ? <img src={`${window.location.origin}${lib.uploadLibraryPhoto.link.href}`} alt="Library" style={{ maxHeight: 80 }} />
+  : lib.uploadLibraryPhoto?.fileURL
+  ? <img src={lib.uploadLibraryPhoto.fileURL} alt="Library" style={{ maxHeight: 80 }} />
+  : "No Photo Uploaded"}
               </td>
             </tr>
             <tr>
