@@ -270,7 +270,7 @@ const handleFileChange = (e) => {
           </select>
         </div>
         <div>
-          <label className="pfm-label">Item Fees TDD <span className="req">*</span></label>
+          <label className="pfm-label">Item Fees Tribal Development Department <span className="req">*</span></label>
           <input type="number" min="0" className="pfm-input"
             value={input.itemFeesTDD}
             onChange={(e) =>
@@ -364,12 +364,12 @@ const handleFileChange = (e) => {
       </div>
       <div style={{ fontSize: 11, color: "#888", margin: "2px 0 10px 0" }}>Accepted Format: PDF, JPG, JPEG, PNG (Max 5MB)</div>
 
-      <div className="pfm-actions">
-        <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving…" : "Save"}
-        </button>
-        <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
-      </div>
+     <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+  <button type="button" className="pfm-reset-btn" onClick={handleReset}>Reset</button>
+  <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
+    {saving ? "Saving…" : "Save"}
+  </button>
+</div>
       {alert && (
         <div className={`pfm-alert ${alert.type}`}>
           {alert.message}

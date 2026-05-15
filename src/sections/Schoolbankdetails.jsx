@@ -122,20 +122,65 @@ export default function SchoolBankDetails({
 
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // const validate = () => {
+  //   const e = {};
+  //   if (!form.bankName.trim()) e.bankName = "Required";
+  //   if (!form.bankBranchName.trim()) e.bankBranchName = "Required";
+  //   if (!form.bankIFSCCode.trim()) e.bankIFSCCode = "Required";
+  //   else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
+  //     e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
+  //   if (!form.bankAccountNo.toString().trim()) e.bankAccountNo = "Required";
+  //   if (!form.bankBranchAddress.trim()) e.bankBranchAddress = "Required";
+  //   if (!form.uploadCancelledChequeImage && !recordId)
+  //     e.uploadCancelledChequeImage = "Cancelled Cheque Document is required";
+  //   setErrors(e);
+  //   return Object.keys(e).length === 0;
+  // };
+
   const validate = () => {
-    const e = {};
-    if (!form.bankName.trim()) e.bankName = "Required";
-    if (!form.bankBranchName.trim()) e.bankBranchName = "Required";
-    if (!form.bankIFSCCode.trim()) e.bankIFSCCode = "Required";
-    else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode))
-      e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
-    if (!form.bankAccountNo.toString().trim()) e.bankAccountNo = "Required";
-    if (!form.bankBranchAddress.trim()) e.bankBranchAddress = "Required";
-    if (!form.uploadCancelledChequeImage && !recordId)
-      e.uploadCancelledChequeImage = "Required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  const e = {};
+
+  // Bank Name — only letters, spaces, & allowed
+  if (!form.bankName.trim()) {
+    e.bankName = "Required";
+  } else if (!/^[a-zA-Z\s&.'-]+$/.test(form.bankName.trim())) {
+    e.bankName = "Only letters, spaces and basic punctuation allowed";
+  }
+
+  // Bank Branch Name — only letters, spaces
+  if (!form.bankBranchName.trim()) {
+    e.bankBranchName = "Required";
+  } else if (!/^[a-zA-Z\s&.'-]+$/.test(form.bankBranchName.trim())) {
+    e.bankBranchName = "Only letters, spaces and basic punctuation allowed";
+  }
+
+  // IFSC Code — already validated
+  if (!form.bankIFSCCode.trim()) {
+    e.bankIFSCCode = "Required";
+  } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.bankIFSCCode)) {
+    e.bankIFSCCode = "Invalid IFSC format (e.g. SBIN0001234)";
+  }
+
+  // Bank Account No — only numbers
+  if (!form.bankAccountNo.toString().trim()) {
+    e.bankAccountNo = "Required";
+  } else if (!/^\d+$/.test(form.bankAccountNo.toString().trim())) {
+    e.bankAccountNo = "Only numbers allowed";
+  }
+
+  // Bank Branch Address — letters, numbers, spaces, basic punctuation
+  if (!form.bankBranchAddress.trim()) {
+    e.bankBranchAddress = "Required";
+  } else if (!/^[a-zA-Z0-9\s,.'#/-]+$/.test(form.bankBranchAddress.trim())) {
+    e.bankBranchAddress = "Special characters not allowed";
+  }
+
+  if (!form.uploadCancelledChequeImage && !recordId)
+    e.uploadCancelledChequeImage = "Cancelled Cheque Document is required";
+
+  setErrors(e);
+  return Object.keys(e).length === 0;
+};
 
   const handleSave = async () => {
     if (!validate()) {
