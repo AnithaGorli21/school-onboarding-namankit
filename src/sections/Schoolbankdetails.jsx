@@ -13,6 +13,7 @@ import {
   submitBankDetails,
   mapRecordToForm,
 } from "../api/schoolbank";
+import { sanitizeInput } from "../utils/CommonUtil";
 
 const STYLE_ID = "school-bank-details-responsive";
 const responsiveCSS = `
@@ -209,7 +210,7 @@ export default function SchoolBankDetails({
 
   // ── IFSC auto-fetch ───────────────────────────────────────
   const handleIFSCChange = async (v) => {
-    const val = v.toUpperCase();
+    const val = sanitizeInput({ value: v.toUpperCase(), allowSpaces: false });
     set("bankIFSCCode")(val);
     setIfscError("");
     setIfscFetched(false); // reset fetched state when user changes IFSC
@@ -300,30 +301,46 @@ export default function SchoolBankDetails({
         <Field label="Bank Name" required error={errors.bankName}>
           <TextInput
             value={form.bankName}
-            onChange={set("bankName")}
+            onChange={(v) => {
+              const value = sanitizeInput({ value: v, allowSpaces: true, allowNumbers: false });
+
+              setForm((p) => ({
+                ...p,
+                bankName: value,
+              }));
+            }}
             disabled={ifscFetched}
           />
         </Field>
         <Field label="Bank Branch Name" required error={errors.bankBranchName}>
           <TextInput
             value={form.bankBranchName}
-            onChange={set("bankBranchName")}
+            onChange={(v) => {
+              const value = sanitizeInput({ value: v, allowSpaces: true });
+
+              setForm((p) => ({
+                ...p,
+                bankBranchName: value,
+              }));
+            }}
             disabled={ifscFetched}
           />
         </Field>
       </div>
       <div className="sbd-row2">
-       <Field label="Bank Account No" required error={errors.bankAccountNo}>
-  <TextInput
-    value={form.bankAccountNo}
-    onChange={(v) => {
-      // Only allow numbers
-      const numericOnly = v.replace(/[^0-9]/g, "");
-      set("bankAccountNo")(numericOnly);
-    }}
-    placeholder="Enter numbers only"
-  />
-</Field>
+        <Field label="Bank Account No" required error={errors.bankAccountNo}>
+          <TextInput
+            value={form.bankAccountNo}
+            onChange={(v) => {
+              const value = sanitizeInput({ value: v, allowSpaces: false, allowNumbers: true, allowAlphabets: false });
+
+              setForm((p) => ({
+                ...p,
+                bankAccountNo: value,
+              }));
+            }}
+          />
+        </Field>
         <Field
           label="Bank Branch Address"
           required
