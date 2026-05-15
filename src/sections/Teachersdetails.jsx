@@ -16,6 +16,7 @@ import Pagination from "../components/Pagination";
 import { loadTeacherDetails, submitTeacherDetails, mapRecordsToRows } from "../api/teacherDetails";
 import { getPicklist, getQualifications } from "../api/liferay";
 import Loader from "../components/Loader";
+import { handleNumberInputChange } from "../utils/NumberInputUtil";
 
 // QUALIFICATIONS, MEDIUMS and SUBJECTS loaded from Liferay
 
@@ -58,6 +59,12 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
   const trackLookupCall = (promise) => {
     setLookupLoadingCount((count) => count + 1);
     return promise.finally(() => setLookupLoadingCount((count) => Math.max(0, count - 1)));
+  };
+
+  const getOptionLabel = (options, value) => {
+    return (
+      options.find((x) => String(x.value) === String(value))?.label || ""
+    );
   };
 
   useEffect(() => {
@@ -152,7 +159,20 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
       setAlert({ type: "error", message: "Please fill Name, Qualification and Gender." });
       return;
     }
-    setRows((p) => [...p, { ...newRow, id: Date.now(), liferayId: null }]);
+    setRows((p) => [
+      ...p,
+      { 
+        ...newRow,
+        id: Date.now(),
+        liferayId: null,
+        highestQualificationLabel: getOptionLabel(qualificationOpts, newRow.highestQualification),
+        mediumOfEducationTillStd10thIdLabel: getOptionLabel(mediumOpts, newRow.mediumOfEducationTillStd10thId),
+        mediumOfEducationForDegreeIdLabel: getOptionLabel(mediumOpts, newRow.mediumOfEducationForDegreeId),
+        mediumForEducationForBedDedBPedBedPhyIdLabel: getOptionLabel(mediumOpts, newRow.mediumForEducationForBedDedBPedBedPhyId),
+        subject1IdLabel: getOptionLabel(subjectOpts, newRow.subject1Id),
+        subject2IdLabel: getOptionLabel(subjectOpts, newRow.subject2Id),
+      }
+    ]);
     setNewRow(emptyRow);
   };
 
@@ -208,7 +228,16 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
             <SelectInput value={newRow.mediumForEducationForBedDedBPedBedPhyId} onChange={setR("mediumForEducationForBedDedBPedBedPhyId")} options={mediumOpts} />
           </Field>
           <Field label="Years Of Experience" required>
-            <TextInput value={newRow.yearOfExperience} onChange={setR("yearOfExperience")} type="number" />
+            <TextInput type="number" value={newRow.yearOfExperience}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'yearOfExperience',
+                  setForm: setNewRow,
+                  setR,
+                })
+              } 
+            />
           </Field>
         </Row3>
         <Row3>
@@ -313,10 +342,10 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
                   {paged.map((r) => (
                     <tr key={r.id}>
                       <td style={TD}>{r.name}</td>
-                      <td style={TD}>{r.highestQualification}</td>
-                      <td style={TD}>{mediumOpts.find(o => o.value === r.subject1Id)?.label || subjectOpts.find(o => o.value === String(r.subject1Id))?.label || r.subject1Id}</td>
-                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationTillStd10thId)?.label || r.mediumOfEducationTillStd10thId}</td>
-                      <td style={TD}>{mediumOpts.find(o => o.value === r.mediumOfEducationForDegreeId)?.label || r.mediumOfEducationForDegreeId}</td>
+                      <td style={TD}>{r.highestQualificationLabel}</td>
+                      <td style={TD}>{r.subject1IdLabel}</td>
+                      <td style={TD}>{r.mediumOfEducationTillStd10thIdLabel}</td>
+                      <td style={TD}>{r.mediumOfEducationForDegreeIdLabel}</td>
                       <td style={TD}>{r.genderId === 1 ? "Male" : r.genderId === 2 ? "Female" : "Other"}</td>
                       <td style={TD}>{r.yearOfExperience}</td>
                       <td style={TD}>
