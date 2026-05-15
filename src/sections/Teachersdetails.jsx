@@ -23,7 +23,7 @@ const themeStyles = {
   container:     { padding: "var(--spacing-md, 16px) var(--spacing-lg, 20px)", position: "relative" },
   card:          { background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #d6e0e0)", borderRadius: "var(--radius-sm, 3px)", padding: "18px 20px 22px" },
   radioGroup:    { display: "flex", gap: "15px", alignItems: "center", fontSize: "13px", marginTop: "8px" },
-  radioGroupLabel: { display: "flex", gap: "5px", },
+  radioGroupLabel: { display: "flex", gap: "5px", alignItems: "center" },
   checkboxLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer", marginTop: "30px" },
   addBtn:        { background: "#28a745", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "4px", cursor: "pointer", fontSize: "14px" },
 };
@@ -212,11 +212,43 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           </Field>
         </Row3>
         <Row3>
-          <Field label="Subject 1" required>
+          {/* <Field label="Subject 1" required>
             <SelectInput value={newRow.subject1Id} onChange={setR("subject1Id")} options={subjectOpts} />
           </Field>
           <Field label="Subject 2">
             <SelectInput value={newRow.subject2Id} onChange={setR("subject2Id")} options={subjectOpts} />
+          </Field> */}
+
+          <Field label="Subject 1" required>
+            <SelectInput
+              value={newRow.subject1Id}
+              onChange={(v) => {
+                setNewRow((p) => ({
+                  ...p,
+                  subject1Id: v,
+                  ...(v === p.subject2Id ? { subject2Id: "" } : {}),
+                }));
+              }}
+              options={subjectOpts}
+            />
+          </Field>
+
+          <Field label="Subject 2">
+            <SelectInput
+              value={newRow.subject2Id}
+              onChange={(v) => {
+                if (v === newRow.subject1Id) {
+                  console.log("Subject 1 and Subject 2 cannot be same");
+                  return;
+                }
+
+                setNewRow((p) => ({
+                  ...p,
+                  subject2Id: v,
+                }));
+              }}
+              options={subjectOpts}
+            />
           </Field>
           <label style={themeStyles.checkboxLabel}>
             <input
