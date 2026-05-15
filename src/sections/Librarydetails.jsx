@@ -10,6 +10,7 @@ import {
 } from "../components/FormFields";
 import { loadLibraryDetails, submitLibraryDetails, mapRecordToForm } from "../api/LibraryDetails";
 import Loader from "../components/Loader";
+import { handleNumberInputChange } from "../utils/NumberInputUtil";
 
 const YES_NO = ["Yes", "No"];
 
@@ -150,10 +151,29 @@ export default function LibraryDetails({ onTabChange, onSave, schoolProfileId, o
             <SelectInput value={form.areamin200FtWithFurniture} onChange={set("areamin200FtWithFurniture")} options={YES_NO} />
           </Field>
           <Field label="Actual Area">
-            <TextInput value={form.actualArea} onChange={set("actualArea")} type="number" />
+            <TextInput type="number" 
+              value={form.actualArea}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'actualArea',
+                  setForm: setForm,
+                  set,
+                })
+              } 
+              />
           </Field>
           <Field label="No of Books" required error={errors.noOfBooks}>
-            <TextInput value={form.noOfBooks} onChange={set("noOfBooks")} type="number" />
+            <TextInput type="number" value={form.noOfBooks}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'noOfBooks',
+                  setForm: setForm,
+                  set,
+                })
+              } 
+            />
           </Field>
         </Row3>
 
