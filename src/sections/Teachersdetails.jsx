@@ -186,7 +186,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
     setLoadingData(true);
     try {
       await submitTeacherDetails({ rows, schoolProfileId });
-      setAlert({ type: "success", message: "Teachers data saved successfully!" });
+      setAlert({ type: "success", message: "Teacher Details saved successfully." });
       onSave?.(rows);
     } catch (e) {
       setAlert({ type: "error", message: "Save failed — " + e.message });

@@ -17,7 +17,6 @@ import {
 } from "../components/FormFields";
 import SectionWrapper from "../components/SectionWrapper";
 import { loadHostelDetails, submitHostelDetails, mapRecordToForm } from "../api/HostelDetails";
-import { handleNumberInputChange } from "../utils/NumberInputUtil";
 
 const YES_NO = ["Yes", "No"];
 
@@ -135,84 +134,73 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
   };
 
   // ── Validate ──────────────────────────────────────────────
+  const MAX_FIELD_VALUE = 99999; // practical max for hostel numbers
   const validate = () => {
     const e = {};
-
-    // Row 63 — Total Students class 1-4: Mandatory + Numeric
+    const isValidNum = (val) => {
+      const n = Number(val);
+      return !isNaN(n) && n >= 0 && n <= MAX_FIELD_VALUE;
+    };
+    // Row 63 — Total Students class 1-4
     if (!form.studentsClass1to4)
       e.studentsClass1to4 = "Total Number of Students (class 1-4) is required.";
-    else if (isNaN(Number(form.studentsClass1to4)) || Number(form.studentsClass1to4) < 0)
-      e.studentsClass1to4 = "Must be a valid positive number.";
-
-    // Row 64 — Female Caretakers: Mandatory + Numeric
+    else if (!isValidNum(form.studentsClass1to4))
+      e.studentsClass1to4 = "Must be a valid number between 0 and 99999.";
+    // Row 64 — Female Caretakers
     if (!form.femaleCaretakers1to4)
       e.femaleCaretakers1to4 = "Total Number of Female Caretakers is required.";
-    else if (isNaN(Number(form.femaleCaretakers1to4)) || Number(form.femaleCaretakers1to4) < 0)
-      e.femaleCaretakers1to4 = "Must be a valid positive number.";
-
-    // Row 65 — Availability of Incinerators: Mandatory
+    else if (!isValidNum(form.femaleCaretakers1to4))
+      e.femaleCaretakers1to4 = "Must be a valid number between 0 and 99999.";
+    // Row 65 — Availability of Incinerators
     if (!form.availabilityIncinerators)
       e.availabilityIncinerators = "Availability of Incinerators is required.";
-
-    // Row 66 — Washing Machine: Mandatory
+    // Row 66 — Washing Machine
     if (!form.washingMachine)
       e.washingMachine = "Availability of Washing Machine is required.";
-
-    // Row 67 — Separate Hostel Building: Mandatory
+    // Row 67 — Separate Hostel Building
     if (!form.separateHostelBuilding)
       e.separateHostelBuilding = "Availability of Separate Hostel Building is required.";
-
     // Row 68 — Area In Sq.Ft: Not mandatory (shown only if Yes)
-
-    // Row 69 — Light Fan Bedding: Mandatory
+    // Row 69 — Light Fan Bedding
     if (!form.lightFanBedding)
       e.lightFanBedding = "Availability of Light, Fan & Bedding is required.";
-
     // Row 70 — Hot Water: At least one checkbox required
     const hasHotWater = HOT_WATER_OPTIONS.some((o) => form[`hotWater_${o.key}`]);
     if (!hasHotWater)
       e.hotWater = "Please select at least one availability of Hot Water.";
-
-    // Row 71 — Total Boys Hostels: Mandatory + Numeric
+    // Row 71 — Total Boys Hostels
     if (!form.totalBoysHostels)
       e.totalBoysHostels = "Total Number of Boys Hostels is required.";
-    else if (isNaN(Number(form.totalBoysHostels)) || Number(form.totalBoysHostels) < 0)
-      e.totalBoysHostels = "Must be a valid positive number.";
-
-    // Row 72 — Capacity Boys Hostels: Mandatory + Numeric
+    else if (!isValidNum(form.totalBoysHostels))
+      e.totalBoysHostels = "Must be a valid number between 0 and 99999.";
+    // Row 72 — Capacity Boys Hostels
     if (!form.capacityBoysHostels)
       e.capacityBoysHostels = "Total Capacity of Boys Hostels is required.";
-    else if (isNaN(Number(form.capacityBoysHostels)) || Number(form.capacityBoysHostels) < 0)
-      e.capacityBoysHostels = "Must be a valid positive number.";
-
-    // Row 73 — Total Girls Hostels: Mandatory + Numeric
+    else if (!isValidNum(form.capacityBoysHostels))
+      e.capacityBoysHostels = "Must be a valid number between 0 and 99999.";
+    // Row 73 — Total Girls Hostels
     if (!form.totalGirlsHostels)
       e.totalGirlsHostels = "Total Number of Girls Hostels is required.";
-    else if (isNaN(Number(form.totalGirlsHostels)) || Number(form.totalGirlsHostels) < 0)
-      e.totalGirlsHostels = "Must be a valid positive number.";
-
-    // Row 74 — Capacity Girls Hostels: Mandatory + Numeric
+    else if (!isValidNum(form.totalGirlsHostels))
+      e.totalGirlsHostels = "Must be a valid number between 0 and 99999.";
+    // Row 74 — Capacity Girls Hostels
     if (!form.capacityGirlsHostels)
       e.capacityGirlsHostels = "Total Capacity of Girls Hostels is required.";
-    else if (isNaN(Number(form.capacityGirlsHostels)) || Number(form.capacityGirlsHostels) < 0)
-      e.capacityGirlsHostels = "Must be a valid positive number.";
-
-    // Row 79 — Actual Bathrooms: Mandatory
+    else if (!isValidNum(form.capacityGirlsHostels))
+      e.capacityGirlsHostels = "Must be a valid number between 0 and 99999.";
+    // Row 79 — Actual Bathrooms
     if (!form.actualBathrooms)
       e.actualBathrooms = "Actual Bathrooms is required.";
-    else if (isNaN(Number(form.actualBathrooms)) || Number(form.actualBathrooms) < 0)
-      e.actualBathrooms = "Must be a valid positive number.";
-
-    // Row 81 — Actual Washrooms: Mandatory
+    else if (!isValidNum(form.actualBathrooms))
+      e.actualBathrooms = "Must be a valid number between 0 and 99999.";
+    // Row 81 — Actual Washrooms
     if (!form.actualWashrooms)
       e.actualWashrooms = "Actual Washrooms is required.";
-    else if (isNaN(Number(form.actualWashrooms)) || Number(form.actualWashrooms) < 0)
-      e.actualWashrooms = "Must be a valid positive number.";
-
-    // Row 82 — Photo: Mandatory
+    else if (!isValidNum(form.actualWashrooms))
+      e.actualWashrooms = "Must be a valid number between 0 and 99999.";
+    // Row 82 — Photo
     if (!photoFile && !form.existingPhoto)
       e.photo = "Hostel Photo is required.";
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -264,30 +252,11 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
       <Row3>
         {/* Row 63 — Students class 1-4: Mandatory + Numeric */}
         <Field label="Total Number of Students studying from class 1st to 4th" required error={errors.studentsClass1to4}>
-          <TextInput type="number" value={form.studentsClass1to4}
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'studentsClass1to4',
-                setForm: setForm,
-                set,
-              })
-            } 
-             />
+          <TextInput value={form.studentsClass1to4} onChange={set("studentsClass1to4")} type="number" />
         </Field>
         {/* Row 64 — Female Caretakers: Mandatory + Numeric */}
         <Field label="Total Number of Female caretakers for Students studying in 1st to 4th standard" required error={errors.femaleCaretakers1to4}>
-          <TextInput type="number"
-            value={form.femaleCaretakers1to4}
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'femaleCaretakers1to4',
-                setForm: setForm,
-                set,
-              })
-            } 
-          />
+          <TextInput value={form.femaleCaretakers1to4} onChange={set("femaleCaretakers1to4")} type="number" />
         </Field>
         {/* Row 65 — Incinerators: Mandatory */}
         <Field label="Availability Of incinerators" required error={errors.availabilityIncinerators}>
@@ -307,16 +276,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         {/* Row 68 — Area In Sq.Ft: Not mandatory, shown only if Yes */}
         {form.separateHostelBuilding === "Yes" && (
           <Field label="Area In Sq.Ft" error={errors.areaInSqFt}>
-            <TextInput type="number" value={form.areaInSqFt}
-              onChange={(e) =>
-                handleNumberInputChange({
-                  value: e,
-                  field: 'areaInSqFt',
-                  setForm: setForm,
-                  set,
-                })
-              }
-            />
+            <TextInput value={form.areaInSqFt} onChange={set("areaInSqFt")} type="number" />
           </Field>
         )}
       </Row3>
@@ -360,57 +320,21 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
       <Row3>
         {/* Row 71 — Total Boys Hostels: Mandatory */}
         <Field label="Total Number of Boys Hostels" required error={errors.totalBoysHostels}>
-          <TextInput type="number" value={form.totalBoysHostels}
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'totalBoysHostels',
-                setForm: setForm,
-                set,
-              })
-            }
-          />
+          <TextInput value={form.totalBoysHostels} onChange={set("totalBoysHostels")} type="number" />
         </Field>
         {/* Row 72 — Capacity Boys Hostels: Mandatory */}
         <Field label="Total Capacity of Boys Hostels" required error={errors.capacityBoysHostels}>
-          <TextInput type="number" value={form.capacityBoysHostels}
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'capacityBoysHostels',
-                setForm: setForm,
-                set,
-              })
-            }
-          />
+          <TextInput value={form.capacityBoysHostels} onChange={set("capacityBoysHostels")} type="number" />
         </Field>
         {/* Row 73 — Total Girls Hostels: Mandatory */}
         <Field label="Total Number of Girls Hostels" required error={errors.totalGirlsHostels}>
-          <TextInput type="number" value={form.totalGirlsHostels}
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'totalGirlsHostels',
-                setForm: setForm,
-                set,
-              })
-            }
-          />
+          <TextInput value={form.totalGirlsHostels} onChange={set("totalGirlsHostels")} type="number" />
         </Field>
       </Row3>
       <Row3>
         {/* Row 74 — Capacity Girls Hostels: Mandatory */}
         <Field label="Total Capacity of Girls Hostels" required error={errors.capacityGirlsHostels}>
-          <TextInput type="number" value={form.capacityGirlsHostels} 
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'capacityGirlsHostels',
-                setForm: setForm,
-                set,
-              })
-            }
-          />
+          <TextInput value={form.capacityGirlsHostels} onChange={set("capacityGirlsHostels")} type="number" />
         </Field>
         {/* Row 75 — Grand Total Hostels: Auto-calculated */}
         <Field label="Grand Total (Number of Hostels)" required>
@@ -437,16 +361,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         </Field>
         {/* Row 79 — Actual Bathrooms: Mandatory */}
         <Field label="Actual Bathrooms" required error={errors.actualBathrooms}>
-          <TextInput type="number" value={form.actualBathrooms} 
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'actualBathrooms',
-                setForm: setForm,
-                set,
-              })
-            }
-          />
+          <TextInput value={form.actualBathrooms} onChange={set("actualBathrooms")} type="number" />
         </Field>
       </Row2>
       <Row2>
@@ -456,15 +371,7 @@ export default function HostelDetails({ onTabChange, onSave, schoolProfileId, on
         </Field>
         {/* Row 81 — Actual Washrooms: Mandatory */}
         <Field label="Actual Washrooms" required error={errors.actualWashrooms}>
-          <TextInput type="number" value={form.actualWashrooms} 
-            onChange={(e) =>
-              handleNumberInputChange({
-                value: e,
-                field: 'actualWashrooms',
-                setForm: setForm,
-                set,
-              })
-            } />
+          <TextInput value={form.actualWashrooms} onChange={set("actualWashrooms")} type="number" />
         </Field>
       </Row2>
 

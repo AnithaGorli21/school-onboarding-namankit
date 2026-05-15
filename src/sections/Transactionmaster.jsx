@@ -50,7 +50,7 @@ const s = {
 const PAGE_SIZE = 10;
 
 const EMPTY_FORM = {
-  transactionType: "Normal Transaction",
+  transactionType: "",
   transactionName: "",
   percent:         "",
 };
@@ -128,10 +128,18 @@ export default function TransactionMaster() {
   const handleSave = async () => {
     setAlert(null);
 
-    // Validations
     if (!form.transactionName.trim()) {
-      setAlert({ type: "err", message: "Transaction Name is required." }); return;
-    }
+  setAlert({ type: "err", message: "Transaction Name is required." }); return;
+}
+// ✅ Block special characters
+if (!/^[a-zA-Z0-9\s]+$/.test(form.transactionName.trim())) {
+  setAlert({ type: "err", message: "Transaction Name should only contain letters and numbers." }); return;
+}
+
+if (!form.transactionType) {
+  setAlert({ type: "err", message: "Please select a Transaction Type." }); return;
+}
+
     if (form.transactionType === "Normal Transaction") {
       if (!form.percent && form.percent !== 0) {
         setAlert({ type: "err", message: "Percent is required for Normal Transaction." }); return;
@@ -190,15 +198,16 @@ export default function TransactionMaster() {
         {/* Transaction Type */}
         <div style={{ marginBottom: 14, maxWidth: 480 }}>
           <label style={s.label}>Transaction Type</label>
-          <select
-            style={s.select}
-            value={form.transactionType}
-            onChange={(e) => handleChange("transactionType", e.target.value)}
-          >
-            {TRANSACTION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+<select
+  style={s.select}
+  value={form.transactionType}
+  onChange={(e) => handleChange("transactionType", e.target.value)}
+>
+  <option value="">--Please Select--</option>
+  {TRANSACTION_TYPES.map((t) => (
+    <option key={t.value} value={t.value}>{t.label}</option>
+  ))}
+</select>
         </div>
 
         {/* Transaction Name + Percent */}
@@ -206,11 +215,15 @@ export default function TransactionMaster() {
           <div>
             <label style={s.label}>Transaction Name <span style={s.req}>*</span></label>
             <input
-              style={s.input}
-              value={form.transactionName}
-              onChange={(e) => handleChange("transactionName", e.target.value)}
-              placeholder="Enter transaction name"
-            />
+  style={s.input}
+  value={form.transactionName}
+  onChange={(e) => {
+    // ✅ Only allow letters, numbers and spaces
+    const val = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+    handleChange("transactionName", val);
+  }}
+  placeholder="Enter transaction name"
+/>
           </div>
           {form.transactionType === "Normal Transaction" && (
             <div>
@@ -266,7 +279,7 @@ export default function TransactionMaster() {
                 <th style={s.th}>Percent</th>
                 <th style={s.th}>Amount Per Student</th>
                 <th style={s.th}>Transaction Type</th>
-                <th style={s.th}>Edit</th>
+                <th style={s.th}>Action</th>
               </tr>
             </thead>
             <tbody>
