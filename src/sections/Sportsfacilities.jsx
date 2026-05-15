@@ -15,6 +15,8 @@ import {
 } from "../api/sportsDetails";
 import { getPicklist } from "../api/liferay";
 import Loader from "../components/Loader";
+import { handleNumberInputChange } from "../utils/NumberInputUtil";
+import { sanitizeInput } from "../utils/CommonUtil";
 
 const YES_NO = ["Yes", "No"];
 const MAGAZINE_TYPES = [
@@ -43,6 +45,7 @@ const emptyForm = {
 
 export default function SportsFacilities({ onTabChange, onSave, schoolProfileId, isEditMode, onLoadingChange }) {
   const [form,         setForm]         = useState(emptyForm);
+  const [errors,       setErrors]       = useState({});
   const [saving,       setSaving]       = useState(false);
   const [alert,        setAlert]        = useState(null);
   const [recordId,     setRecordId]     = useState(null);
@@ -51,6 +54,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
   const [yearOpts,     setYearOpts]     = useState([]);
   const [culturalRows, setCulturalRows] = useState([]);
   const [newCultural,  setNewCultural]  = useState({ yearId: "", programName: "", remarks: "" });
+  const [newCulturalErrors, setNewCulturalErrors] = useState({});
   
   // ✅ Fix 3 — Edit state for cultural rows
   const [editingCulturalId, setEditingCulturalId] = useState(null);
@@ -58,9 +62,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
 
   const [tourRows,     setTourRows]     = useState([]);
   const [newTour,      setNewTour]      = useState({ yearId: "", programName: "", place: "", purpose: "" });
-
-  // ✅ Fix 1 — Special characters validation for sports details
-  const [sportsDetailsError, setSportsDetailsError] = useState("");
+  const [newTourErrors, setNewTourErrors] = useState({});
 
   const trackLookupCall = (promise) => {
     setLookupLoadingCount((count) => count + 1);
@@ -101,20 +103,19 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
   const set = (k) => (v) => setForm((p) => ({ ...p, [k]: v }));
   const getYearLabel = (id) => yearOpts.find((y) => y.value === id || y.value === Number(id))?.label || id;
 
-  // ✅ Fix 1 — Handle sports details change with special char validation
-  const handleSportsDetailsChange = (val) => {
-    const specialCharRegex = /[^a-zA-Z0-9\s,.\-]/;
-    if (specialCharRegex.test(val)) {
-      setSportsDetailsError("Special characters are not allowed.");
-    } else {
-      setSportsDetailsError("");
-    }
-    set("detailsOfSportsPlayedOnPlayground")(val);
+  const validateAddCulturalForm = () => {
+    const e = {};
+    newCultural.yearId === "" && (e.yearId = "This field is required.");
+    newCultural.programName === "" && (e.programName = "This field is required.");
+    
+    setNewCulturalErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  // ✅ Fix 2 — addCultural — remarks NOT mandatory
   const addCultural = () => {
-    if (!newCultural.yearId || !newCultural.programName) return;
+    if (!validateAddCulturalForm()) {
+    return
+    }
     setCulturalRows([...culturalRows, { ...newCultural, id: Date.now(), liferayId: null }]);
     setNewCultural({ yearId: "", programName: "", remarks: "" });
   };
@@ -138,18 +139,47 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
     setEditCultural({ yearId: "", programName: "", remarks: "" });
   };
 
+  const validateNewTourForm = () => {
+    const e = {};
+    newTour.yearId === "" && (e.yearId = "This field is required.");
+    newTour.programName === "" && (e.programName = "This field is required.");
+    newTour.place === "" && (e.place = "This field is required.");
+
+    setNewTourErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const addTour = () => {
-    if (!newTour.yearId || !newTour.programName || !newTour.place) return;
+    if (!validateNewTourForm()) {
+      return;
+    }
     setTourRows([...tourRows, { ...newTour, id: Date.now(), liferayId: null }]);
     setNewTour({ yearId: "", programName: "", place: "", purpose: "" });
   };
 
+  const validate = () => {
+    const e = {};
+
+    form.noOfPhysicalEducationPTTeacherAvailable === "" && (e.noOfPhysicalEducationPTTeacherAvailable = "This field is required.");
+    form.numberOfSportsPlayedOnPlayground === "" && (e.numberOfSportsPlayedOnPlayground = "This field is required.");
+    form.detailsOfSportsPlayedOnPlayground === "" && (e.detailsOfSportsPlayedOnPlayground = "This field is required."); 
+    form.availOfQualifiedSportsTeacherAsPerStuCnt === "" && (e.availOfQualifiedSportsTeacherAsPerStuCnt = "This field is required.");
+    form.availabilityOfSeparateAuditorium === "" && (e.availabilityOfSeparateAuditorium = "This field is required.");
+    form.auditoriumAreasqFt === "" && (e.auditoriumAreasqFt = "This field is required.");
+    form.schoolMagazine === "" && (e.schoolMagazine = "This field is required.");
+    form.schoolMagazineTypeId === "" && (e.schoolMagazineTypeId = "This field is required."); 
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleSave = async () => {
-    // ✅ Fix 1 — Block save if sports details has special chars
-    if (sportsDetailsError) {
-      setAlert({ type: "error", message: "Please fix validation errors before saving." });
+    if (!validate()) {
+      setAlert({ type: "error", message: "Please fix the highlighted errors before saving." });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+
     setSaving(true);
     setAlert(null);
     setLoadingData(true);
@@ -172,7 +202,7 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
     setNewCultural({ yearId: "", programName: "", remarks: "" });
     setNewTour({ yearId: "", programName: "", place: "", purpose: "" });
     setAlert(null);
-    setSportsDetailsError("");
+    setErrors({});
     setEditingCulturalId(null);
   };
 
@@ -186,40 +216,82 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
       <div style={themeStyles.card}>
         <SectionHeading title="Sports Facilities" />
         <Row3>
-          <Field label="Number Of Physical Education (PT) teacher available" required>
-            <TextInput value={form.noOfPhysicalEducationPTTeacherAvailable} onChange={set("noOfPhysicalEducationPTTeacherAvailable")} type="number" />
+          <Field label="Number Of Physical Education (PT) teacher available" error={errors.noOfPhysicalEducationPTTeacherAvailable} required>
+            <TextInput type="number"
+              value={form.noOfPhysicalEducationPTTeacherAvailable}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'noOfPhysicalEducationPTTeacherAvailable',
+                  setForm,
+                  set,
+                })
+              } 
+            />
           </Field>
-          <Field label="Number Of sports Played On PlayGround" required>
-            <TextInput value={form.numberOfSportsPlayedOnPlayground} onChange={set("numberOfSportsPlayedOnPlayground")} type="number" />
+          <Field label="Number Of sports Played On PlayGround" error={errors.numberOfSportsPlayedOnPlayground} required>
+            <TextInput type="number"
+              value={form.numberOfSportsPlayedOnPlayground}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'numberOfSportsPlayedOnPlayground',
+                  setForm,
+                  set,
+                })
+              } />
           </Field>
           {/* ✅ Fix 1 — Special char validation */}
-          <Field label="Details Of sports Played On PlayGround" required error={sportsDetailsError}>
-            <TextInput
+          <Field label="Details Of sports Played On PlayGround" required error={errors.detailsOfSportsPlayedOnPlayground}>
+            <TextInput 
               value={form.detailsOfSportsPlayedOnPlayground}
-              onChange={handleSportsDetailsChange}
+              onChange={(v) => {
+                const value = sanitizeInput({ 
+                  value: v, 
+                  allowSpaces: true, 
+                  allowNumbers: false, 
+                  allowAlphabets: true, 
+                  allowSpecialChars: false, 
+                  allowedChars: "," 
+                });
+              
+                setForm((p) => ({
+                  ...p,
+                  detailsOfSportsPlayedOnPlayground: value,
+                }));
+              }}
               placeholder="Basketball, Football..."
             />
           </Field>
         </Row3>
         <Row3>
-          <Field label="Availabilty of qualified Sport's Teachers as per students' count" required>
+          <Field label="Availabilty of qualified Sport's Teachers as per students' count" required error={errors.availOfQualifiedSportsTeacherAsPerStuCnt}>
             <SelectInput value={form.availOfQualifiedSportsTeacherAsPerStuCnt} onChange={set("availOfQualifiedSportsTeacherAsPerStuCnt")} options={YES_NO} />
           </Field>
           <div /><div />
         </Row3>
         <Row2>
-          <Field label="Availabilty Of Separate Auditorium" required>
+          <Field label="Availabilty Of Separate Auditorium" required error={errors.availabilityOfSeparateAuditorium}>
             <SelectInput value={form.availabilityOfSeparateAuditorium} onChange={set("availabilityOfSeparateAuditorium")} options={YES_NO} />
           </Field>
-          <Field label="Auditorium Area(sq ft)" required>
-            <TextInput value={form.auditoriumAreasqFt} onChange={set("auditoriumAreasqFt")} type="number" />
+          <Field label="Auditorium Area(sq ft)" required error={errors.auditoriumAreasqFt}>
+            <TextInput type="number"
+              value={form.auditoriumAreasqFt}
+              onChange={(e) =>
+                handleNumberInputChange({
+                  value: e,
+                  field: 'auditoriumAreasqFt',
+                  setForm,
+                  set,
+                })
+              } />
           </Field>
         </Row2>
         <Row2>
-          <Field label="School Magazine" required>
+          <Field label="School Magazine" required error={errors.schoolMagazine}>
             <SelectInput value={form.schoolMagazine} onChange={set("schoolMagazine")} options={YES_NO} />
           </Field>
-          <Field label="School Magazine Type" required>
+          <Field label="School Magazine Type" required error={errors.schoolMagazineTypeId}>
             <SelectInput value={form.schoolMagazineTypeId} onChange={set("schoolMagazineTypeId")} options={MAGAZINE_TYPES} />
           </Field>
         </Row2>
@@ -228,10 +300,10 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
         <div style={{ marginTop: 30 }}>
           <SectionHeading title="Cultural programs conducted by school" />
           <Row3>
-            <Field label="Year" required>
+            <Field label="Year" required error={newCulturalErrors.yearId}>
               <SelectInput value={newCultural.yearId} onChange={(v) => setNewCultural({ ...newCultural, yearId: v })} options={yearOpts} />
             </Field>
-            <Field label="Program Name" required>
+            <Field label="Program Name" required error={newCulturalErrors.programName}>
               <TextInput value={newCultural.programName} onChange={(v) => setNewCultural({ ...newCultural, programName: v })} />
             </Field>
             {/* ✅ Fix 2 — Remarks NOT required */}
@@ -329,13 +401,13 @@ export default function SportsFacilities({ onTabChange, onSave, schoolProfileId,
         <div style={{ marginTop: 30 }}>
           <SectionHeading title="Educational tours conducted by school" />
           <Row3>
-            <Field label="Year" required>
+            <Field label="Year" required error={newTourErrors.yearId}>
               <SelectInput value={newTour.yearId} onChange={(v) => setNewTour({ ...newTour, yearId: v })} options={yearOpts} />
             </Field>
-            <Field label="Program Name" required>
+            <Field label="Program Name" required error={newTourErrors.programName}>
               <TextInput value={newTour.programName} onChange={(v) => setNewTour({ ...newTour, programName: v })} />
             </Field>
-            <Field label="Place" required>
+            <Field label="Place" required error={newTourErrors.place}>
               <TextInput value={newTour.place} onChange={(v) => setNewTour({ ...newTour, place: v })} />
             </Field>
           </Row3>
