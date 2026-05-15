@@ -14,6 +14,7 @@ import {
 } from "../components/FormFields";
 import { loadLabDetails, submitLabDetails, mapRecordToForm } from "../api/LabDetails";
 import Loader from "../components/Loader";
+import { handleNumberInputChange } from "../utils/NumberInputUtil";
 
 const YES_NO = ["Yes", "No"];
 
@@ -247,10 +248,27 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
           {form.isComputerLabAvailable === "Yes" && (
             <>
               <Field label="No of Computers in Working Condition (With Printers, Scanners, Internet, etc)">
-                <TextInput value={form.computersWithPeripheralsCount} onChange={set("computersWithPeripheralsCount")} type="number" />
+                <TextInput type="number" value={form.computersWithPeripheralsCount}
+                  onChange={(e) =>
+                    handleNumberInputChange({
+                      value: e,
+                      field: 'computersWithPeripheralsCount',
+                      setForm: setForm,
+                      set,
+                    })
+                  }
+                 />
               </Field>
               <Field label="No of Computers in Working Condition (Without Peripherals)">
-                <TextInput value={form.computersWorkingCount} onChange={set("computersWorkingCount")} type="number" />
+                <TextInput type="number" value={form.computersWorkingCount}
+                  onChange={(e) =>
+                    handleNumberInputChange({
+                      value: e,
+                      field: 'computersWorkingCount',
+                      setForm: setForm,
+                      set,
+                    })
+                  } />
               </Field>
             </>
           )}
@@ -330,7 +348,15 @@ export default function LabDetails({ onTabChange, onSave, schoolProfileId, onLoa
           <SectionHeading title="Digital Classroom" />
           <Row3>
             <Field label="Number of Digital Classrooms in the school" required error={errors.digitalClassroomCount}>
-              <TextInput value={form.digitalClassroomCount} onChange={set("digitalClassroomCount")} type="number" />
+              <TextInput type="number" value={form.digitalClassroomCount} 
+                onChange={(e) =>
+                    handleNumberInputChange({
+                      value: e,
+                      field: 'digitalClassroomCount',
+                      setForm: setForm,
+                      set,
+                    })
+                  } />
             </Field>
           </Row3>
         </div>

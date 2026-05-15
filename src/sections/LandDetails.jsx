@@ -17,6 +17,7 @@ import { loadLandDetails, submitLandDetails, mapRecordToForm } from "../api/land
 import { loadLandSchoolClassroomDetails, submitLandSchoolClassroomDetails, mapRecordsToRows } from "../api/landSchoolClassroomDetails";
 import { getPicklist } from "../api/liferay";
 import Loader from "../components/Loader";
+import { handleDecimalInputChange, handleNumberInputChange } from "../utils/NumberInputUtil";
 
 const YES_NO = ["Yes", "No"];
 
@@ -188,6 +189,20 @@ export default function LandDetails({ onTabChange, onSave, schoolProfileId, onLo
     setLand((p) => ({ ...p, playground: v, playgroundAreaAcres: v !== "Yes" ? "" : p.playgroundAreaAcres }));
   };
 
+  const onPlaygroundAreaChange = (v) => {
+    const num = parseFloat(v);
+
+    // allow empty value
+    if (v !== '' && (!isNaN(num) && num < 0)) return;
+
+    setLand((p) => ({
+      ...p,
+      playgroundAreaAcres: v,
+    }));
+
+    setL("playgroundAreaAcres");
+  };
+
   const pagedRows = classRows.slice((page - 1) * pageSize, page * pageSize);
 
   // ── Validate classroom row ────────────────────────────────
@@ -297,10 +312,18 @@ const handlePhotoChange = (e) => {
       e.ownership = "Ownership is required.";
 
     // Row 45 — Total Area: Mandatory, Numeric 2 decimal
-    if (!land.totalAreaAcres)
+   if (
+      land.totalAreaAcres === "" ||
+      land.totalAreaAcres === null ||
+      land.totalAreaAcres === undefined
+    ) {
       e.totalAreaAcres = "Total Area is required.";
-    else if (!isValidDecimal(land.totalAreaAcres))
-      e.totalAreaAcres = "Enter a valid number (max 2 decimal places).";
+    } else if (Number(land.totalAreaAcres) <= 0) {
+      e.totalAreaAcres = "Total Area must be greater than 0.";
+    } else if (!isValidDecimal(land.totalAreaAcres)) {
+      e.totalAreaAcres =
+        "Enter a valid number (max 2 decimal places).";
+    }
 
     // Row 46 — School Compound Wall: Mandatory
     if (!land.compoundWall)
@@ -312,10 +335,22 @@ const handlePhotoChange = (e) => {
 
     // Row 48 — Playground Area: Not mandatory, but if Playground=Yes it should be filled
     // Numeric 2 decimal if provided
-    if (land.playground === "Yes" && !land.playgroundAreaAcres)
-      e.playgroundAreaAcres = "Playground Area is required when Playground is Yes.";
-    else if (land.playgroundAreaAcres && !isValidDecimal(land.playgroundAreaAcres))
-      e.playgroundAreaAcres = "Enter a valid number (max 2 decimal places).";
+    if (land.playground === "Yes") {
+      if (
+        land.playgroundAreaAcres === "" ||
+        land.playgroundAreaAcres === null ||
+        land.playgroundAreaAcres === undefined
+      ) {
+        e.playgroundAreaAcres =
+          "Playground Area is required when Playground is Yes.";
+      } else if (Number(land.playgroundAreaAcres) <= 0) {
+        e.playgroundAreaAcres =
+          "Playground Area must be greater than 0.";
+      } else if (!isValidDecimal(land.playgroundAreaAcres)) {
+        e.playgroundAreaAcres =
+          "Enter a valid number (max 2 decimal places).";
+      }
+    }
 
     // Row 49 — Swimming Tank: Mandatory
     if (!land.swimmingTank)
@@ -400,7 +435,17 @@ const handlePhotoChange = (e) => {
           </Field>
           {/* Row 45 — Total Area: Mandatory, Numeric 2 decimal */}
           <Field label="Total Area(In Acres)[Building + Playground + Hostel etc]" required error={errors.totalAreaAcres}>
-            <TextInput value={land.totalAreaAcres} onChange={setL("totalAreaAcres")} type="number" placeholder="e.g. 35.00" />
+            <TextInput type="number"
+              value={land.totalAreaAcres} 
+              placeholder="e.g. 35.00"
+              onChange={(e) =>
+                  handleDecimalInputChange({
+                    value: e,
+                    field: 'totalAreaAcres',
+                    setForm: setLand,
+                    setL,
+                  })
+                } />
           </Field>
           {/* Row 46 — Compound Wall: Mandatory */}
           <Field label="School Compound Wall" required error={errors.compoundWall}>
@@ -416,7 +461,16 @@ const handlePhotoChange = (e) => {
           {/* Row 48 — Playground Area: shown ONLY if Playground = Yes */}
           {land.playground === "Yes" && (
             <Field label="Playground Area (In Acres)" error={errors.playgroundAreaAcres}>
-              <TextInput value={land.playgroundAreaAcres} onChange={setL("playgroundAreaAcres")} type="number" placeholder="e.g. 10.00" />
+              <TextInput type="number" value={land.playgroundAreaAcres}  placeholder="e.g. 10.00"
+                onChange={(e) =>
+                  handleDecimalInputChange({
+                    value: e,
+                    field: 'playgroundAreaAcres',
+                    setForm: setLand,
+                    setL,
+                  })
+                }
+              />
             </Field>
           )}
           {/* Row 49 — Swimming Tank: Mandatory */}
@@ -464,7 +518,18 @@ const handlePhotoChange = (e) => {
             </Field>
             {/* Row 56 — Division: Mandatory, must = sum of classrooms */}
             <Field label="Division" required error={rowErrors.division}>
-              <TextInput value={classRow.division} onChange={setCR("division")} type="number" />
+              <TextInput 
+                value={classRow.division}
+                type="number"
+                onChange={(e) =>
+                  handleNumberInputChange({
+                    value: e,
+                    field: 'division',
+                    setForm: setClassRow,
+                    setCR,
+                  })
+                } 
+              />
             </Field>
             {/* Row 57 — Separate Classroom: Mandatory */}
             <Field label="Separate Classroom For Each Division" required error={rowErrors.separateClassroom}>
@@ -482,7 +547,16 @@ const handlePhotoChange = (e) => {
             <div style={{ flex: 1 }}>
               {/* Row 59 — Total Classroom Without Benches: Mandatory */}
               <Field label="Total Classroom Without Benches" required error={rowErrors.classroomWithoutBenches}>
-                <TextInput value={classRow.classroomWithoutBenches} onChange={setCR("classroomWithoutBenches")} type="number" />
+                <TextInput type="number" value={classRow.classroomWithoutBenches}
+                  onChange={(e) =>
+                    handleNumberInputChange({
+                      value: e,
+                      field: 'classroomWithoutBenches',
+                      setForm: setClassRow,
+                      setCR,
+                    })
+                  } 
+                   />
               </Field>
             </div>
             <button 
