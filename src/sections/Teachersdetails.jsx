@@ -289,7 +289,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
           </label>
         </Row3>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", marginTop: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", marginTop: "10px" }}>
           <Field label="Gender" required>
             <div style={themeStyles.radioGroup}>
               {[{ value: 1, label: "Male" }, { value: 2, label: "Female" }, { value: 3, label: "Other" }].map((g) => (
@@ -303,7 +303,7 @@ export default function TeachersDetails({ onTabChange, onSave, schoolProfileId, 
               ))}
             </div>
           </Field>
-          <Field label="Status" required>
+          <Field label="Status" required style={{ marginLeft: "10px" }}>
             <div style={themeStyles.radioGroup}>
               {["Residential", "Non Residential"].map((s, i) => (
                 <label style={themeStyles.radioGroupLabel} key={s}>
