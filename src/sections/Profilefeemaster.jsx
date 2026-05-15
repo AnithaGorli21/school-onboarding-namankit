@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { loadFeemaster, submitFeemaster, mapRecordsToRows } from "../api/profileFeemaster";
 import { getPicklist } from "../api/liferay";
 import Loader from "../components/Loader";
+import { handleDecimalInputChange } from "../utils/NumberInputUtil";
 
 // FEE_TYPE_OPTS loaded from Liferay picklist
 const emptyInput = { feesItemId: "", itemFeesTDD: "", itemFeesGeneral: "" };
@@ -25,7 +26,7 @@ const CSS = `
   .pfm-row3 { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px; }
   .pfm-add-btn { background:#17a2b8;color:#fff;border:none;border-radius:4px;padding:8px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:20px; }
   .pfm-add-btn:hover { background:#138496; }
-  .pfm-upload-row { display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap; }
+  .pfm-upload-row { display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap; }
   .pfm-upload-group { display:flex;flex-direction:column;gap:5px; }
   .pfm-file-box { display:flex;align-items:center;border:1px solid #ced4da;border-radius:4px;overflow:hidden; }
   .pfm-choose-label { background:#f8f9fa;border-right:1px solid #ced4da;padding:7px 12px;font-size:13px;cursor:pointer;white-space:nowrap;user-select:none; }
@@ -270,22 +271,31 @@ const handleFileChange = (e) => {
         </div>
         <div>
           <label className="pfm-label">Item Fees TDD <span className="req">*</span></label>
-          <input
-            className="pfm-input"
+          <input type="number" min="0" className="pfm-input"
             value={input.itemFeesTDD}
-            onChange={(e) => setI("itemFeesTDD")(e.target.value)}
-            type="number"
-            min="0"
+            onChange={(e) =>
+              handleDecimalInputChange({
+                value: e.target.value,
+                field: "itemFeesTDD",
+                setForm: setInput,
+                setI,
+              })
+            }
           />
         </div>
         <div>
           <label className="pfm-label">Item Fees General <span className="req">*</span></label>
-          <input
+          <input type="number" min="0"
             className="pfm-input"
             value={input.itemFeesGeneral}
-            onChange={(e) => setI("itemFeesGeneral")(e.target.value)}
-            type="number"
-            min="0"
+             onChange={(e) =>
+              handleDecimalInputChange({
+                value: e.target.value,
+                field: "itemFeesGeneral",
+                setForm: setInput,
+                setI,
+              })
+            }
           />
         </div>
       </div>
@@ -352,6 +362,7 @@ const handleFileChange = (e) => {
           View Uploaded Receipt
         </button>
       </div>
+      <div style={{ fontSize: 11, color: "#888", margin: "2px 0 10px 0" }}>Accepted Format: PDF, JPG, JPEG, PNG (Max 5MB)</div>
 
       <div className="pfm-actions">
         <button type="button" className="pfm-save-btn" onClick={handleSave} disabled={saving}>
