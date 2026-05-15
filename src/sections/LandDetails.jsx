@@ -312,10 +312,18 @@ const handlePhotoChange = (e) => {
       e.ownership = "Ownership is required.";
 
     // Row 45 — Total Area: Mandatory, Numeric 2 decimal
-    if (!land.totalAreaAcres)
+   if (
+      land.totalAreaAcres === "" ||
+      land.totalAreaAcres === null ||
+      land.totalAreaAcres === undefined
+    ) {
       e.totalAreaAcres = "Total Area is required.";
-    else if (!isValidDecimal(land.totalAreaAcres))
-      e.totalAreaAcres = "Enter a valid number (max 2 decimal places).";
+    } else if (Number(land.totalAreaAcres) <= 0) {
+      e.totalAreaAcres = "Total Area must be greater than 0.";
+    } else if (!isValidDecimal(land.totalAreaAcres)) {
+      e.totalAreaAcres =
+        "Enter a valid number (max 2 decimal places).";
+    }
 
     // Row 46 — School Compound Wall: Mandatory
     if (!land.compoundWall)
@@ -327,10 +335,22 @@ const handlePhotoChange = (e) => {
 
     // Row 48 — Playground Area: Not mandatory, but if Playground=Yes it should be filled
     // Numeric 2 decimal if provided
-    if (land.playground === "Yes" && !land.playgroundAreaAcres)
-      e.playgroundAreaAcres = "Playground Area is required when Playground is Yes.";
-    else if (land.playgroundAreaAcres && !isValidDecimal(land.playgroundAreaAcres))
-      e.playgroundAreaAcres = "Enter a valid number (max 2 decimal places).";
+    if (land.playground === "Yes") {
+      if (
+        land.playgroundAreaAcres === "" ||
+        land.playgroundAreaAcres === null ||
+        land.playgroundAreaAcres === undefined
+      ) {
+        e.playgroundAreaAcres =
+          "Playground Area is required when Playground is Yes.";
+      } else if (Number(land.playgroundAreaAcres) <= 0) {
+        e.playgroundAreaAcres =
+          "Playground Area must be greater than 0.";
+      } else if (!isValidDecimal(land.playgroundAreaAcres)) {
+        e.playgroundAreaAcres =
+          "Enter a valid number (max 2 decimal places).";
+      }
+    }
 
     // Row 49 — Swimming Tank: Mandatory
     if (!land.swimmingTank)
